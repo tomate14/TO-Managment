@@ -15,7 +15,7 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 - **Título de la app:** cambiar el `<title>` de `frontend/src/index.html` ("Frontend") por un título en español cuando lleguen las primeras pantallas. — **resuelto en H1.1**
 
 ## Antes de É4 (pacientes)
-- **Política de logs sin datos personales:** el manejador global registra la causa y el stack trace de los errores inesperados, y los mensajes de Hibernate o de integridad pueden incluir valores de columnas. Definir cómo enmascarar esos datos antes de guardar datos de pacientes.
+- **Política de logs sin datos personales:** el manejador global registra la causa y el stack trace de los errores inesperados, y los mensajes de Hibernate o de integridad pueden incluir valores de columnas. Definir cómo enmascarar esos datos antes de guardar datos de pacientes. — **resuelto en É4** (`SafeThrowableDescriber`; nginx sin query strings).
 - **Imagen de Postgres en los tests:** los tests usan `postgres:15-alpine`. Pasarlos a la imagen de Supabase antes de que alguna migración use roles, esquemas o extensiones propias de Supabase.
 
 ## Antes de un despliegue real
