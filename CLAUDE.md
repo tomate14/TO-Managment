@@ -106,7 +106,11 @@ CLAUDE.md
 | `COMPOSE_PROJECT_NAME` | Nombre del proyecto en Docker |
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Conexión a Postgres |
 | `SUPABASE_DB_VOLUME_NAME` | Nombre del volumen de datos |
-| `SUPABASE_DB_DATA_PATH` | Ruta del volumen en el host |
+| `SUPABASE_DB_DATA_PATH` | Ruta de montaje del volumen dentro del contenedor de Postgres (el volumen es nombrado: en Windows un bind mount rompe los permisos de Postgres) |
+| `SUPABASE_POSTGRES_IMAGE`, `SUPABASE_PG_META_IMAGE`, `SUPABASE_STUDIO_IMAGE` | Imágenes (con tag fijo) del stack de Supabase |
+| `POSTGRES_HOST_PORT` | Puerto de Postgres expuesto en el host |
+| `APP_DB_SCHEMA` | Esquema de la aplicación (lo crea Flyway) |
+| `STUDIO_CONTAINER_PORT`, `STUDIO_ORGANIZATION_NAME`, `STUDIO_PROJECT_NAME`, `STUDIO_SUPABASE_URL`, `STUDIO_ANON_KEY`, `STUDIO_SERVICE_KEY` | Configuración de Supabase Studio (solo administración) |
 | `STUDIO_PORT`, `PG_META_PORT` | Puertos de Supabase Studio y postgres-meta |
 | `BACKEND_PORT`, `SPRING_PROFILES_ACTIVE` | Backend |
 | `JWT_SECRET`, `JWT_EXPIRATION_MS` | Firma y expiración de los JWT |
