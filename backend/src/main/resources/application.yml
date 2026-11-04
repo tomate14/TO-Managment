@@ -35,3 +35,7 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  initial-admin:
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+    name: ${ADMIN_NAME}

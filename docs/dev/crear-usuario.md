@@ -1,4 +1,13 @@
-# Crear un usuario a mano (hasta que exista H1.3 / H1.4)
+# Crear un usuario a mano (hasta que exista H1.4)
+
+## Admin inicial (H1.3)
+Al arrancar, si no hay ningún usuario `ADMIN`, el backend crea uno con `ADMIN_EMAIL`, `ADMIN_PASSWORD` y `ADMIN_NAME` del `.env`.
+- Si ya existe un admin, no hace nada. Cambiar esas variables después **no** modifica al admin existente.
+- Si el email ya lo usa otro usuario, no se crea el admin y el log del backend lo avisa (`docker compose logs backend`).
+
+Antes del primer arranque, poné una contraseña real en `ADMIN_PASSWORD` (nunca `change-me`).
+
+## Otros usuarios por SQL
 
 1. Generá el hash BCrypt de la contraseña. El comando te la pide por teclado, así que no queda en el historial de la shell ni en los argumentos del proceso:
 

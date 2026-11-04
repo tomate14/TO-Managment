@@ -2,6 +2,7 @@ package com.tomanagement.user.repository;
 
 import java.util.Optional;
 
+import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("select u from User u where lower(u.email) = lower(:email)")
     Optional<User> findByEmail(@Param("email") String email);
+
+    boolean existsByRole(Role role);
 }
