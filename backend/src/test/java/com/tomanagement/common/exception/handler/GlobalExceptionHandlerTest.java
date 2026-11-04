@@ -19,6 +19,7 @@ import com.tomanagement.common.exception.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -29,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = ExceptionProbeController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @ExtendWith(OutputCaptureExtension.class)
 class GlobalExceptionHandlerTest {
