@@ -66,6 +66,7 @@ public final class ErrorResponse {
         }
 
         public Builder fieldErrors(List<FieldErrorResponse> fieldErrors) {
+            Objects.requireNonNull(fieldErrors, "fieldErrors is required");
             this.fieldErrors.addAll(fieldErrors);
             return this;
         }

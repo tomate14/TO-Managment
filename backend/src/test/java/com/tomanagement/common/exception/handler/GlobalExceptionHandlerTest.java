@@ -146,6 +146,13 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void missingRequiredHeaderReturns400() throws Exception {
+        mockMvc.perform(get("/test/errors/header"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.MALFORMED_REQUEST.name()));
+    }
+
+    @Test
     void unsupportedContentTypeReturns415() throws Exception {
         mockMvc.perform(post("/test/errors/validated")
                         .contentType(MediaType.TEXT_PLAIN)

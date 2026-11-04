@@ -1,5 +1,7 @@
 package com.tomanagement.common.exception;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 
 /**
@@ -19,12 +21,26 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no permitido para esta ruta."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
+    private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(
+            MALFORMED_REQUEST, AUTHENTICATION_FAILED, ACCESS_DENIED, ENDPOINT_NOT_FOUND,
+            METHOD_NOT_ALLOWED, UNSUPPORTED_MEDIA_TYPE);
+
     private final HttpStatus httpStatus;
     private final String message;
 
     ErrorCode(HttpStatus httpStatus, String message) {
         this.httpStatus = httpStatus;
         this.message = message;
+    }
+
+    /**
+     * Resolves the code for a servlet-container error status; unknown statuses map to INTERNAL_ERROR.
+     */
+    public static ErrorCode fromHttpStatus(int statusCode) {
+        return CONTAINER_LEVEL_CODES.stream()
+                .filter(code -> code.httpStatus.value() == statusCode)
+                .findFirst()
+                .orElse(INTERNAL_ERROR);
     }
 
     public HttpStatus getHttpStatus() {
