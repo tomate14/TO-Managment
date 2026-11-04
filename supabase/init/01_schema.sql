@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V5).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V6).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -78,3 +78,20 @@ CREATE TABLE IF NOT EXISTS question_option (
 );
 -- Labels are unique per question (case-insensitive), enforced by the app so options can be edited in place.
 CREATE INDEX IF NOT EXISTS ix_question_option_question ON question_option (question_id, display_order);
+
+-- Pacientes (É4)
+CREATE TABLE IF NOT EXISTS patient (
+    id                      BIGSERIAL    PRIMARY KEY,
+    dni                     VARCHAR(12)  NOT NULL,
+    first_name              VARCHAR(80)  NOT NULL,
+    last_name               VARCHAR(80)  NOT NULL,
+    birth_date              DATE         NOT NULL,
+    phone                   VARCHAR(40)  NOT NULL,
+    occupation              VARCHAR(120) NOT NULL,
+    health_insurance        VARCHAR(120) NOT NULL,
+    health_insurance_number VARCHAR(60)  NOT NULL,
+    dominance               VARCHAR(10)  NOT NULL CHECK (dominance IN ('LEFT', 'RIGHT')),
+    created_at              TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_patient_dni ON patient (dni);
+CREATE INDEX IF NOT EXISTS ix_patient_name ON patient (lower(last_name), lower(first_name));

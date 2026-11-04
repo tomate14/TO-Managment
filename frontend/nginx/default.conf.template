@@ -1,7 +1,11 @@
+# Access log without query strings: searches like ?q=<DNI> must not end up in the logs (patient data).
+log_format privacy '$remote_addr - [$time_local] "$request_method $uri" $status $body_bytes_sent';
+
 server {
     listen ${FRONTEND_PORT};
     root /usr/share/nginx/html;
     index index.html;
+    access_log /var/log/nginx/access.log privacy;
 
     location /api/ {
         resolver 127.0.0.11 valid=10s;

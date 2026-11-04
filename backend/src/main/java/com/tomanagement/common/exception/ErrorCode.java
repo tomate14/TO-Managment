@@ -44,6 +44,8 @@ public enum ErrorCode {
     QUESTION_LOCKED(HttpStatus.UNPROCESSABLE_ENTITY, "La pregunta tiene respuestas: solo se puede desactivar."),
     QUESTION_HAS_DEPENDENTS(HttpStatus.UNPROCESSABLE_ENTITY,
             "Otras preguntas dependen de esta: no se puede eliminar ni cambiar su tipo u opciones."),
+    PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El paciente no existe."),
+    PATIENT_DNI_DUPLICATE(HttpStatus.CONFLICT, "Ya existe un paciente con este DNI."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

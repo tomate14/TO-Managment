@@ -7,7 +7,8 @@ public enum TestTable {
     BODY_SEGMENT("body_segment"),
     SURGERY_TYPE("surgery_type"),
     SCAR_TYPE("scar_type"),
-    EVALUATION_TEMPLATE("evaluation_template");
+    EVALUATION_TEMPLATE("evaluation_template"),
+    PATIENT("patient");
 
     private final String tableName;
 

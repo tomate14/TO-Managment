@@ -19,3 +19,4 @@ INSERT INTO scar_type (name) VALUES
     ('Normotrófica'), ('Hipertrófica'), ('Queloide'), ('Retráctil')
 ON CONFLICT DO NOTHING;
 -- (É3 no define datos iniciales: las plantillas las crean las terapeutas.)
+-- (É4 no define datos iniciales: los pacientes son datos reales.)

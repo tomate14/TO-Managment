@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.patient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0;
+  padding: 20px 16px 32px;
+}
+
+.patient-form__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.patient-form__heading {
+  float: left;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.patient-form__dominance {
+  gap: 12px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  clear: both;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--color-neutral-bg);
+}
+
+.segmented__option {
+  height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    background: var(--color-surface);
+    color: var(--color-primary-dark);
+    box-shadow: 0 1px 3px rgba(14, 41, 68, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 95, 168, 0.4);
+    outline-offset: 2px;
+  }
+}
+
+.field__input:disabled {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.patient-form__note {
+  padding: 0 4px;
+}
+
+.patient-form__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.patient-form__submit {
+  flex: 1;
+  height: 52px;
+  box-shadow: none;
+}

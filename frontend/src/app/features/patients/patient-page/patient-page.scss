@@ -1,0 +1,252 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.breadcrumb {
+  display: none;
+}
+
+.patient-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 32px;
+}
+
+.patient-hero {
+  padding: 8px 8px 60px;
+  background: var(--color-primary-dark);
+  color: #fff;
+}
+
+.patient-hero__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 60px;
+}
+
+.patient-hero__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #fff;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-accent);
+  }
+}
+
+.patient-hero__title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.patient-hero__edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  margin-right: 4px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-accent);
+  }
+}
+
+.patient-hero__identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px 0;
+}
+
+.patient-hero__avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.patient-hero__text {
+  min-width: 0;
+}
+
+.patient-hero__name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.patient-hero__summary {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.patient-data {
+  margin: -44px 16px 0;
+  padding: 4px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  box-shadow: 0 10px 24px -18px var(--color-primary-dark);
+}
+
+.patient-data__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 14px;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+  }
+}
+
+.patient-card__edit {
+  display: none;
+}
+
+.diagnoses {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.diagnoses__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diagnoses__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.diagnoses__empty,
+.patient-loading {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 1024px) {
+  .breadcrumb {
+    display: block;
+    padding: 28px 48px 16px;
+    font-size: 14px;
+    color: var(--color-text-muted);
+
+    a {
+      font-weight: 700;
+      text-decoration: none;
+    }
+  }
+
+  .patient-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+    padding: 0 48px 48px;
+  }
+
+  .patient-card {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-surface);
+  }
+
+  .patient-hero {
+    padding: 28px 28px 24px;
+  }
+
+  .patient-hero__bar {
+    display: none;
+  }
+
+  .patient-hero__identity {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  .patient-hero__avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 20px;
+  }
+
+  .patient-data {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 8px 28px;
+  }
+
+  .patient-card__edit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    margin: 8px 28px 28px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 14px;
+    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
+  }
+
+  .diagnoses {
+    padding: 0;
+  }
+
+  .diagnoses__title {
+    font-size: 24px;
+  }
+}

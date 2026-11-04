@@ -1,0 +1,61 @@
+<nav class="breadcrumb" aria-label="Ubicación">
+  <a routerLink="/pacientes">Pacientes</a>
+  @if (patient(); as p) {
+    <span aria-hidden="true"> / </span><span aria-current="page">{{ fullName(p) }}</span>
+  }
+</nav>
+
+@if (error(); as message) {
+  <header class="page-header">
+    <a class="page-header__back" routerLink="/pacientes" aria-label="Volver a pacientes">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <h1 class="page-header__title">Ficha del paciente</h1>
+  </header>
+  <div class="page-body">
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  </div>
+} @else if (patient(); as p) {
+  <div class="patient-layout">
+    <section class="patient-card" aria-labelledby="patient-name">
+      <div class="patient-hero">
+        <div class="patient-hero__bar">
+          <a class="patient-hero__back" routerLink="/pacientes" aria-label="Volver a pacientes">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+          </a>
+          <span class="patient-hero__title">Ficha del paciente</span>
+          <a class="patient-hero__edit" [routerLink]="['/pacientes', patientId, 'editar']">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Editar
+          </a>
+        </div>
+        <div class="patient-hero__identity">
+          <div class="patient-hero__avatar" aria-hidden="true">{{ initials(p) }}</div>
+          <div class="patient-hero__text">
+            <h1 id="patient-name" class="patient-hero__name">{{ fullName(p) }}</h1>
+            <p class="patient-hero__summary">{{ summary() }}</p>
+          </div>
+        </div>
+      </div>
+
+      <dl class="patient-data" aria-label="Datos del paciente">
+        <div class="patient-data__row"><dt>Fecha de nacimiento</dt><dd>{{ formatDate(p.birthDate) }}</dd></div>
+        <div class="patient-data__row"><dt>Teléfono</dt><dd><a [href]="telHref(p.phone)">{{ p.phone }}</a></dd></div>
+        <div class="patient-data__row"><dt>Ocupación</dt><dd>{{ p.occupation }}</dd></div>
+        <div class="patient-data__row"><dt>Obra social</dt><dd>{{ p.healthInsurance }}</dd></div>
+        <div class="patient-data__row"><dt>N.º de afiliado</dt><dd>{{ p.healthInsuranceNumber }}</dd></div>
+      </dl>
+      <a class="patient-card__edit" [routerLink]="['/pacientes', patientId, 'editar']">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>Editar datos
+      </a>
+    </section>
+
+    <section class="diagnoses" aria-labelledby="diagnoses-heading">
+      <div class="diagnoses__head">
+        <h2 id="diagnoses-heading" class="diagnoses__title">Diagnósticos</h2>
+      </div>
+      <p class="diagnoses__empty">Todavía no hay diagnósticos.</p>
+    </section>
+  </div>
+} @else {
+  <p class="page-body patient-loading" role="status">Cargando paciente…</p>
+}

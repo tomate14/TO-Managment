@@ -9,6 +9,7 @@ import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.common.exception.InternalSystemException;
 import com.tomanagement.common.exception.dto.ErrorResponse;
 import com.tomanagement.common.exception.dto.FieldErrorResponse;
+import com.tomanagement.common.logging.SafeThrowableDescriber;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -49,7 +50,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<ErrorResponse> handleApplicationException(ApplicationException exception) {
         if (exception.getErrorCode() == ErrorCode.INTERNAL_ERROR) {
-            LOGGER.error("Internal error", exception);
+            LOGGER.error("Internal error: {}", SafeThrowableDescriber.describe(exception));
         } else {
             LOGGER.warn("Application error: {}", exception.getErrorCode());
         }
@@ -109,7 +110,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception) {
         InternalSystemException wrapped = new InternalSystemException(exception);
-        LOGGER.error("Unexpected error", wrapped);
+        // Never log messages or raw stack traces here: they may carry patient data (see SafeThrowableDescriber).
+        LOGGER.error("Unexpected error: {}", SafeThrowableDescriber.describe(exception));
         return respond(wrapped.getErrorCode(), List.of());
     }
 

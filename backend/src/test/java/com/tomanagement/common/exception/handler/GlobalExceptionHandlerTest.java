@@ -103,7 +103,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(ErrorCode.INTERNAL_ERROR.name()))
                 .andExpect(content().string(not(containsString("secret"))));
-        assertThat(output.getAll()).contains("IllegalStateException");
+        assertThat(output.getAll()).contains("IllegalStateException").doesNotContain("password=secret");
     }
 
     @Test

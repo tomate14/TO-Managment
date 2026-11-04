@@ -18,9 +18,30 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'pacientes' },
       {
         path: 'pacientes',
-        title: `Pacientes · ${APP_NAME}`,
-        data: { heading: 'Pacientes' },
-        loadComponent: () => import('./features/empty-section/empty-section').then((m) => m.EmptySection),
+        children: [
+          {
+            path: '',
+            title: `Pacientes · ${APP_NAME}`,
+            loadComponent: () => import('./features/patients/patients-page/patients-page').then((m) => m.PatientsPage),
+          },
+          {
+            path: 'nuevo',
+            title: `Nuevo paciente · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/patients/patient-form-page/patient-form-page').then((m) => m.PatientFormPage),
+          },
+          {
+            path: ':id',
+            title: `Ficha del paciente · ${APP_NAME}`,
+            loadComponent: () => import('./features/patients/patient-page/patient-page').then((m) => m.PatientPage),
+          },
+          {
+            path: ':id/editar',
+            title: `Editar paciente · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/patients/patient-form-page/patient-form-page').then((m) => m.PatientFormPage),
+          },
+        ],
       },
       {
         path: 'plantillas',
