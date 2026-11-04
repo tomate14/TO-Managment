@@ -3,16 +3,16 @@
 Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tienen que** tomar en cuenta.
 
 ## Para el plan de É1 (acceso)
-- **Errores de Spring Security con el formato uniforme:**
+- **Errores de Spring Security con el formato uniforme:** — **resuelto en H1.1**
   - Agregar `@ExceptionHandler` para `AuthenticationException` → `AUTHENTICATION_FAILED` y `AccessDeniedException` → `ACCESS_DENIED`, para los errores que salen de `@PreAuthorize`/`@Secured`.
   - Hacer que `AuthenticationEntryPoint` y `AccessDeniedHandler` escriban un `ErrorResponse`.
   - Agregar tests para los dos casos.
   - Si no se hace, esos errores terminan en 500.
-- **Permitir `/error`** en la cadena de seguridad para los despachos de error. Si no, los 401/403 no llegan a `ApiErrorController`.
-- **Sumar un código propio para token vencido** (por ejemplo `TOKEN_EXPIRED`), distinto de `AUTHENTICATION_FAILED`. El mensaje de este último ("Email o contraseña incorrectos.") no sirve para un token vencido.
-- **Resolver CORS:** `CORS_ALLOWED_ORIGINS` todavía no está conectado. Hay que configurarlo junto con Spring Security.
+- **Permitir `/error`** en la cadena de seguridad para los despachos de error. Si no, los 401/403 no llegan a `ApiErrorController`. — **resuelto en H1.1**
+- **Sumar un código propio para token vencido** (por ejemplo `TOKEN_EXPIRED`), distinto de `AUTHENTICATION_FAILED`. El mensaje de este último ("Email o contraseña incorrectos.") no sirve para un token vencido. — **resuelto en H1.1**
+- **Resolver CORS:** `CORS_ALLOWED_ORIGINS` todavía no está conectado. Hay que configurarlo junto con Spring Security. — **resuelto en H1.1**
 - **Rol de base de datos:** hoy la app se conecta como `postgres`. Evaluar un rol con privilegios mínimos.
-- **Título de la app:** cambiar el `<title>` de `frontend/src/index.html` ("Frontend") por un título en español cuando lleguen las primeras pantallas.
+- **Título de la app:** cambiar el `<title>` de `frontend/src/index.html` ("Frontend") por un título en español cuando lleguen las primeras pantallas. — **resuelto en H1.1**
 
 ## Antes de É4 (pacientes)
 - **Política de logs sin datos personales:** el manejador global registra la causa y el stack trace de los errores inesperados, y los mensajes de Hibernate o de integridad pueden incluir valores de columnas. Definir cómo enmascarar esos datos antes de guardar datos de pacientes.
