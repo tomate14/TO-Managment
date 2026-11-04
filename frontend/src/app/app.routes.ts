@@ -50,6 +50,12 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'catalogos',
+        canActivate: [adminGuard],
+        title: `Catálogos · ${APP_NAME}`,
+        loadComponent: () => import('./features/catalogs/catalogs-page/catalogs-page').then((m) => m.CatalogsPage),
+      },
+      {
         path: 'cambiar-contrasena',
         title: `Cambiar contraseña · ${APP_NAME}`,
         loadComponent: () =>

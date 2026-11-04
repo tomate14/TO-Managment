@@ -1,0 +1,80 @@
+<header class="catalogs-header">
+  <div class="page-header catalogs-header__bar">
+    <a class="page-header__back page-header__back--mobile-only" routerLink="/mas" aria-label="Volver">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <h1 class="page-header__title">Catálogos</h1>
+  </div>
+  <div class="tabs" role="group" aria-label="Catálogo">
+    @for (catalog of catalogs; track catalog.slug) {
+      <button type="button" class="tabs__tab" [attr.aria-pressed]="current() === catalog" (click)="select(catalog)">
+        {{ catalog.tabLabel }}
+      </button>
+    }
+  </div>
+</header>
+
+<div class="page-body catalogs">
+  <form class="catalogs__add" (submit)="$event.preventDefault(); add()" novalidate>
+    <label class="field__label" for="catalog-new">{{ current().addLabel }}</label>
+    <div class="catalogs__add-row">
+      <input id="catalog-new" class="field__input catalogs__input" [formControl]="newName" autocomplete="off"
+             [attr.maxlength]="maxName"
+             [class.field__input--invalid]="addError()" [attr.aria-invalid]="!!addError()"
+             [attr.aria-describedby]="addError() ? 'catalog-new-error' : null">
+      <button type="submit" class="catalogs__add-button" [disabled]="adding()" [attr.aria-busy]="adding()">Agregar</button>
+    </div>
+    @if (addError(); as message) {
+      <p id="catalog-new-error" class="catalogs__error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>{{ message }}
+      </p>
+    }
+  </form>
+
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  @if (items(); as list) {
+    <ul class="catalogs__list">
+      @for (item of list; track item.id) {
+        <li class="catalog-row">
+          @if (editingId() === item.id) {
+            <form class="catalog-row__edit" (submit)="$event.preventDefault(); saveEdit(item)" novalidate>
+              <label class="visually-hidden" [attr.for]="'catalog-edit-' + item.id">Nombre de {{ item.name }}</label>
+              <input [id]="'catalog-edit-' + item.id" class="field__input catalogs__input" [formControl]="editName"
+                     autocomplete="off" [attr.maxlength]="maxName"
+                     [class.field__input--invalid]="editError()" [attr.aria-invalid]="!!editError()"
+                     [attr.aria-describedby]="editError() ? 'catalog-edit-error' : null">
+              <div class="catalog-row__edit-actions">
+                <button type="button" class="catalog-row__cancel" (click)="cancelEdit()">Cancelar</button>
+                <button type="submit" class="catalog-row__save" [disabled]="isPending(item)">Guardar</button>
+              </div>
+              @if (editError(); as message) {
+                <p id="catalog-edit-error" class="catalogs__error">{{ message }}</p>
+              }
+            </form>
+          } @else {
+            <span class="catalog-row__text">
+              <span class="catalog-row__name" [class.catalog-row__name--inactive]="!item.active">{{ item.name }}</span>
+              <span class="catalog-row__status">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+            </span>
+            <button type="button" class="catalog-row__edit-button" [attr.aria-label]="'Editar ' + item.name" (click)="startEdit(item)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>
+            </button>
+            <button type="button" class="switch" role="switch" [attr.aria-checked]="item.active"
+                    [attr.aria-label]="'Activo: ' + item.name" [disabled]="isPending(item)" (click)="toggle(item)">
+              <span class="switch__thumb"></span>
+            </button>
+          }
+        </li>
+      } @empty {
+        <li class="catalog-row catalog-row--empty">Todavía no hay elementos en este catálogo.</li>
+      }
+    </ul>
+  } @else if (!error()) {
+    <p class="catalogs__loading" role="status">Cargando…</p>
+  }
+
+  <p class="catalogs__note">Los inactivos no se ofrecen en altas nuevas, pero se siguen viendo en el historial.</p>
+</div>

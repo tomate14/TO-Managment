@@ -47,7 +47,7 @@ describe('MorePage', () => {
     expect(el.textContent).toContain('Administración');
     expect(el.textContent).toContain('Esta sección solo la ven las administradoras.');
     const links = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    expect(links).toEqual(['/usuarios', '/cambiar-contrasena']);
+    expect(links).toEqual(['/usuarios', '/catalogos', '/cambiar-contrasena']);
   });
 
   it('offers "Cambiar contraseña" in Mi cuenta', () => {

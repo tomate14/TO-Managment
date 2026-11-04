@@ -39,7 +39,7 @@ describe('Shell', () => {
     const navs = el.querySelectorAll('nav[aria-label="Navegación principal"]');
     expect(navs.length).toBe(2);
     expect(navLabels(el.querySelector('app-side-nav nav')!))
-      .toEqual(['Pacientes', 'Plantillas', 'Usuarios', 'Cambiar contraseña']);
+      .toEqual(['Pacientes', 'Plantillas', 'Usuarios', 'Catálogos', 'Cambiar contraseña']);
     expect(el.querySelector('app-side-nav a[href="/cambiar-contrasena"]')).toBeTruthy();
     expect(el.querySelector('app-side-nav')?.textContent).toContain('Administración');
     expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Plantillas', 'Más']);

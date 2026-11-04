@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V2).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V4).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -18,3 +18,25 @@ CREATE TABLE IF NOT EXISTS app_user (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ux_app_user_email_lower ON app_user (lower(email));
+
+-- Catálogos (É2)
+CREATE TABLE IF NOT EXISTS surgery_type (
+    id     BIGSERIAL   PRIMARY KEY,
+    name   VARCHAR(80) NOT NULL,
+    active BOOLEAN     NOT NULL DEFAULT TRUE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_surgery_type_name_lower ON surgery_type (lower(name));
+
+CREATE TABLE IF NOT EXISTS scar_type (
+    id     BIGSERIAL   PRIMARY KEY,
+    name   VARCHAR(80) NOT NULL,
+    active BOOLEAN     NOT NULL DEFAULT TRUE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_scar_type_name_lower ON scar_type (lower(name));
+
+CREATE TABLE IF NOT EXISTS body_segment (
+    id     BIGSERIAL   PRIMARY KEY,
+    name   VARCHAR(80) NOT NULL,
+    active BOOLEAN     NOT NULL DEFAULT TRUE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_body_segment_name_lower ON body_segment (lower(name));

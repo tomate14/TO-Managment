@@ -26,6 +26,9 @@ public enum ErrorCode {
     SELF_DEACTIVATION_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés desactivarte."),
     SELF_ROLE_CHANGE_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés cambiar tu propio rol."),
     CURRENT_PASSWORD_INCORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "La contraseña actual no es correcta."),
+    CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "El catálogo no existe."),
+    CATALOG_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "El elemento del catálogo no existe."),
+    CATALOG_ITEM_DUPLICATE(HttpStatus.CONFLICT, "Ya existe con ese nombre (sin importar mayúsculas)."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(
