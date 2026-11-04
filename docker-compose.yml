@@ -1,0 +1,100 @@
+name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required}
+
+services:
+  db:
+    image: ${SUPABASE_POSTGRES_IMAGE:?SUPABASE_POSTGRES_IMAGE is required}
+    restart: unless-stopped
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    environment:
+      PGPORT: ${POSTGRES_PORT:?POSTGRES_PORT is required}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      PGDATABASE: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT:?POSTGRES_HOST_PORT is required}:${POSTGRES_PORT}"
+    volumes:
+      - db-data:${SUPABASE_DB_DATA_PATH:?SUPABASE_DB_DATA_PATH is required}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:?POSTGRES_USER is required}", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  meta:
+    image: ${SUPABASE_PG_META_IMAGE:?SUPABASE_PG_META_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: ${PG_META_PORT:?PG_META_PORT is required}
+      PG_META_DB_HOST: ${POSTGRES_HOST:?POSTGRES_HOST is required}
+      PG_META_DB_PORT: ${POSTGRES_PORT}
+      PG_META_DB_NAME: ${POSTGRES_DB}
+      PG_META_DB_USER: ${POSTGRES_USER}
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:${PG_META_PORT}/health').then((r) => {if (r.status !== 200) throw new Error(r.status)})\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  studio:
+    image: ${SUPABASE_STUDIO_IMAGE:?SUPABASE_STUDIO_IMAGE is required}
+    restart: unless-stopped
+    depends_on:
+      - meta
+    environment:
+      STUDIO_PG_META_URL: http://meta:${PG_META_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_ORGANIZATION_NAME:?STUDIO_ORGANIZATION_NAME is required}
+      DEFAULT_PROJECT_NAME: ${STUDIO_PROJECT_NAME:?STUDIO_PROJECT_NAME is required}
+      SUPABASE_URL: ${STUDIO_SUPABASE_URL:?STUDIO_SUPABASE_URL is required}
+      SUPABASE_PUBLIC_URL: ${STUDIO_SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${STUDIO_ANON_KEY:?STUDIO_ANON_KEY is required}
+      SUPABASE_SERVICE_KEY: ${STUDIO_SERVICE_KEY:?STUDIO_SERVICE_KEY is required}
+      AUTH_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "${STUDIO_PORT:?STUDIO_PORT is required}:${STUDIO_CONTAINER_PORT:?STUDIO_CONTAINER_PORT is required}"
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      BACKEND_PORT: ${BACKEND_PORT:?BACKEND_PORT is required}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:?SPRING_PROFILES_ACTIVE is required}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_SCHEMA: ${APP_DB_SCHEMA:?APP_DB_SCHEMA is required}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:?JWT_EXPIRATION_MS is required}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      ADMIN_NAME: ${ADMIN_NAME:?ADMIN_NAME is required}
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      FRONTEND_PORT: ${FRONTEND_PORT:?FRONTEND_PORT is required}
+      API_BASE_URL: ${API_BASE_URL:?API_BASE_URL is required}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+
+volumes:
+  db-data:
+    name: ${SUPABASE_DB_VOLUME_NAME:?SUPABASE_DB_VOLUME_NAME is required}
