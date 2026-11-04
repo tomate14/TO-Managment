@@ -4,9 +4,11 @@ import com.tomanagement.common.exception.AccessDeniedApplicationException;
 import com.tomanagement.common.exception.AuthenticationFailedException;
 import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.DuplicateResourceException;
+import com.tomanagement.common.exception.InternalSystemException;
 import com.tomanagement.common.exception.ResourceNotFoundException;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +54,16 @@ class ExceptionProbeController {
     @GetMapping("/unexpected")
     void unexpected() {
         throw new IllegalStateException("db password=secret");
+    }
+
+    @GetMapping("/internal")
+    void internal() {
+        throw new InternalSystemException(new IllegalStateException("db password=secret"));
+    }
+
+    @GetMapping("/bounded")
+    void bounded(@RequestParam @Min(1) Integer value) {
+        // Method parameter validation is the behavior under test.
     }
 
     @PostMapping("/validated")

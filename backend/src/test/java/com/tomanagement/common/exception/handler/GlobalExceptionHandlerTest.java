@@ -1,5 +1,6 @@
 package com.tomanagement.common.exception.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -16,9 +17,12 @@ import java.time.ZoneOffset;
 import com.tomanagement.common.exception.ErrorCode;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = ExceptionProbeController.class)
 @ActiveProfiles("test")
+@ExtendWith(OutputCaptureExtension.class)
 class GlobalExceptionHandlerTest {
 
     private static final String FIXED_INSTANT = "2026-11-04T12:00:00Z";
@@ -88,6 +93,22 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.message").value(ErrorCode.INTERNAL_ERROR.getMessage()))
                 .andExpect(content().string(not(containsString("secret"))))
                 .andExpect(content().string(not(containsString("IllegalStateException"))));
+    }
+
+    @Test
+    void internalSystemExceptionIsGenericAndLogsCause(CapturedOutput output) throws Exception {
+        mockMvc.perform(get("/test/errors/internal"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(ErrorCode.INTERNAL_ERROR.name()))
+                .andExpect(content().string(not(containsString("secret"))));
+        assertThat(output.getAll()).contains("IllegalStateException");
+    }
+
+    @Test
+    void methodParameterConstraintViolationReturns400() throws Exception {
+        mockMvc.perform(get("/test/errors/bounded").param("value", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()));
     }
 
     @Test
