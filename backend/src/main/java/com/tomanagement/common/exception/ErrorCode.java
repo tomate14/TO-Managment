@@ -29,6 +29,21 @@ public enum ErrorCode {
     CATALOG_NOT_FOUND(HttpStatus.NOT_FOUND, "El catálogo no existe."),
     CATALOG_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "El elemento del catálogo no existe."),
     CATALOG_ITEM_DUPLICATE(HttpStatus.CONFLICT, "Ya existe con ese nombre (sin importar mayúsculas)."),
+    TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "La plantilla no existe."),
+    TEMPLATE_DUPLICATE(HttpStatus.CONFLICT, "Ya hay una plantilla con ese nombre en el segmento."),
+    SEGMENT_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "El segmento está inactivo: elegí uno activo."),
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "La pregunta no existe."),
+    QUESTION_RANGE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "El mínimo no puede ser mayor que el máximo."),
+    QUESTION_OPTIONS_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Las preguntas de opción necesitan al menos 2 opciones."),
+    QUESTION_OPTIONS_DUPLICATE(HttpStatus.UNPROCESSABLE_ENTITY, "Las opciones no se pueden repetir."),
+    CONDITION_PARENT_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
+            "La pregunta padre tiene que ser una pregunta activa anterior de la misma plantilla."),
+    CONDITION_OPERATOR_INCOMPATIBLE(HttpStatus.UNPROCESSABLE_ENTITY,
+            "«Mayor que» y «Menor que» solo sirven si la pregunta padre es numérica. Elegí «Igual a» o «Distinto de»."),
+    CONDITION_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "El valor esperado no es una respuesta válida de la pregunta padre."),
+    QUESTION_LOCKED(HttpStatus.UNPROCESSABLE_ENTITY, "La pregunta tiene respuestas: solo se puede desactivar."),
+    QUESTION_HAS_DEPENDENTS(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Otras preguntas dependen de esta: no se puede eliminar ni cambiar su tipo u opciones."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

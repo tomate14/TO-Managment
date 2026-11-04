@@ -24,9 +24,37 @@ export const routes: Routes = [
       },
       {
         path: 'plantillas',
-        title: `Plantillas · ${APP_NAME}`,
-        data: { heading: 'Plantillas' },
-        loadComponent: () => import('./features/empty-section/empty-section').then((m) => m.EmptySection),
+        children: [
+          {
+            path: '',
+            title: `Plantillas · ${APP_NAME}`,
+            loadComponent: () => import('./features/templates/templates-page/templates-page').then((m) => m.TemplatesPage),
+          },
+          {
+            path: 'nueva',
+            title: `Nueva plantilla · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/templates/template-edit-page/template-edit-page').then((m) => m.TemplateEditPage),
+          },
+          {
+            path: ':id',
+            title: `Editar plantilla · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/templates/template-edit-page/template-edit-page').then((m) => m.TemplateEditPage),
+          },
+          {
+            path: ':id/preguntas/nueva',
+            title: `Nueva pregunta · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/templates/question-form-page/question-form-page').then((m) => m.QuestionFormPage),
+          },
+          {
+            path: ':id/preguntas/:questionId',
+            title: `Editar pregunta · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/templates/question-form-page/question-form-page').then((m) => m.QuestionFormPage),
+          },
+        ],
       },
       {
         path: 'usuarios',

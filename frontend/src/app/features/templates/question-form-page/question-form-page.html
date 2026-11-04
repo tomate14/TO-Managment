@@ -1,0 +1,164 @@
+<header class="page-header">
+  <a class="page-header__back" [routerLink]="['/plantillas', templateId]" aria-label="Volver">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <div class="question-form__titles">
+    <h1 class="page-header__title">{{ isEdit ? 'Editar pregunta' : 'Nueva pregunta' }}</h1>
+    @if (template(); as tpl) {
+      <span class="question-form__subtitle">{{ tpl.name }} · {{ tpl.segment.name }}</span>
+    }
+  </div>
+</header>
+
+<form class="question-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+  @if (locked()) {
+    <div class="alert alert--info" role="status"><div>La pregunta tiene respuestas: solo se puede desactivar desde la plantilla.</div></div>
+  }
+
+  <section class="question-form__card">
+    <div class="field">
+      <label class="field__label" for="question-text">Texto de la pregunta</label>
+      <input id="question-text" class="field__input" formControlName="text" autocomplete="off" maxlength="255"
+             [class.field__input--invalid]="submitted() && problems().text" [attr.aria-invalid]="submitted() && !!problems().text">
+      @if (submitted() && problems().text; as message) {
+        <p class="field__error">{{ message }}</p>
+      }
+    </div>
+
+    <fieldset class="question-form__fieldset" [attr.aria-describedby]="hasDependents() ? 'question-type-hint' : null">
+      <legend class="field__label">Tipo de respuesta</legend>
+      <div class="type-chips">
+        @for (type of answerTypes; track type.value) {
+          <button type="button" class="type-chip" [attr.aria-pressed]="answerType() === type.value"
+                  [disabled]="hasDependents()" (click)="selectType(type.value)">{{ type.label }}</button>
+        }
+      </div>
+      @if (hasDependents()) {
+        <p id="question-type-hint" class="field__hint">Otras preguntas dependen de esta: no se puede cambiar el tipo ni las opciones.</p>
+      }
+    </fieldset>
+
+    @if (answerType() === 'NUMERIC') {
+      <div class="question-form__range">
+        <div class="field">
+          <label class="field__label" for="question-min">Mínimo <span class="question-form__optional">(opc.)</span></label>
+          <input id="question-min" class="field__input" formControlName="minValue" inputmode="decimal" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field__label" for="question-max">Máximo <span class="question-form__optional">(opc.)</span></label>
+          <input id="question-max" class="field__input" formControlName="maxValue" inputmode="decimal" autocomplete="off">
+        </div>
+      </div>
+      @if (submitted() && problems().range; as message) {
+        <p class="field__error">{{ message }}</p>
+      }
+    }
+
+    @if (answerType() === 'OPTION') {
+      <div class="question-form__options" formArrayName="options">
+        <span class="field__label">Opciones <span class="question-form__optional">(mínimo 2)</span></span>
+        @for (option of options.controls; track $index; let i = $index) {
+          <div class="question-form__option">
+            <input class="field__input" [formControlName]="i" [attr.aria-label]="'Opción ' + (i + 1)" autocomplete="off"
+                   maxlength="120" [readonly]="hasDependents()">
+            @if (canRemoveOption()) {
+              <button type="button" class="question-form__remove" (click)="removeOption(i)" [attr.aria-label]="'Quitar opción ' + (i + 1)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+              </button>
+            }
+          </div>
+        }
+        @if (!hasDependents()) {
+          <button type="button" class="question-form__add-option" (click)="addOption()">+ Agregar opción</button>
+        }
+        @if (submitted() && problems().options; as message) {
+          <p class="field__error">{{ message }}</p>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="question-form__card">
+    <div class="question-form__switch-row">
+      <span class="question-form__switch-text">
+        <span id="condition-label" class="question-form__switch-label">Mostrar solo si…</span>
+        <span class="field__hint">Depende de la respuesta de otra pregunta.</span>
+      </span>
+      <button type="button" class="switch" role="switch" [attr.aria-checked]="conditional()"
+              aria-labelledby="condition-label" (click)="toggleConditional()">
+        <span class="switch__thumb"></span>
+      </button>
+    </div>
+
+    @if (conditional()) {
+      <div class="field">
+        <label class="field__label" for="question-parent">Pregunta padre</label>
+        <select id="question-parent" class="field__input" formControlName="parentId"
+                [attr.aria-invalid]="submitted() && !!problems().parent">
+          <option [ngValue]="null" disabled>Elegí una pregunta</option>
+          @for (candidate of parentCandidates(); track candidate.id) {
+            <option [ngValue]="candidate.id">{{ candidate.text }} ({{ typeLabel(candidate.answerType) }})</option>
+          }
+        </select>
+        @if (parentCandidates().length === 0) {
+          <p class="field__hint">Todavía no hay preguntas anteriores activas para elegir.</p>
+        }
+        @if (submitted() && problems().parent; as message) {
+          <p class="field__error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="question-form__condition">
+        <div class="field">
+          <label class="field__label" for="question-operator">Condición</label>
+          <select id="question-operator" class="field__input" formControlName="operator"
+                  [class.field__input--invalid]="operatorError()" [attr.aria-invalid]="!!operatorError()"
+                  [attr.aria-describedby]="operatorError() ? 'question-operator-error' : null">
+            @for (operator of operators; track operator.value) {
+              <option [ngValue]="operator.value">{{ operator.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="question-expected">Valor esperado</label>
+          @if (valueChoices(); as choices) {
+            <select id="question-expected" class="field__input" formControlName="expectedValue">
+              @for (choice of choices; track choice.value) {
+                <option [value]="choice.value">{{ choice.label }}</option>
+              }
+            </select>
+          } @else {
+            <input id="question-expected" class="field__input" formControlName="expectedValue" autocomplete="off" maxlength="120"
+                   [attr.inputmode]="parent()?.answerType === 'NUMERIC' ? 'decimal' : null"
+                   [attr.aria-invalid]="submitted() && !!problems().expected">
+          }
+        </div>
+      </div>
+      @if (operatorError(); as message) {
+        <p id="question-operator-error" class="field__error" role="alert">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>{{ message }}
+        </p>
+      }
+      @if (submitted() && problems().expected; as message) {
+        <p class="field__error">{{ message }}</p>
+      }
+      @if (preview(); as sentence) {
+        <div class="question-form__preview"><strong>Vista previa:</strong> {{ sentence }}</div>
+      }
+    }
+  </section>
+
+  @if (canDelete()) {
+    <button type="button" class="question-form__delete" (click)="deleteQuestion()">Eliminar pregunta</button>
+  }
+
+  <div class="question-form__actions">
+    <a class="btn-secondary" [routerLink]="['/plantillas', templateId]">Cancelar</a>
+    <button type="submit" class="btn-primary question-form__submit" [disabled]="saving() || locked()" [attr.aria-busy]="saving()">
+      {{ isEdit ? 'Guardar cambios' : 'Agregar pregunta' }}
+    </button>
+  </div>
+</form>

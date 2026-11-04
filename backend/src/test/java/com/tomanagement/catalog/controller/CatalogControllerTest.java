@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.auth.security.TokenProvider;
@@ -37,7 +39,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class})
 class CatalogControllerTest {
 
     private static final String SEGMENTS = "/api/catalogs/body-segments";
@@ -57,6 +59,9 @@ class CatalogControllerTest {
     private ScarTypeRepository scarTypeRepository;
 
     @Autowired
+    private TestTables testTables;
+
+    @Autowired
     private TokenProvider tokenProvider;
 
     @Autowired
@@ -66,9 +71,7 @@ class CatalogControllerTest {
 
     @BeforeEach
     void seedCatalogs() {
-        bodySegmentRepository.deleteAll();
-        surgeryTypeRepository.deleteAll();
-        scarTypeRepository.deleteAll();
+        testTables.truncate(TestTable.BODY_SEGMENT, TestTable.SURGERY_TYPE, TestTable.SCAR_TYPE);
         wrist = bodySegmentRepository.save(new BodySegment("Muñeca"));
         BodySegment fingers = new BodySegment("Dedos");
         fingers.changeActive(false);

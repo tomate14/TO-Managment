@@ -1,0 +1,46 @@
+<header class="templates-header">
+  <h1 class="templates-header__title">Plantillas</h1>
+  <p class="templates-header__subtitle">Preguntas reutilizables por segmento corporal.</p>
+  <div class="segment-chips" role="group" aria-label="Filtrar por segmento">
+    <button type="button" class="segment-chip" [attr.aria-pressed]="segmentId() === null" (click)="filter(null)">Todos</button>
+    @for (segment of segments(); track segment.id) {
+      <button type="button" class="segment-chip" [attr.aria-pressed]="segmentId() === segment.id" (click)="filter(segment.id)">
+        {{ segment.name }}
+      </button>
+    }
+  </div>
+</header>
+
+<div class="page-body templates">
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  @if (templates()) {
+    @for (template of visible(); track template.id) {
+      <a class="template-card" [routerLink]="['/plantillas', template.id]">
+        <div class="template-card__top">
+          <span class="template-card__titles">
+            <span class="template-card__name">{{ template.name }}</span>
+            <span class="template-card__segment">{{ template.segment.name }}</span>
+          </span>
+          <span class="badge" [class.badge--active]="template.active" [class.badge--inactive]="!template.active">
+            {{ template.active ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
+        <div class="template-card__counts">
+          <span>{{ template.questionCount }} preguntas</span>
+          <span>{{ template.chainedCount }} encadenadas</span>
+        </div>
+      </a>
+    } @empty {
+      <p class="templates__empty">Todavía no hay plantillas{{ segmentId() === null ? '' : ' para este segmento' }}.</p>
+    }
+  } @else if (!error()) {
+    <p class="templates__empty" role="status">Cargando plantillas…</p>
+  }
+</div>
+
+<a class="templates__new" routerLink="/plantillas/nueva">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nueva plantilla
+</a>
