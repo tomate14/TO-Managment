@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       PGPASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_HOST_PORT:?POSTGRES_HOST_PORT is required}:${POSTGRES_PORT}"
+      - "${ADMIN_BIND_ADDRESS:?ADMIN_BIND_ADDRESS is required}:${POSTGRES_HOST_PORT:?POSTGRES_HOST_PORT is required}:${POSTGRES_PORT}"
     volumes:
       - db-data:${SUPABASE_DB_DATA_PATH:?SUPABASE_DB_DATA_PATH is required}
     healthcheck:
@@ -55,10 +55,10 @@ services:
       SUPABASE_PUBLIC_URL: ${STUDIO_SUPABASE_URL}
       SUPABASE_ANON_KEY: ${STUDIO_ANON_KEY:?STUDIO_ANON_KEY is required}
       SUPABASE_SERVICE_KEY: ${STUDIO_SERVICE_KEY:?STUDIO_SERVICE_KEY is required}
-      AUTH_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      AUTH_JWT_SECRET: ${STUDIO_JWT_SECRET:?STUDIO_JWT_SECRET is required}
       HOSTNAME: 0.0.0.0
     ports:
-      - "${STUDIO_PORT:?STUDIO_PORT is required}:${STUDIO_CONTAINER_PORT:?STUDIO_CONTAINER_PORT is required}"
+      - "${ADMIN_BIND_ADDRESS:?ADMIN_BIND_ADDRESS is required}:${STUDIO_PORT:?STUDIO_PORT is required}:${STUDIO_CONTAINER_PORT:?STUDIO_CONTAINER_PORT is required}"
 
   backend:
     build: ./backend
@@ -82,7 +82,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
       ADMIN_NAME: ${ADMIN_NAME:?ADMIN_NAME is required}
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "${ADMIN_BIND_ADDRESS:?ADMIN_BIND_ADDRESS is required}:${BACKEND_PORT}:${BACKEND_PORT}"
 
   frontend:
     build: ./frontend

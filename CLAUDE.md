@@ -112,11 +112,18 @@ CLAUDE.md
 | `APP_DB_SCHEMA` | Esquema de la aplicación (lo crea Flyway) |
 | `STUDIO_CONTAINER_PORT`, `STUDIO_ORGANIZATION_NAME`, `STUDIO_PROJECT_NAME`, `STUDIO_SUPABASE_URL`, `STUDIO_ANON_KEY`, `STUDIO_SERVICE_KEY` | Configuración de Supabase Studio (solo administración) |
 | `STUDIO_PORT`, `PG_META_PORT` | Puertos de Supabase Studio y postgres-meta |
+| `STUDIO_JWT_SECRET` | Secreto JWT propio de Studio (aleatorio, distinto de `JWT_SECRET`; nunca reutilizar el de la app) |
+| `ADMIN_BIND_ADDRESS` | Interfaz del host donde se publican Studio, Postgres y backend (`127.0.0.1`: solo local) |
 | `BACKEND_PORT`, `SPRING_PROFILES_ACTIVE` | Backend |
 | `JWT_SECRET`, `JWT_EXPIRATION_MS` | Firma y expiración de los JWT |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Usuario admin inicial (se crea al primer arranque) |
 | `CORS_ALLOWED_ORIGINS` | Orígenes permitidos para el frontend |
 | `FRONTEND_PORT`, `API_BASE_URL` | Frontend |
+
+### Seguridad del stack
+- Studio **no tiene autenticación**: su puerto se publica solo en `ADMIN_BIND_ADDRESS` (loopback) y nunca debe exponerse. Studio nunca recibe `JWT_SECRET` (usa `STUDIO_JWT_SECRET`).
+- `POSTGRES_USER` debe seguir siendo `postgres` (los roles de la imagen de Supabase son fijos).
+- Cambiar `POSTGRES_PASSWORD` después de inicializado el volumen **no** rota la contraseña de la base: hay que cambiarla dentro de Postgres.
 
 ## 7. Convenciones
 
@@ -149,6 +156,7 @@ Actuá como un buen diseñador de objetos: aplicá buenas prácticas de Java (SO
 - **Excepciones custom y handler global**:
   - Hay una jerarquía de excepciones propia con una base abstracta (p. ej. `ApplicationException extends RuntimeException`) y subclases específicas, **cada una en su propia clase** (p. ej. `ResourceNotFoundException`, `BusinessRuleException`, `UnauthorizedException`, `InternalSystemException`).
   - Cada excepción lleva un código de un `enum` (p. ej. `ErrorCode`) que define su mensaje y su estado HTTP.
+  - Lanzar solo subclases de `ApplicationException`; no usar `ResponseStatusException` ni excepciones de estado de Spring.
   - Un único `GlobalExceptionHandler` (`@RestControllerAdvice`) traduce las excepciones a una respuesta de error consistente (DTO `ErrorResponse`).
   - Toda excepción crítica o inesperada del sistema (incluidas las de terceros o `Exception` genérica) se **envuelve o traduce a una excepción custom** antes de responder. Al cliente nunca le llega un stack trace ni una excepción cruda.
 
@@ -161,3 +169,5 @@ docker compose logs -f backend   # ver logs de un servicio
 cd backend && ./mvnw test        # tests del backend
 cd frontend && npm test          # tests del frontend
 ```
+
+> En Git Bash **no** hagas `source .env` antes de `docker compose`: las variables exportadas pisan al `.env` y MSYS reescribe rutas. Si hace falta, usá `MSYS_NO_PATHCONV=1`.
