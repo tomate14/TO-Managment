@@ -12,9 +12,11 @@ import com.tomanagement.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
@@ -24,6 +26,12 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Value("${APP_DB_SCHEMA}")
+    private String appSchema;
 
     @BeforeEach
     void cleanUp() {
@@ -55,6 +63,16 @@ class UserRepositoryTest {
     @Test
     void returnsEmptyForUnknownEmail() {
         assertThat(userRepository.findByEmail("nadie@consultorio.com")).isEmpty();
+    }
+
+    @Test
+    void findsUserInsertedWithMixedCaseEmailBypassingEntityNormalization() {
+        jdbcTemplate.update(
+                "insert into " + appSchema + ".app_user (email, password_hash, full_name, role) values (?, ?, ?, ?)",
+                "Ana.Perez@Consultorio.com", "$2a$10$abcdefghijklmnopqrstuuJ8zJ2mOBs3m5yYyX0qQ2w8oVXl1K1aG",
+                "Ana Pérez", Role.TERAPEUTA.name());
+
+        assertThat(userRepository.findByEmail("ana.perez@consultorio.com")).isPresent();
     }
 
     private static User user(String email, Role role) {
