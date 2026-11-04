@@ -95,6 +95,13 @@ public class User {
         this.role = Objects.requireNonNull(role, "role is required");
     }
 
+    /**
+     * @param passwordHash the new BCrypt hash (never a raw password)
+     */
+    public void changePasswordHash(String passwordHash) {
+        this.passwordHash = Objects.requireNonNull(passwordHash, "passwordHash is required");
+    }
+
     public void changeActive(boolean active) {
         this.active = active;
     }

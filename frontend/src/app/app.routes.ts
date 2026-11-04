@@ -50,6 +50,12 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'cambiar-contrasena',
+        title: `Cambiar contraseña · ${APP_NAME}`,
+        loadComponent: () =>
+          import('./features/account/change-password-page/change-password-page').then((m) => m.ChangePasswordPage),
+      },
+      {
         path: 'mas',
         title: `Más · ${APP_NAME}`,
         loadComponent: () => import('./features/more/more-page').then((m) => m.MorePage),

@@ -124,6 +124,10 @@
   }
 }
 
+.more__row--divided {
+  border-bottom: 1px solid var(--color-divider);
+}
+
 a.more__row {
   color: var(--color-text);
   text-decoration: none;

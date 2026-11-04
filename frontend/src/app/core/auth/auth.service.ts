@@ -8,6 +8,7 @@ import { isJwtExpired } from './jwt-expiry';
 
 export const LOGIN_URL = '/api/auth/login';
 const ME_URL = '/api/auth/me';
+const PASSWORD_URL = '/api/auth/password';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -49,6 +50,11 @@ export class AuthService {
       },
       error: () => undefined, // 401s are handled by the interceptor
     });
+  }
+
+  /** Changes the signed-in user's password; the current session stays valid. */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<void>(PASSWORD_URL, { currentPassword, newPassword });
   }
 
   clearSession(): void {

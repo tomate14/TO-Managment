@@ -93,6 +93,13 @@ describe('AuthService', () => {
     expect(navigate).toHaveBeenCalledWith(['/login'], {});
   });
 
+  it('changePassword sends the current and new password', () => {
+    service.changePassword('actual-1234', 'nueva-1234').subscribe();
+    const req = http.expectOne('/api/auth/password');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ currentPassword: 'actual-1234', newPassword: 'nueva-1234' });
+  });
+
   it('refreshCurrentUser updates the user from /api/auth/me', () => {
     service.login('ana@consultorio.com', 'secreta').subscribe();
     http.expectOne('/api/auth/login').flush(response);

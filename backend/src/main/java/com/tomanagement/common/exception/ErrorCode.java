@@ -25,6 +25,7 @@ public enum ErrorCode {
     USER_EMAIL_TAKEN(HttpStatus.CONFLICT, "Ya hay un usuario con este email."),
     SELF_DEACTIVATION_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés desactivarte."),
     SELF_ROLE_CHANGE_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés cambiar tu propio rol."),
+    CURRENT_PASSWORD_INCORRECT(HttpStatus.UNPROCESSABLE_ENTITY, "La contraseña actual no es correcta."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

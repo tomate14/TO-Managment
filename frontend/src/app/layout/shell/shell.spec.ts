@@ -38,7 +38,9 @@ describe('Shell', () => {
     const el = fixture.nativeElement as HTMLElement;
     const navs = el.querySelectorAll('nav[aria-label="Navegación principal"]');
     expect(navs.length).toBe(2);
-    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas', 'Usuarios']);
+    expect(navLabels(el.querySelector('app-side-nav nav')!))
+      .toEqual(['Pacientes', 'Plantillas', 'Usuarios', 'Cambiar contraseña']);
+    expect(el.querySelector('app-side-nav a[href="/cambiar-contrasena"]')).toBeTruthy();
     expect(el.querySelector('app-side-nav')?.textContent).toContain('Administración');
     expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Plantillas', 'Más']);
     expect(el.querySelector('app-tab-bar a[href="/mas"]')).toBeTruthy();
@@ -52,7 +54,7 @@ describe('Shell', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas']);
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas', 'Cambiar contraseña']);
     expect(el.querySelector('app-side-nav')?.textContent).not.toContain('Administración');
   });
 

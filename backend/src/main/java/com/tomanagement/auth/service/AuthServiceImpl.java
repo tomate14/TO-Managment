@@ -3,6 +3,7 @@ package com.tomanagement.auth.service;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.tomanagement.auth.dto.ChangePasswordRequest;
 import com.tomanagement.auth.dto.LoginRequest;
 import com.tomanagement.auth.dto.LoginResponse;
 import com.tomanagement.auth.dto.UserSummary;
@@ -10,6 +11,7 @@ import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.auth.security.IssuedToken;
 import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.AuthenticationFailedException;
+import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.user.entity.EmailNormalizer;
 import com.tomanagement.user.entity.User;
@@ -59,5 +61,17 @@ public class AuthServiceImpl implements AuthService {
                 .filter(User::isActive)
                 .map(UserSummary::from)
                 .orElseThrow(() -> new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED));
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .filter(User::isActive)
+                .orElseThrow(() -> new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BusinessRuleException(ErrorCode.CURRENT_PASSWORD_INCORRECT);
+        }
+        user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
     }
 }

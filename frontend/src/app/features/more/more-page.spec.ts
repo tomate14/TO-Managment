@@ -47,13 +47,20 @@ describe('MorePage', () => {
     expect(el.textContent).toContain('Administración');
     expect(el.textContent).toContain('Esta sección solo la ven las administradoras.');
     const links = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
-    expect(links).toEqual(['/usuarios']);
+    expect(links).toEqual(['/usuarios', '/cambiar-contrasena']);
+  });
+
+  it('offers "Cambiar contraseña" in Mi cuenta', () => {
+    const el = render();
+    const link = el.querySelector<HTMLAnchorElement>('a[href="/cambiar-contrasena"]');
+    expect(link?.textContent).toContain('Cambiar contraseña');
   });
 
   it('hides the Administración section from therapists', () => {
     TestBed.overrideProvider(AuthService, { useValue: { currentUser: signal({ ...user, role: 'TERAPEUTA' }), logout } });
     const el = render();
     expect(el.textContent).not.toContain('Administración');
-    expect(el.querySelectorAll('a').length).toBe(0);
+    const links = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(links).toEqual(['/cambiar-contrasena']);
   });
 });
