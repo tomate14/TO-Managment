@@ -1,0 +1,174 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+.hero {
+  position: relative;
+  height: 216px;
+  padding: 28px 24px 52px;
+  background: var(--color-primary-dark);
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.hero__gauge {
+  position: absolute;
+  right: -150px;
+  bottom: -6px;
+  width: 380px;
+  height: auto;
+  display: block;
+}
+
+.hero__angle,
+.hero__description,
+.hero__chips {
+  display: none;
+}
+
+.hero__brand,
+.hero__copy {
+  position: relative;
+}
+
+.hero__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero__logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.hero__names {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.hero__name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hero__tagline {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.hero__motto {
+  margin: 0;
+  max-width: 220px;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 1024px) {
+  :host {
+    display: flex;
+    flex: 1 1 520px;
+  }
+
+  .hero {
+    flex: 1;
+    height: auto;
+    min-height: 360px;
+    padding: 48px 56px;
+    gap: 48px;
+  }
+
+  .hero__gauge {
+    position: static;
+    order: 1;
+    width: 100%;
+    max-width: 540px;
+  }
+
+  .hero__copy {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 520px;
+  }
+
+  .hero__angle {
+    display: inline;
+  }
+
+  .hero__logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    font-size: 16px;
+  }
+
+  .hero__names {
+    gap: 2px;
+  }
+
+  .hero__name {
+    font-size: 16px;
+  }
+
+  .hero__tagline {
+    font-size: 13px;
+  }
+
+  .hero__motto {
+    max-width: none;
+    font-size: 44px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .hero__description {
+    display: block;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .hero__chips {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hero__chip {
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    font-size: 13px;
+    font-weight: 600;
+
+    &--active {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+  }
+}
