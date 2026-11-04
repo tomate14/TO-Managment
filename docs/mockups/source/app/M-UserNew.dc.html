@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo usuario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-opt:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-Users.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<h1 style="margin: 0; font-size: 17px; font-weight: 700">Nuevo usuario</h1>
+</header>
+<form style="flex: 1; margin: 0; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="nm" style="font-size: 14px; font-weight: 600">Nombre</label>
+<input id="nm" class="to-input" value="Carla Ríos" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="em" style="font-size: 14px; font-weight: 600">Email</label>
+<input id="em" class="to-input" type="email" value="carla.rios@consultorio.com" aria-invalid="true" aria-describedby="em-err" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #B42318; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<p id="em-err" style="margin: 0; display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: #B42318"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5h.01"></path></svg>Ya hay un usuario con este email.</p>
+<p style="margin: 0; font-size: 12px; color: #4F5D6B">Al editar un usuario, el email no se puede cambiar.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pw" style="font-size: 14px; font-weight: 600">Contraseña inicial</label>
+<input id="pw" class="to-input" type="password" autocomplete="new-password" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<p style="margin: 0; font-size: 12px; color: #4F5D6B">Mínimo 8 caracteres. La persona la puede cambiar después.</p>
+</div>
+</section>
+<fieldset style="margin: 0; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 10px">
+<legend style="float: left; padding: 0; margin: 0 0 4px; font-size: 14px; font-weight: 700">Rol</legend>
+<sc-for list="{{roles}}" as="r" hint-placeholder-count="2">
+<button type="button" class="to-opt" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="clear: both; text-align: left; padding: 14px; border-radius: 14px; border: 2px solid {{r.border}}; background: {{r.bg}}; font-family: inherit; cursor: pointer; display: flex; align-items: center; gap: 12px; color: #121A24">
+<span style="width: 20px; height: 20px; flex-shrink: 0; box-sizing: border-box; border-radius: 50%; border: 2px solid {{r.border}}; background: {{r.dot}}; display: block"></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 800">{{r.label}}</span><span style="font-size: 12px; line-height: 1.35; color: #4F5D6B">{{r.hint}}</span></span>
+</button>
+</sc-for>
+</fieldset>
+</form>
+<div style="flex-shrink: 0; padding: 12px 16px 20px; background: #FFFFFF; border-top: 1px solid #D6E0EA; display: flex; gap: 10px">
+<a href="M-Users.dc.html" style="height: 52px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #D6E0EA; color: #121A24; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Cancelar</a>
+<a href="M-Users.dc.html" style="flex: 1; height: 52px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 700">Crear usuario</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+var ROLES = [
+  { key: 'TERAPEUTA', label: 'Terapeuta', hint: 'Pacientes, diagnósticos, seguimientos y plantillas.' },
+  { key: 'ADMIN', label: 'Admin', hint: 'Todo lo anterior, más usuarios y catálogos.' }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { role: 'TERAPEUTA' };
+  }
+  renderVals() {
+    var self = this;
+    return {
+      roles: ROLES.map(function (r) {
+        var on = r.key === self.state.role;
+        return Object.assign({}, r, { pressed: on ? 'true' : 'false', border: on ? '#1D5FA8' : '#D6E0EA', bg: on ? '#F2F7FD' : '#FFFFFF', dot: on ? '#1D5FA8' : '#FFFFFF', pick: function () { self.setState({ role: r.key }); } });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

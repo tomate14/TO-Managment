@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Pacientes · Escritorio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-tr:hover td{background:#F5F8FB}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24">
+<div style="flex: 1 0 248px; max-width: 248px; display: flex">
+<dc-import name="SideNav" active="patients" hint-size="248px,900px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 40px 48px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.02em">Pacientes</h1>
+<p style="margin: 0; font-size: 15px; color: #4F5D6B">Todo el equipo ve los mismos pacientes.</p>
+</div>
+<a href="M-PatientNew.dc.html" style="height: 48px; padding: 0 20px 0 16px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 15px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo paciente</a>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 20px; overflow: hidden">
+<div style="padding: 16px 20px; border-bottom: 1px solid #D6E0EA; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+<div style="position: relative; flex: 0 1 420px; min-width: 240px">
+<label for="dq" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar paciente</label>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F5D6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 14px; top: 12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input id="dq" class="to-input" type="search" placeholder="Buscar por DNI, nombre o apellido" value="{{query}}" onChange="{{onQuery}}" style="width: 100%; height: 44px; box-sizing: border-box; padding: 0 14px 0 44px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #F5F8FB; font-family: inherit; font-size: 15px; color: #121A24">
+</div>
+<span style="font-size: 13px; color: #4F5D6B">{{countLabel}}</span>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 760px">
+<thead>
+<tr style="text-align: left; color: #4F5D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em">
+<th scope="col" style="padding: 12px 20px; font-weight: 700; background: #FAFBFD">Paciente</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 700; background: #FAFBFD">DNI</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 700; background: #FAFBFD">Obra social</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 700; background: #FAFBFD">Teléfono</th>
+<th scope="col" style="padding: 12px 16px; font-weight: 700; background: #FAFBFD">Dominancia</th>
+<th scope="col" style="padding: 12px 20px; background: #FAFBFD"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Acciones</span></th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{rows}}" as="p" hint-placeholder-count="6">
+<tr class="to-tr" style="border-top: 1px solid #EDF1F5">
+<td style="padding: 12px 20px"><span style="display: flex; align-items: center; gap: 12px"><span style="width: 36px; height: 36px; border-radius: 50%; background: #E4EEF8; color: #0E2944; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">{{p.initials}}</span><a href="D-Patient.dc.html" style="font-weight: 700; color: #121A24; text-decoration: none">{{p.name}}</a></span></td>
+<td style="padding: 12px 16px; font-variant-numeric: tabular-nums">{{p.dni}}</td>
+<td style="padding: 12px 16px">{{p.insurance}}</td>
+<td style="padding: 12px 16px; font-variant-numeric: tabular-nums">{{p.phone}}</td>
+<td style="padding: 12px 16px">{{p.dominance}}</td>
+<td style="padding: 12px 20px; text-align: right"><a href="D-Patient.dc.html" style="font-weight: 700; color: #1D5FA8; text-decoration: none">Ver ficha</a></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="padding: 14px 20px; border-top: 1px solid #D6E0EA; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #4F5D6B">
+<span>Página 1</span>
+<span style="display: flex; gap: 8px">
+<button type="button" disabled="{{ true }}" style="height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #8A96A3; font-family: inherit; font-size: 14px; font-weight: 700">Anterior</button>
+<button type="button" style="height: 40px; padding: 0 14px; border-radius: 10px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #1D5FA8; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Siguiente</button>
+</span>
+</div>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+var PATIENTS = [
+  { initials: 'RC', name: 'Castro, Ricardo', dni: '22.410.876', insurance: 'PAMI', phone: '249 455-0921', dominance: 'Diestro' },
+  { initials: 'LF', name: 'Fernández, Lucía', dni: '30.123.456', insurance: 'OSDE', phone: '249 412-3456', dominance: 'Diestra' },
+  { initials: 'AL', name: 'López, Agustina', dni: '41.276.590', insurance: 'Galeno', phone: '249 430-7712', dominance: 'Zurda' },
+  { initials: 'DM', name: 'Medina, Diego', dni: '33.018.447', insurance: 'OSDE', phone: '249 467-2280', dominance: 'Diestro' },
+  { initials: 'JP', name: 'Pereyra, Julián', dni: '27.845.112', insurance: 'IOMA', phone: '249 401-6634', dominance: 'Zurdo' },
+  { initials: 'MS', name: 'Sosa, María Inés', dni: '35.902.334', insurance: 'Swiss Medical', phone: '249 418-9045', dominance: 'Diestra' }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { query: '' };
+  }
+  renderVals() {
+    var self = this;
+    var q = this.state.query.trim().toLowerCase().replace(/\./g, '');
+    var rows = PATIENTS.filter(function (p) {
+      return !q || p.name.toLowerCase().indexOf(q) >= 0 || p.dni.replace(/\./g, '').indexOf(q) >= 0;
+    });
+    return {
+      query: this.state.query,
+      rows: rows,
+      countLabel: q ? rows.length + ' resultados' : 'Ordenados por apellido',
+      onQuery: function (e) { self.setState({ query: e.target.value }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Editar plantilla</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-sw:focus-visible,.to-icon:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-Templates.dc.html" aria-label="Volver a plantillas" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<h1 style="margin: 0; flex: 1; font-size: 17px; font-weight: 700">Editar plantilla</h1>
+<a href="M-Templates.dc.html" style="height: 40px; padding: 0 16px; border-radius: 12px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; text-decoration: none; font-size: 14px; font-weight: 700; margin-right: 8px">Guardar</a>
+</header>
+<main style="flex: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="name" style="font-size: 14px; font-weight: 600">Nombre</label>
+<input id="name" class="to-input" value="Fractura de muñeca" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="seg" style="font-size: 14px; font-weight: 600">Segmento</label>
+<select id="seg" class="to-input" style="height: 50px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<option>Muñeca</option>
+<option>Mano</option>
+<option>Codo</option>
+<option>Hombro</option>
+</select>
+<p style="margin: 0; font-size: 12px; color: #4F5D6B">El nombre no se puede repetir dentro del mismo segmento.</p>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid #EDF1F5">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span id="tpl-active" style="font-size: 15px; font-weight: 700">Plantilla activa</span>
+<span style="font-size: 12px; color: #4F5D6B">Si la desactivás, no aparece en seguimientos nuevos.</span>
+</span>
+<button type="button" class="to-sw" role="switch" aria-checked="{{tpl.checked}}" aria-labelledby="tpl-active" onClick="{{toggleTpl}}" style="flex-shrink: 0; width: 52px; height: 32px; border: 0; border-radius: 999px; background: {{tpl.track}}; padding: 3px; display: flex; justify-content: {{tpl.justify}}; cursor: pointer"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: block"></span></button>
+</div>
+</section>
+<div style="display: flex; align-items: baseline; justify-content: space-between; padding: 4px 4px 0">
+<h2 style="margin: 0; font-size: 18px; font-weight: 800">Preguntas</h2>
+<span style="font-size: 13px; color: #4F5D6B">En orden de aparición</span>
+</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{questions}}" as="q" hint-placeholder-count="5">
+<li style="margin-left: {{q.indent}}; background: {{q.bg}}; border: 1px solid #D6E0EA; border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; gap: 12px; align-items: flex-start">
+<span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: #E4EEF8; color: #0E2944; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">{{q.order}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 15px; font-weight: 700; line-height: 1.35; color: {{q.textColor}}">{{q.text}}</span>
+<span style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="padding: 3px 8px; border-radius: 8px; background: #F0F4F8; font-size: 12px; font-weight: 700; color: #4F5D6B">{{q.type}}</span>
+<sc-if value="{{q.hasCondition}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; background: #E4EEF8; font-size: 12px; font-weight: 700; color: #0E2944"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"></path><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path></svg>{{q.condition}}</span></sc-if>
+<sc-if value="{{q.inactive}}" hint-placeholder-val="{{ false }}"><span style="padding: 3px 8px; border-radius: 8px; background: #EEF1F4; font-size: 12px; font-weight: 700; color: #4F5D6B">Inactiva</span></sc-if>
+</span>
+</span>
+<sc-if value="{{q.editable}}" hint-placeholder-val="{{ true }}">
+<a href="M-QuestionNew.dc.html" class="to-icon" aria-label="Editar pregunta" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #1D5FA8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg></a>
+</sc-if>
+</div>
+<sc-if value="{{q.locked}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid #EDF1F5">
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #4F5D6B"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"></path></svg>Tiene respuestas: solo se puede desactivar</span>
+<button type="button" class="to-sw" role="switch" aria-checked="{{q.checked}}" aria-label="{{q.switchLabel}}" onClick="{{q.toggle}}" style="flex-shrink: 0; width: 44px; height: 28px; border: 0; border-radius: 999px; background: {{q.track}}; padding: 3px; display: flex; justify-content: {{q.justify}}; cursor: pointer"><span style="width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: block"></span></button>
+</div>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+<a href="M-QuestionNew.dc.html" style="height: 56px; border-radius: 16px; border: 2px dashed #A9BED3; color: #1D5FA8; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 15px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Agregar pregunta</a>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+var QUESTIONS = [
+  { id: 'q1', order: 1, text: '¿Usa férula?', type: 'Sí / No', condition: '', locked: true, indent: '0px' },
+  { id: 'q2', order: 2, text: 'Horas de uso por día', type: 'Numérica · 0 a 24', condition: 'Si «¿Usa férula?» = Sí', locked: true, indent: '20px' },
+  { id: 'q3', order: 3, text: 'Tipo de agarre afectado', type: 'Opción · 3 opciones', condition: '', locked: true, indent: '0px' },
+  { id: 'q4', order: 4, text: 'Dolor nocturno', type: 'Sí / No', condition: '', locked: true, indent: '0px' },
+  { id: 'q5', order: 5, text: 'Observaciones', type: 'Texto', condition: '', locked: false, indent: '0px' }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tplActive: true, active: { q1: true, q2: true, q3: true, q4: false, q5: true } };
+  }
+  renderVals() {
+    var self = this;
+    function sw(on) {
+      return { checked: on ? 'true' : 'false', track: on ? '#1D5FA8' : '#B8C3CF', justify: on ? 'flex-end' : 'flex-start' };
+    }
+    return {
+      tpl: sw(this.state.tplActive),
+      toggleTpl: function () { self.setState({ tplActive: !self.state.tplActive }); },
+      questions: QUESTIONS.map(function (q) {
+        var on = !!self.state.active[q.id];
+        var s = sw(on);
+        return Object.assign({}, q, s, {
+          hasCondition: !!q.condition,
+          inactive: !on,
+          editable: !q.locked,
+          bg: on ? '#FFFFFF' : '#F7F9FB',
+          textColor: on ? '#121A24' : '#4F5D6B',
+          switchLabel: 'Pregunta activa: ' + q.text,
+          toggle: function () {
+            var next = Object.assign({}, self.state.active);
+            next[q.id] = !next[q.id];
+            self.setState({ active: next });
+          }
+        });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

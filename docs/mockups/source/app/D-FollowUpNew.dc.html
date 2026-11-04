@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo seguimiento · Escritorio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-seg:focus-visible,.to-chip:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+.to-range{width:100%;accent-color:#1D5FA8;height:28px;margin:0}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24">
+<div style="flex: 1 0 248px; max-width: 248px; display: flex">
+<dc-import name="SideNav" active="patients" hint-size="248px,1100px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 48px 40px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<nav aria-label="Ruta" style="font-size: 13px; color: #4F5D6B"><a href="D-Patients.dc.html" style="color: #1D5FA8; font-weight: 700; text-decoration: none">Pacientes</a> / <a href="D-Patient.dc.html" style="color: #1D5FA8; font-weight: 700; text-decoration: none">Lucía Fernández</a> / Fractura distal de radio izquierdo</nav>
+<h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Nuevo seguimiento</h1>
+</div>
+<div style="display: flex; gap: 10px">
+<a href="D-Patient.dc.html" style="height: 48px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #121A24; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Cancelar</a>
+<a href="D-Patient.dc.html" style="height: 48px; padding: 0 22px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Guardar seguimiento</a>
+</div>
+</div>
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 20px; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end">
+<div style="flex: 0 1 220px; display: flex; flex-direction: column; gap: 6px">
+<label for="ddate" style="font-size: 14px; font-weight: 600">Fecha del seguimiento</label>
+<input id="ddate" class="to-input" type="date" value="2026-11-04" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 15px; color: #121A24">
+</div>
+<div style="flex: 0 1 260px; display: flex; flex-direction: column; gap: 6px">
+<label for="dscar" style="font-size: 14px; font-weight: 600">Tipo de cicatriz</label>
+<select id="dscar" class="to-input" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24"><option>Normotrófica</option><option>Hipertrófica</option><option>Queloide</option><option>Retráctil</option></select>
+</div>
+<p style="flex: 1 1 240px; margin: 0 0 12px; font-size: 13px; color: #4F5D6B">Tratamiento quirúrgico: el tipo de cicatriz es obligatorio.</p>
+</section>
+<section aria-label="Segmento 1" style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 20px; overflow: hidden">
+<div style="padding: 14px 24px; background: #0E2944; color: #FFFFFF; display: flex; align-items: center; gap: 12px">
+<span style="width: 30px; height: 30px; border-radius: 9px; background: #8FC2F2; color: #0E2944; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">1</span>
+<label for="dseg" style="font-size: 14px; font-weight: 600; color: rgba(255, 255, 255, 0.8)">Segmento</label>
+<select id="dseg" style="height: 40px; min-width: 200px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 700; padding: 0 10px"><option>Muñeca</option><option>Mano</option><option>Codo</option><option>Hombro</option></select>
+<button type="button" style="margin-left: auto; height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Quitar segmento</button>
+</div>
+<div style="display: flex; flex-wrap: wrap">
+<div style="flex: 1 1 420px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #EDF1F5">
+<h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D5FA8">Métricas</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="ded" style="font-size: 14px; font-weight: 600">Edema <span style="font-weight: 500; color: #4F5D6B">(opcional)</span></label><input id="ded" class="to-input" inputmode="decimal" value="1,5" style="height: 48px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="drom" style="font-size: 14px; font-weight: 600">ROM</label><input id="drom" class="to-input" inputmode="decimal" value="55" style="height: 48px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="dst" style="font-size: 14px; font-weight: 600">Fuerza</label><input id="dst" class="to-input" inputmode="decimal" value="14" style="height: 48px; width: 100%; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 14px; background: #F5F8FB">
+<div style="display: flex; align-items: baseline; justify-content: space-between"><label for="dpain" style="font-size: 14px; font-weight: 600">Dolor</label><span style="font-size: 24px; font-weight: 800; color: #0E2944">{{pain}}<span style="font-size: 14px; font-weight: 600; color: #4F5D6B"> / 10</span></span></div>
+<input id="dpain" class="to-range" type="range" min="0" max="10" step="1" value="{{pain}}" onChange="{{onPain}}">
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #4F5D6B"><span>0 · Sin dolor</span><span>10 · Máximo</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 360px">
+<label for="dtpl" style="font-size: 14px; font-weight: 600">Plantilla</label>
+<select id="dtpl" class="to-input" style="height: 48px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24"><option>Fractura de muñeca</option><option>Síndrome del túnel carpiano</option><option>Sin plantilla</option></select>
+<p style="margin: 0; font-size: 12px; color: #4F5D6B">Solo plantillas activas de Muñeca.</p>
+</div>
+</div>
+<div style="flex: 1 1 380px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: #FAFBFD">
+<h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D5FA8">Fractura de muñeca</h2>
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 700">¿Usa férula?</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px; background: #EDF1F6; border-radius: 14px; max-width: 280px">
+<button type="button" class="to-seg" onClick="{{pickYes}}" aria-pressed="{{yes.pressed}}" style="height: 44px; border: 0; border-radius: 11px; background: {{yes.bg}}; color: {{yes.color}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: {{yes.shadow}}">Sí</button>
+<button type="button" class="to-seg" onClick="{{pickNo}}" aria-pressed="{{no.pressed}}" style="height: 44px; border: 0; border-radius: 11px; background: {{no.bg}}; color: {{no.color}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: {{no.shadow}}">No</button>
+</div>
+</fieldset>
+<sc-if value="{{splintYes}}" hint-placeholder-val="{{ true }}">
+<div style="margin-left: 16px; padding: 14px 16px; border-radius: 14px; background: #EAF2FC; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span style="display: flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: 999px; background: #FFFFFF; color: #0E2944; font-size: 11px; font-weight: 700"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"></path><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"></path></svg>Porque respondiste Sí</span>
+<label for="dhours" style="font-size: 14px; font-weight: 700">Horas de uso por día</label>
+<input id="dhours" class="to-input" inputmode="numeric" value="8" style="height: 44px; width: 90px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<span style="font-size: 12px; color: #4F5D6B">0 a 24</span>
+</div>
+</sc-if>
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 700">Tipo de agarre afectado</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{grips}}" as="g" hint-placeholder-count="3">
+<button type="button" class="to-chip" onClick="{{g.pick}}" aria-pressed="{{g.pressed}}" style="height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{g.border}}; background: {{g.bg}}; color: {{g.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">{{g.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="dobs" style="font-size: 14px; font-weight: 700">Observaciones</label>
+<textarea id="dobs" class="to-input" rows="3" placeholder="Opcional" style="box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24; resize: vertical"></textarea>
+</div>
+</div>
+</div>
+</section>
+<button type="button" style="height: 56px; border-radius: 16px; border: 2px dashed #A9BED3; background: transparent; color: #1D5FA8; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Agregar otro segmento</button>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+var GRIPS = ['Cilíndrico', 'Esférico', 'Pinza fina'];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pain: 3, splint: 'YES', grip: 'Cilíndrico' };
+  }
+  renderVals() {
+    var self = this;
+    function seg(on) {
+      return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#0E2944' : '#4F5D6B', shadow: on ? '0 1px 3px rgba(14,41,68,0.18)' : 'none', pressed: on ? 'true' : 'false' };
+    }
+    return {
+      pain: this.state.pain,
+      onPain: function (e) { self.setState({ pain: Number(e.target.value) }); },
+      splintYes: this.state.splint === 'YES',
+      yes: seg(this.state.splint === 'YES'),
+      no: seg(this.state.splint === 'NO'),
+      pickYes: function () { self.setState({ splint: 'YES' }); },
+      pickNo: function () { self.setState({ splint: 'NO' }); },
+      grips: GRIPS.map(function (g) {
+        var on = self.state.grip === g;
+        return { label: g, pressed: on ? 'true' : 'false', border: on ? '#1D5FA8' : '#D6E0EA', bg: on ? '#E4EEF8' : '#FFFFFF', color: on ? '#0E2944' : '#121A24', pick: function () { self.setState({ grip: g }); } };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

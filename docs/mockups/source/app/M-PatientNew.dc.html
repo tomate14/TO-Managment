@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo paciente</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+</style>
+</helmet>
+<div style="width: 390px; height: 1240px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-Patients.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<h1 style="margin: 0; font-size: 17px; font-weight: 700">Nuevo paciente</h1>
+</header>
+<form style="flex: 1; margin: 0; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D5FA8">Datos personales</h2>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="dni" style="font-size: 14px; font-weight: 600">DNI</label>
+<input id="dni" class="to-input" inputmode="numeric" value="30123456" aria-invalid="true" aria-describedby="dni-err" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #B42318; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<p id="dni-err" style="margin: 0; display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: #B42318"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5h.01"></path></svg>Ya existe un paciente con este DNI.</p>
+<p style="margin: 0; font-size: 12px; color: #4F5D6B">El DNI no se puede modificar después.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="fn" style="font-size: 14px; font-weight: 600">Nombre</label>
+<input id="fn" class="to-input" autocomplete="off" value="Lucía" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ln" style="font-size: 14px; font-weight: 600">Apellido</label>
+<input id="ln" class="to-input" autocomplete="off" value="Fernández" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bd" style="font-size: 14px; font-weight: 600">Fecha de nacimiento</label>
+<input id="bd" class="to-input" type="date" value="1984-03-21" max="2026-11-04" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ph" style="font-size: 14px; font-weight: 600">Teléfono</label>
+<input id="ph" class="to-input" type="tel" autocomplete="off" placeholder="249 412-3456" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="oc" style="font-size: 14px; font-weight: 600">Ocupación</label>
+<input id="oc" class="to-input" autocomplete="off" placeholder="Ej. docente, carpintero" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D5FA8">Cobertura</h2>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="hi" style="font-size: 14px; font-weight: 600">Obra social</label>
+<input id="hi" class="to-input" autocomplete="off" placeholder="Ej. OSDE" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="hn" style="font-size: 14px; font-weight: 600">Número de afiliado</label>
+<input id="hn" class="to-input" autocomplete="off" inputmode="numeric" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+</section>
+<fieldset style="margin: 0; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 12px">
+<legend style="float: left; padding: 0; margin: 0 0 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1D5FA8">Dominancia</legend>
+<div style="clear: both; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px; background: #F0F4F8; border-radius: 14px">
+<button type="button" onClick="{{pickRight}}" aria-pressed="{{right.pressed}}" style="height: 44px; border: 0; border-radius: 11px; background: {{right.bg}}; color: {{right.color}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: {{right.shadow}}">Diestro</button>
+<button type="button" onClick="{{pickLeft}}" aria-pressed="{{left.pressed}}" style="height: 44px; border: 0; border-radius: 11px; background: {{left.bg}}; color: {{left.color}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: {{left.shadow}}">Zurdo</button>
+</div>
+</fieldset>
+<p style="margin: 0 4px; font-size: 13px; color: #4F5D6B">Todos los campos son obligatorios.</p>
+</form>
+<div style="flex-shrink: 0; padding: 12px 16px 20px; background: #FFFFFF; border-top: 1px solid #D6E0EA; display: flex; gap: 10px">
+<a href="M-Patients.dc.html" style="flex: 0 0 auto; height: 52px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #D6E0EA; color: #121A24; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Cancelar</a>
+<a href="M-Patient.dc.html" style="flex: 1; height: 52px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 700">Guardar paciente</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { dominance: 'RIGHT' };
+  }
+  renderVals() {
+    var self = this;
+    function seg(on) {
+      return { bg: on ? '#FFFFFF' : 'transparent', color: on ? '#0E2944' : '#4F5D6B', shadow: on ? '0 1px 3px rgba(14,41,68,0.18)' : 'none', pressed: on ? 'true' : 'false' };
+    }
+    return {
+      right: seg(this.state.dominance === 'RIGHT'),
+      left: seg(this.state.dominance === 'LEFT'),
+      pickRight: function () { self.setState({ dominance: 'RIGHT' }); },
+      pickLeft: function () { self.setState({ dominance: 'LEFT' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

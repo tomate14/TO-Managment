@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha del paciente · Escritorio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-dx:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24">
+<div style="flex: 1 0 248px; max-width: 248px; display: flex">
+<dc-import name="SideNav" active="patients" hint-size="248px,900px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px 48px 40px; display: flex; flex-direction: column; gap: 24px">
+<nav aria-label="Ruta" style="font-size: 13px; color: #4F5D6B"><a href="D-Patients.dc.html" style="color: #1D5FA8; font-weight: 700; text-decoration: none">Pacientes</a> / Lucía Fernández</nav>
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<aside style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 20px; overflow: hidden">
+<div style="background: #0E2944; color: #FFFFFF; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<div style="width: 64px; height: 64px; border-radius: 50%; background: #8FC2F2; color: #0E2944; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800">LF</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.01em">Lucía Fernández</h1>
+<p style="margin: 0; font-size: 14px; color: rgba(255, 255, 255, 0.78)">DNI 30.123.456 · 42 años · Diestra</p>
+</div>
+</div>
+<dl style="margin: 0; padding: 8px 24px">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EDF1F5"><dt style="font-size: 14px; color: #4F5D6B">Nacimiento</dt><dd style="margin: 0; font-size: 14px; font-weight: 700">21/03/1984</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EDF1F5"><dt style="font-size: 14px; color: #4F5D6B">Teléfono</dt><dd style="margin: 0; font-size: 14px; font-weight: 700">249 412-3456</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EDF1F5"><dt style="font-size: 14px; color: #4F5D6B">Ocupación</dt><dd style="margin: 0; font-size: 14px; font-weight: 700">Docente</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EDF1F5"><dt style="font-size: 14px; color: #4F5D6B">Obra social</dt><dd style="margin: 0; font-size: 14px; font-weight: 700">OSDE</dd></div>
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 0"><dt style="font-size: 14px; color: #4F5D6B">N.º de afiliado</dt><dd style="margin: 0; font-size: 14px; font-weight: 700">61 234567 8 01</dd></div>
+</dl>
+<div style="padding: 0 24px 24px">
+<a href="M-PatientNew.dc.html" style="height: 44px; border-radius: 12px; border: 1.5px solid #D6E0EA; color: #121A24; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 14px; font-weight: 700"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>Editar datos</a>
+</div>
+</aside>
+<section style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<h2 style="margin: 0; font-size: 22px; font-weight: 800">Diagnósticos</h2>
+<a href="M-DiagnosisNew.dc.html" style="height: 44px; padding: 0 16px; border-radius: 12px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 14px; font-weight: 700"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo diagnóstico</a>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{dx}}" as="d" hint-placeholder-count="2">
+<button type="button" class="to-dx" onClick="{{d.pick}}" aria-pressed="{{d.pressed}}" style="text-align: left; padding: 16px; border-radius: 18px; border: 2px solid {{d.border}}; background: #FFFFFF; font-family: inherit; color: #121A24; cursor: pointer; display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; justify-content: space-between; gap: 10px; align-items: flex-start"><span style="font-size: 16px; font-weight: 700; line-height: 1.35">{{d.title}}</span><span style="flex-shrink: 0; padding: 4px 10px; border-radius: 999px; background: {{d.badgeBg}}; color: {{d.badgeColor}}; font-size: 12px; font-weight: 700">{{d.type}}</span></span>
+<span style="font-size: 13px; color: #4F5D6B">{{d.meta}}</span>
+</button>
+</sc-for>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<h3 style="margin: 0; font-size: 17px; font-weight: 800">Seguimientos · {{current.title}}</h3>
+<a href="D-FollowUpNew.dc.html" style="height: 40px; padding: 0 14px; border-radius: 12px; background: #E4EEF8; color: #0E2944; display: flex; align-items: center; gap: 6px; text-decoration: none; font-size: 14px; font-weight: 700"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo seguimiento</a>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px">
+<thead>
+<tr style="text-align: left; color: #4F5D6B; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em">
+<th scope="col" style="padding: 10px 12px; font-weight: 700">Fecha</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700">Segmento</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700; text-align: right">Edema</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700; text-align: right">Dolor</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700; text-align: right">ROM</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700; text-align: right">Fuerza</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 700">Plantilla</th>
+</tr>
+</thead>
+<tbody>
+<sc-for list="{{current.rows}}" as="r" hint-placeholder-count="4">
+<tr style="border-top: 1px solid #EDF1F5; font-variant-numeric: tabular-nums">
+<td style="padding: 12px; font-weight: 700">{{r.date}}</td>
+<td style="padding: 12px">{{r.segment}}</td>
+<td style="padding: 12px; text-align: right">{{r.edema}}</td>
+<td style="padding: 12px; text-align: right">{{r.pain}}</td>
+<td style="padding: 12px; text-align: right">{{r.rom}}</td>
+<td style="padding: 12px; text-align: right">{{r.strength}}</td>
+<td style="padding: 12px; color: #4F5D6B">{{r.template}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+var DX = [
+  { id: 'd1', title: 'Fractura distal de radio izquierdo', type: 'Quirúrgico', surgical: true, meta: 'Creado 12/10/2026 · Cirugía 14/10/2026 · Osteosíntesis con placa', rows: [
+    { date: '28/10/2026', segment: 'Muñeca', edema: '1,5', pain: '3', rom: '55', strength: '14', template: 'Fractura de muñeca' },
+    { date: '28/10/2026', segment: 'Mano', edema: '—', pain: '2', rom: '70', strength: '16', template: '—' },
+    { date: '21/10/2026', segment: 'Muñeca', edema: '2,5', pain: '5', rom: '40', strength: '9', template: 'Fractura de muñeca' },
+    { date: '14/10/2026', segment: 'Muñeca', edema: '3', pain: '7', rom: '25', strength: '5', template: 'Fractura de muñeca' }
+  ] },
+  { id: 'd2', title: 'Tenosinovitis de De Quervain', type: 'Conservador', surgical: false, meta: 'Creado 01/08/2026 · Inmovilización 02/08/2026', rows: [
+    { date: '30/09/2026', segment: 'Muñeca', edema: '—', pain: '1', rom: '75', strength: '18', template: '—' },
+    { date: '02/09/2026', segment: 'Muñeca', edema: '0,5', pain: '3', rom: '68', strength: '15', template: '—' }
+  ] }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'd1' };
+  }
+  renderVals() {
+    var self = this;
+    var current = DX.filter(function (d) { return d.id === self.state.sel; })[0];
+    return {
+      dx: DX.map(function (d) {
+        var on = d.id === self.state.sel;
+        return Object.assign({}, d, {
+          pressed: on ? 'true' : 'false',
+          border: on ? '#1D5FA8' : '#D6E0EA',
+          badgeBg: d.surgical ? '#0E2944' : '#E4EEF8',
+          badgeColor: d.surgical ? '#FFFFFF' : '#0E2944',
+          pick: function () { self.setState({ sel: d.id }); }
+        });
+      }),
+      current: current
+    };
+  }
+}
+</script>
+</body>
+</html>

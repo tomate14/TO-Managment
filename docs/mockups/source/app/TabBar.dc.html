@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Barra inferior</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<nav aria-label="Navegación principal" style="width: 100%; height: 76px; box-sizing: border-box; padding: 8px 12px 12px; background: #FFFFFF; border-top: 1px solid #D6E0EA; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; font-family: 'Manrope', system-ui, sans-serif">
+<a href="M-Patients.dc.html" aria-current="{{patients.current}}" style="text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 14px; color: {{patients.color}}; font-size: 12px; font-weight: 700">
+<span style="width: 56px; height: 30px; border-radius: 999px; background: {{patients.bg}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7"></path><path d="M18 14.5a6.5 6.5 0 0 1 3.5 5.5"></path></svg></span>
+<span>Pacientes</span>
+</a>
+<a href="M-Templates.dc.html" aria-current="{{templates.current}}" style="text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 14px; color: {{templates.color}}; font-size: 12px; font-weight: 700">
+<span style="width: 56px; height: 30px; border-radius: 999px; background: {{templates.bg}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"></rect><path d="M9 3h6v3H9z"></path><path d="M9 11h6M9 15h6M9 19h3"></path></svg></span>
+<span>Plantillas</span>
+</a>
+<a href="M-More.dc.html" aria-current="{{more.current}}" style="text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 14px; color: {{more.color}}; font-size: 12px; font-weight: 700">
+<span style="width: 56px; height: 30px; border-radius: 999px; background: {{more.bg}}; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></span>
+<span>Más</span>
+</a>
+</nav>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["patients","templates","more"],"default":"patients"},"$preview":{"width":390,"height":76}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var active = this.props.active || 'patients';
+    function item(key) {
+      var on = key === active;
+      return { color: on ? '#1D5FA8' : '#4F5D6B', bg: on ? '#E4EEF8' : 'transparent', current: on ? 'page' : 'false' };
+    }
+    return { patients: item('patients'), templates: item('templates'), more: item('more') };
+  }
+}
+</script>
+</body>
+</html>

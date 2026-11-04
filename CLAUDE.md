@@ -75,6 +75,7 @@ Todo el desarrollo de este proyecto se hace con el plugin **superpowers**. No es
 /frontend                 Angular (Dockerfile multi-stage: build con Node → servir con nginx)
 /backend                  Spring Boot (Dockerfile multi-stage: build con Maven → JRE 21)
 /supabase                 SQL de inicialización y configuración del stack de Supabase
+/supabase/init            01_schema.sql (esquema completo) y 02_seed.sql (datos iniciales), siempre al día con las migraciones
 /docs/superpowers/specs   Specs de diseño (salida de brainstorming)
 /docs/superpowers/plans   Planes de implementación (salida de writing-plans)
 /docs/mockups             Mockups de pantallas, por historia (requisito para codificar)
@@ -143,6 +144,7 @@ CLAUDE.md
 - Paquetes por feature (`<feature>/controller`, `service`, `repository`, `dto`, `entity`).
 - DTOs en la API (no exponer entidades JPA), validados con `jakarta.validation`.
 - Cambios de esquema **solo** con migraciones Flyway nuevas (nunca editar una ya aplicada).
+- **Scripts de inicialización consolidados:** además de la migración, toda tabla nueva o modificada se refleja **en el mismo cambio** en `supabase/init/01_schema.sql` (estado final del esquema completo, idempotente) y todo dato inicializador (catálogos, valores por defecto) en `supabase/init/02_seed.sql`. Con esos dos scripts se tiene que poder crear la base desde cero cuando el proyecto esté terminado. Se verifican corriéndolos sobre un Postgres vacío.
 - Tests de integración con Testcontainers contra Postgres real.
 
 ### Diseño orientado a objetos del backend (reglas obligatorias)

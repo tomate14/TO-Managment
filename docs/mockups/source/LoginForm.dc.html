@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Formulario de ingreso</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E5A4F}a:hover{color:#123B34}
+@keyframes to-spin{to{transform:rotate(360deg)}}
+.to-spin{animation:to-spin .8s linear infinite}
+.to-input:focus{outline:none;border-color:var(--to-accent) !important;box-shadow:0 0 0 4px var(--to-ring)}
+.to-btn:hover{background:var(--to-hover) !important}
+.to-btn:focus-visible,.to-eye:focus-visible{outline:3px solid var(--to-ring);outline-offset:2px}
+.to-eye:hover{background:var(--to-soft) !important}
+</style>
+</helmet>
+<div style="--to-dark: {{c.dark}}; --to-accent: {{c.accent}}; --to-hover: {{c.hover}}; --to-soft: {{c.soft}}; --to-line: {{c.line}}; --to-ring: {{c.ring}}; --to-muted: {{c.muted}}; width: 100%; max-width: 400px; box-sizing: border-box; font-family: 'Manrope', system-ui, sans-serif; color: #15161A; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--to-accent)">Acceso del equipo</p>
+<h1 style="margin: 0; font-size: 30px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">Hola de nuevo</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--to-muted)">Ingresá con tu email y contraseña para ver a tus pacientes.</p>
+</div>
+<sc-if value="{{isError}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: #FDECEA; color: #8A1C13; font-size: 14px; line-height: 1.45">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+<div><strong style="display: block; font-weight: 700">Email o contraseña incorrectos</strong>Revisá los datos e intentá de nuevo.</div>
+</div>
+</sc-if>
+<sc-if value="{{isExpired}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: var(--to-soft); color: var(--to-dark); font-size: 14px; line-height: 1.45">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+<div><strong style="display: block; font-weight: 700">Tu sesión venció</strong>Por seguridad, ingresá de nuevo para continuar.</div>
+</div>
+</sc-if>
+<form noValidate="{{ true }}" onSubmit="{{submit}}" style="margin: 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="to-email" style="font-size: 14px; font-weight: 600; color: #15161A">Email</label>
+<input id="to-email" class="to-input" type="email" autocomplete="email" inputmode="email" placeholder="nombre@consultorio.com" value="{{email}}" onChange="{{onEmail}}" aria-invalid="{{invalid}}" style="height: 52px; width: 100%; box-sizing: border-box; padding: 0 16px; border-radius: 14px; border: 1.5px solid {{fieldBorder}}; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #15161A">
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="to-password" style="font-size: 14px; font-weight: 600; color: #15161A">Contraseña</label>
+<div style="position: relative">
+<input id="to-password" class="to-input" type="{{pwType}}" autocomplete="current-password" placeholder="Tu contraseña" value="{{password}}" onChange="{{onPassword}}" aria-invalid="{{invalid}}" style="height: 52px; width: 100%; box-sizing: border-box; padding: 0 56px 0 16px; border-radius: 14px; border: 1.5px solid {{fieldBorder}}; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #15161A">
+<button type="button" class="to-eye" onClick="{{toggleShow}}" aria-label="{{eyeLabel}}" aria-pressed="{{eyePressed}}" style="position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--to-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0">
+<sc-if value="{{show}}" hint-placeholder-val="{{ false }}">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.8"></path><path d="M6.4 6.4C3.9 8.1 2.5 12 2.5 12S6 19 12 19a9.6 9.6 0 0 0 5.6-1.8"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+</sc-if>
+<sc-if value="{{hidden}}" hint-placeholder-val="{{ true }}">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+</sc-if>
+</button>
+</div>
+</div>
+<button type="submit" class="to-btn" disabled="{{isLoading}}" aria-busy="{{busy}}" style="margin-top: 4px; height: 54px; width: 100%; border: 0; border-radius: 14px; background: var(--to-accent); color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 10px 22px -12px var(--to-dark)">
+<sc-if value="{{isLoading}}" hint-placeholder-val="{{ false }}">
+<span class="to-spin" aria-hidden="true" style="width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); border-top-color: #FFFFFF; display: block"></span>
+<span>Ingresando…</span>
+</sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+<span>Ingresar</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+</sc-if>
+</button>
+</form>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding-top: 20px; border-top: 1px solid var(--to-line); font-size: 13px; line-height: 1.5; color: var(--to-muted)">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"></path></svg>
+<p style="margin: 0">¿Problemas para ingresar? Pedile ayuda al administrador de tu equipo.</p>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"state":{"editor":"enum","options":["default","error","expired","loading"],"default":"default"},"palette":{"editor":"enum","options":["indigo","oceano","ciruela","grafito","pino"],"default":"oceano"},"$preview":{"width":400,"height":600}}'>
+var TO_PALETTES = {
+  indigo: { dark: '#221C4A', accent: '#4B3FB0', hover: '#3D3394', soft: '#ECEAFB', line: '#DEDBEE', ring: 'rgba(75,63,176,0.2)', muted: '#565470' },
+  oceano: { dark: '#0E2944', accent: '#1D5FA8', hover: '#184F8C', soft: '#E4EEF8', line: '#D6E0EA', ring: 'rgba(29,95,168,0.2)', muted: '#4F5D6B' },
+  ciruela: { dark: '#3A1A2E', accent: '#8A2F5F', hover: '#74264F', soft: '#F7E9EF', line: '#EADCE2', ring: 'rgba(138,47,95,0.2)', muted: '#66535D' },
+  grafito: { dark: '#1C1D22', accent: '#9A4A0B', hover: '#803D09', soft: '#FAF0E4', line: '#E3DED6', ring: 'rgba(154,74,11,0.2)', muted: '#5A5853' },
+  pino: { dark: '#123B34', accent: '#1E5A4F', hover: '#17473F', soft: '#E3EEE9', line: '#D9E1DC', ring: 'rgba(30,90,79,0.2)', muted: '#55635E' }
+};
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { email: null, password: null, show: false, phase: null };
+  }
+  componentWillUnmount() {
+    if (this._timer) clearTimeout(this._timer);
+  }
+  renderVals() {
+    var c = TO_PALETTES[this.props.palette] || TO_PALETTES.oceano;
+    var forced = this.props.state || 'default';
+    var phase = this.state.phase || forced;
+    var prefill = forced === 'error' || forced === 'loading';
+    var email = this.state.email !== null ? this.state.email : (prefill ? 'terapeuta@consultorio.com' : '');
+    var password = this.state.password !== null ? this.state.password : (prefill ? 'contrasena123' : '');
+    var isError = phase === 'error';
+    var self = this;
+    return {
+      c: c,
+      email: email,
+      password: password,
+      isError: isError,
+      isExpired: phase === 'expired',
+      isLoading: phase === 'loading',
+      idle: phase !== 'loading',
+      busy: phase === 'loading' ? 'true' : 'false',
+      invalid: isError ? 'true' : 'false',
+      fieldBorder: isError ? '#B42318' : c.line,
+      show: this.state.show,
+      hidden: !this.state.show,
+      pwType: this.state.show ? 'text' : 'password',
+      eyeLabel: this.state.show ? 'Ocultar contraseña' : 'Mostrar contraseña',
+      eyePressed: this.state.show ? 'true' : 'false',
+      onEmail: function (e) {
+        self.setState({ email: e.target.value, phase: isError ? 'default' : self.state.phase });
+      },
+      onPassword: function (e) {
+        self.setState({ password: e.target.value, phase: isError ? 'default' : self.state.phase });
+      },
+      toggleShow: function () {
+        self.setState({ show: !self.state.show });
+      },
+      submit: function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        if (phase === 'loading') return;
+        self.setState({ phase: 'loading' });
+        if (self._timer) clearTimeout(self._timer);
+        self._timer = setTimeout(function () {
+          self.setState({ phase: 'error' });
+        }, 1400);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

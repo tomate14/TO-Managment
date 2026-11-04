@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Usuarios</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-sw:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-More.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<h1 style="margin: 0; flex: 1; font-size: 17px; font-weight: 700">Usuarios</h1>
+<a href="M-UserNew.dc.html" style="height: 40px; padding: 0 14px; border-radius: 12px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; gap: 6px; text-decoration: none; font-size: 14px; font-weight: 700; margin-right: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo</a>
+</header>
+<main style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{users}}" as="u" hint-placeholder-count="4">
+<div style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; background: {{u.avatarBg}}; color: {{u.avatarColor}}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">{{u.initials}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 700">{{u.name}}<sc-if value="{{u.isMe}}" hint-placeholder-val="{{ false }}"> <span style="font-weight: 600; color: #4F5D6B">(vos)</span></sc-if></span>
+<span style="font-size: 13px; color: #4F5D6B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{u.email}}</span>
+</span>
+<a href="M-UserNew.dc.html" aria-label="{{u.editLabel}}" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #1D5FA8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg></a>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid #EDF1F5">
+<span style="display: flex; gap: 6px">
+<span style="padding: 3px 9px; border-radius: 999px; background: {{u.roleBg}}; color: {{u.roleColor}}; font-size: 12px; font-weight: 700">{{u.role}}</span>
+<span style="padding: 3px 9px; border-radius: 999px; background: {{u.statusBg}}; color: {{u.statusColor}}; font-size: 12px; font-weight: 700">{{u.status}}</span>
+</span>
+<sc-if value="{{u.canToggle}}" hint-placeholder-val="{{ true }}">
+<button type="button" class="to-sw" role="switch" aria-checked="{{u.checked}}" aria-label="{{u.switchLabel}}" onClick="{{u.toggle}}" style="width: 44px; height: 28px; border: 0; border-radius: 999px; background: {{u.track}}; padding: 3px; display: flex; justify-content: {{u.justify}}; cursor: pointer"><span style="width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: block"></span></button>
+</sc-if>
+<sc-if value="{{u.isMe}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 12px; color: #4F5D6B">No podés desactivarte</span>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+var USERS = [
+  { id: 'u1', initials: 'MG', name: 'Mariana Gómez', email: 'mariana.gomez@consultorio.com', admin: true, me: true },
+  { id: 'u2', initials: 'CR', name: 'Carla Ríos', email: 'carla.rios@consultorio.com', admin: false, me: false },
+  { id: 'u3', initials: 'PV', name: 'Paula Vidal', email: 'paula.vidal@consultorio.com', admin: true, me: false },
+  { id: 'u4', initials: 'SN', name: 'Sofía Núñez', email: 'sofia.nunez@consultorio.com', admin: false, me: false }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { active: { u1: true, u2: true, u3: true, u4: false } };
+  }
+  renderVals() {
+    var self = this;
+    return {
+      users: USERS.map(function (u) {
+        var on = !!self.state.active[u.id];
+        return Object.assign({}, u, {
+          isMe: u.me,
+          canToggle: !u.me,
+          role: u.admin ? 'Admin' : 'Terapeuta',
+          roleBg: u.admin ? '#0E2944' : '#E4EEF8',
+          roleColor: u.admin ? '#FFFFFF' : '#0E2944',
+          status: on ? 'Activo' : 'Inactivo',
+          statusBg: on ? '#E3F3EA' : '#EEF1F4',
+          statusColor: on ? '#1B6B42' : '#4F5D6B',
+          avatarBg: on ? '#E4EEF8' : '#EEF1F4',
+          avatarColor: on ? '#0E2944' : '#4F5D6B',
+          checked: on ? 'true' : 'false',
+          track: on ? '#1D5FA8' : '#B8C3CF',
+          justify: on ? 'flex-end' : 'flex-start',
+          switchLabel: 'Usuario activo: ' + u.name,
+          editLabel: 'Editar a ' + u.name,
+          toggle: function () {
+            var next = Object.assign({}, self.state.active);
+            next[u.id] = !next[u.id];
+            self.setState({ active: next });
+          }
+        });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

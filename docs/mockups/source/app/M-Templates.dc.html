@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Plantillas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-chip:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+.to-card:hover{border-color:#1D5FA8 !important}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden; position: relative">
+<header style="padding: 24px 20px 14px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Plantillas</h1>
+<p style="margin: 0; font-size: 14px; color: #4F5D6B">Preguntas reutilizables por segmento corporal.</p>
+</div>
+<div role="group" aria-label="Filtrar por segmento" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -20px; padding: 0 20px 2px">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+<button type="button" class="to-chip" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="flex-shrink: 0; height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">{{c.label}}</button>
+</sc-for>
+</div>
+</header>
+<main style="flex: 1; overflow: auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{rows}}" as="t" hint-placeholder-count="5">
+<a href="M-TemplateEdit.dc.html" class="to-card" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; text-decoration: none; color: #121A24; opacity: {{t.opacity}}">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 700">{{t.name}}</span>
+<span style="font-size: 13px; color: #4F5D6B">{{t.segment}}</span>
+</span>
+<span style="flex-shrink: 0; padding: 4px 10px; border-radius: 999px; background: {{t.badgeBg}}; color: {{t.badgeColor}}; font-size: 12px; font-weight: 700">{{t.status}}</span>
+</div>
+<div style="display: flex; gap: 14px; font-size: 13px; color: #4F5D6B">
+<span>{{t.questions}} preguntas</span>
+<span>{{t.chained}} encadenadas</span>
+</div>
+</a>
+</sc-for>
+</main>
+<a href="M-TemplateEdit.dc.html" style="position: absolute; right: 20px; bottom: 92px; height: 56px; padding: 0 22px 0 18px; border-radius: 18px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 15px; font-weight: 700; box-shadow: 0 12px 24px -12px rgba(14, 41, 68, 0.7)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nueva plantilla</a>
+<dc-import name="TabBar" active="templates" hint-size="390px,76px"></dc-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+var SEGMENTS = ['Todos', 'Muñeca', 'Mano', 'Codo', 'Hombro'];
+var TEMPLATES = [
+  { name: 'Fractura de muñeca', segment: 'Muñeca', questions: 6, chained: 2, active: true },
+  { name: 'Síndrome del túnel carpiano', segment: 'Muñeca', questions: 5, chained: 1, active: true },
+  { name: 'Postoperatorio de mano', segment: 'Mano', questions: 8, chained: 3, active: true },
+  { name: 'Lesión de tendones flexores', segment: 'Mano', questions: 7, chained: 2, active: false },
+  { name: 'Epicondilitis', segment: 'Codo', questions: 4, chained: 0, active: true },
+  { name: 'Hombro congelado', segment: 'Hombro', questions: 6, chained: 1, active: true }
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { seg: 'Todos' };
+  }
+  renderVals() {
+    var self = this;
+    var seg = this.state.seg;
+    return {
+      chips: SEGMENTS.map(function (s) {
+        var on = s === seg;
+        return { label: s, pressed: on ? 'true' : 'false', border: on ? '#0E2944' : '#D6E0EA', bg: on ? '#0E2944' : '#FFFFFF', color: on ? '#FFFFFF' : '#121A24', pick: function () { self.setState({ seg: s }); } };
+      }),
+      rows: TEMPLATES.filter(function (t) { return seg === 'Todos' || t.segment === seg; }).map(function (t) {
+        return Object.assign({}, t, {
+          status: t.active ? 'Activa' : 'Inactiva',
+          badgeBg: t.active ? '#E3F3EA' : '#EEF1F4',
+          badgeColor: t.active ? '#1B6B42' : '#4F5D6B',
+          opacity: '1'
+        });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

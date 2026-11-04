@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Catálogos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-tab:focus-visible,.to-sw:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 900px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #D6E0EA; display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px">
+<div style="height: 60px; padding: 0 8px; display: flex; align-items: center; gap: 4px">
+<a href="M-More.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+<h1 style="margin: 0; font-size: 17px; font-weight: 700">Catálogos</h1>
+</div>
+<div role="group" aria-label="Catálogo" style="margin: 0 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #F0F4F8; border-radius: 14px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" class="to-tab" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="height: 44px; border: 0; border-radius: 11px; background: {{t.bg}}; color: {{t.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: {{t.shadow}}">{{t.label}}</button>
+</sc-for>
+</div>
+</header>
+<main style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<label for="new" style="font-size: 14px; font-weight: 600">{{addLabel}}</label>
+<div style="display: flex; gap: 8px">
+<input id="new" class="to-input" value="{{draft}}" aria-invalid="{{dupInvalid}}" aria-describedby="dup-err" style="flex: 1; min-width: 0; height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid {{dupBorder}}; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<button type="button" style="height: 48px; padding: 0 16px; border: 0; border-radius: 12px; background: #1D5FA8; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Agregar</button>
+</div>
+<sc-if value="{{dup}}" hint-placeholder-val="{{ false }}">
+<p id="dup-err" style="margin: 0; display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: #B42318"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5h.01"></path></svg>Ya existe con ese nombre (sin importar mayúsculas).</p>
+</sc-if>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; overflow: hidden">
+<sc-for list="{{items}}" as="i" hint-placeholder-count="5">
+<li style="min-height: 64px; padding: 0 12px 0 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #EDF1F5">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 700; color: {{i.textColor}}">{{i.name}}</span>
+<span style="font-size: 12px; color: #4F5D6B">{{i.status}}</span>
+</span>
+<button type="button" aria-label="{{i.editLabel}}" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #1D5FA8; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg></button>
+<button type="button" class="to-sw" role="switch" aria-checked="{{i.checked}}" aria-label="{{i.switchLabel}}" onClick="{{i.toggle}}" style="width: 44px; height: 28px; flex-shrink: 0; border: 0; border-radius: 999px; background: {{i.track}}; padding: 3px; display: flex; justify-content: {{i.justify}}; cursor: pointer"><span style="width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: block"></span></button>
+</li>
+</sc-for>
+</ul>
+<p style="margin: 0 4px; font-size: 12px; line-height: 1.45; color: #4F5D6B">Los inactivos no se ofrecen en altas nuevas, pero se siguen viendo en el historial.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":900}}'>
+var CATALOGS = {
+  segments: { label: 'Segmentos', add: 'Nuevo segmento', draft: 'muñeca', dup: true, items: [
+    { id: 'a1', name: 'Hombro', on: true }, { id: 'a2', name: 'Codo', on: true }, { id: 'a3', name: 'Muñeca', on: true }, { id: 'a4', name: 'Mano', on: true }, { id: 'a5', name: 'Dedos', on: false }
+  ] },
+  surgeries: { label: 'Cirugías', add: 'Nuevo tipo de cirugía', draft: '', dup: false, items: [
+    { id: 'b1', name: 'Osteosíntesis con placa', on: true }, { id: 'b2', name: 'Tenorrafia', on: true }, { id: 'b3', name: 'Liberación del túnel carpiano', on: true }, { id: 'b4', name: 'Artrodesis', on: false }
+  ] },
+  scars: { label: 'Cicatrices', add: 'Nuevo tipo de cicatriz', draft: '', dup: false, items: [
+    { id: 'c1', name: 'Normotrófica', on: true }, { id: 'c2', name: 'Hipertrófica', on: true }, { id: 'c3', name: 'Queloide', on: true }, { id: 'c4', name: 'Retráctil', on: true }
+  ] }
+};
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var active = {};
+    Object.keys(CATALOGS).forEach(function (k) { CATALOGS[k].items.forEach(function (i) { active[i.id] = i.on; }); });
+    this.state = { tab: 'segments', active: active };
+  }
+  renderVals() {
+    var self = this;
+    var cat = CATALOGS[this.state.tab];
+    return {
+      tabs: Object.keys(CATALOGS).map(function (k) {
+        var on = k === self.state.tab;
+        return { label: CATALOGS[k].label, pressed: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', color: on ? '#0E2944' : '#4F5D6B', shadow: on ? '0 1px 3px rgba(14,41,68,0.18)' : 'none', pick: function () { self.setState({ tab: k }); } };
+      }),
+      addLabel: cat.add,
+      draft: cat.draft,
+      dup: cat.dup,
+      dupInvalid: cat.dup ? 'true' : 'false',
+      dupBorder: cat.dup ? '#B42318' : '#D6E0EA',
+      items: cat.items.map(function (i) {
+        var on = !!self.state.active[i.id];
+        return {
+          name: i.name,
+          status: on ? 'Activo' : 'Inactivo',
+          textColor: on ? '#121A24' : '#4F5D6B',
+          checked: on ? 'true' : 'false',
+          track: on ? '#1D5FA8' : '#B8C3CF',
+          justify: on ? 'flex-end' : 'flex-start',
+          switchLabel: 'Activo: ' + i.name,
+          editLabel: 'Editar ' + i.name,
+          toggle: function () {
+            var next = Object.assign({}, self.state.active);
+            next[i.id] = !next[i.id];
+            self.setState({ active: next });
+          }
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

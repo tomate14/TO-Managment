@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nueva pregunta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-chip:focus-visible,.to-sw:focus-visible{outline:3px solid rgba(29,95,168,.4);outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1200px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-TemplateEdit.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<div style="display: flex; flex-direction: column">
+<h1 style="margin: 0; font-size: 17px; font-weight: 700">Nueva pregunta</h1>
+<span style="font-size: 12px; color: #4F5D6B">Fractura de muñeca · Muñeca</span>
+</div>
+</header>
+<form style="flex: 1; margin: 0; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="qt" style="font-size: 14px; font-weight: 600">Texto de la pregunta</label>
+<input id="qt" class="to-input" value="Horas de uso por día" style="height: 50px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0">
+<legend style="padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 600">Tipo de respuesta</legend>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{types}}" as="t" hint-placeholder-count="4">
+<button type="button" class="to-chip" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="height: 48px; border-radius: 12px; border: 1.5px solid {{t.border}}; background: {{t.bg}}; color: {{t.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+<sc-if value="{{isNumeric}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="min" style="font-size: 14px; font-weight: 600">Mínimo <span style="font-weight: 500; color: #4F5D6B">(opc.)</span></label>
+<input id="min" class="to-input" inputmode="decimal" value="0" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="max" style="font-size: 14px; font-weight: 600">Máximo <span style="font-weight: 500; color: #4F5D6B">(opc.)</span></label>
+<input id="max" class="to-input" inputmode="decimal" value="24" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isOption}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 14px; font-weight: 600">Opciones <span style="font-weight: 500; color: #4F5D6B">(mínimo 2)</span></span>
+<input class="to-input" aria-label="Opción 1" value="Cilíndrico" style="height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24">
+<input class="to-input" aria-label="Opción 2" value="Esférico" style="height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 16px; color: #121A24">
+<button type="button" style="align-self: flex-start; height: 44px; padding: 0 12px; border: 0; background: transparent; color: #1D5FA8; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">+ Agregar opción</button>
+</div>
+</sc-if>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span id="cond-label" style="font-size: 15px; font-weight: 700">Mostrar solo si…</span>
+<span style="font-size: 12px; color: #4F5D6B">Depende de la respuesta de otra pregunta.</span>
+</span>
+<button type="button" class="to-sw" role="switch" aria-checked="{{cond.checked}}" aria-labelledby="cond-label" onClick="{{toggleCond}}" style="flex-shrink: 0; width: 52px; height: 32px; border: 0; border-radius: 999px; background: {{cond.track}}; padding: 3px; display: flex; justify-content: {{cond.justify}}; cursor: pointer"><span style="width: 26px; height: 26px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.25); display: block"></span></button>
+</div>
+<sc-if value="{{hasCond}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="parent" style="font-size: 14px; font-weight: 600">Pregunta padre</label>
+<select id="parent" class="to-input" style="height: 50px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<option>¿Usa férula? (Sí / No)</option>
+<option>Tipo de agarre afectado (Opción)</option>
+</select>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="op" style="font-size: 14px; font-weight: 600">Condición</label>
+<select id="op" class="to-input" value="{{op}}" onChange="{{onOp}}" aria-invalid="{{opInvalid}}" aria-describedby="op-err" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid {{opBorder}}; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24">
+<option value="EQUALS">Igual a</option>
+<option value="NOT_EQUALS">Distinto de</option>
+<option value="GREATER_THAN">Mayor que</option>
+<option value="LESS_THAN">Menor que</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ev" style="font-size: 14px; font-weight: 600">Valor esperado</label>
+<select id="ev" class="to-input" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24">
+<option>Sí</option>
+<option>No</option>
+</select>
+</div>
+</div>
+<sc-if value="{{opError}}" hint-placeholder-val="{{ false }}">
+<p id="op-err" role="alert" style="margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 12px; background: #FDECEA; color: #8A1C13; font-size: 13px; line-height: 1.45"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5h.01"></path></svg>«Mayor que» y «Menor que» solo sirven si la pregunta padre es numérica. Elegí «Igual a» o «Distinto de».</p>
+</sc-if>
+<div style="padding: 12px 14px; border-radius: 12px; background: #F2F7FD; font-size: 13px; line-height: 1.45; color: #0E2944"><strong>Vista previa:</strong> esta pregunta aparece cuando «¿Usa férula?» {{opText}} «Sí».</div>
+</div>
+</sc-if>
+</section>
+</form>
+<div style="flex-shrink: 0; padding: 12px 16px 20px; background: #FFFFFF; border-top: 1px solid #D6E0EA; display: flex; gap: 10px">
+<a href="M-TemplateEdit.dc.html" style="height: 52px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #D6E0EA; color: #121A24; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Cancelar</a>
+<a href="M-TemplateEdit.dc.html" style="flex: 1; height: 52px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 700">Agregar pregunta</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"operator":{"editor":"enum","options":["EQUALS","NOT_EQUALS","GREATER_THAN","LESS_THAN"],"default":"EQUALS"},"$preview":{"width":390,"height":1200}}'>
+var TYPES = [
+  { key: 'NUMERIC', label: 'Numérica' },
+  { key: 'YES_NO', label: 'Sí / No' },
+  { key: 'OPTION', label: 'Opción' },
+  { key: 'TEXT', label: 'Texto' }
+];
+var OP_TEXT = { EQUALS: 'es igual a', NOT_EQUALS: 'es distinta de', GREATER_THAN: 'es mayor que', LESS_THAN: 'es menor que' };
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { type: 'NUMERIC', cond: true, op: null };
+  }
+  renderVals() {
+    var self = this;
+    var op = this.state.op || this.props.operator || 'EQUALS';
+    var opError = op === 'GREATER_THAN' || op === 'LESS_THAN';
+    var on = this.state.cond;
+    return {
+      types: TYPES.map(function (t) {
+        var sel = t.key === self.state.type;
+        return { label: t.label, pressed: sel ? 'true' : 'false', border: sel ? '#1D5FA8' : '#D6E0EA', bg: sel ? '#E4EEF8' : '#FFFFFF', color: sel ? '#0E2944' : '#121A24', pick: function () { self.setState({ type: t.key }); } };
+      }),
+      isNumeric: this.state.type === 'NUMERIC',
+      isOption: this.state.type === 'OPTION',
+      cond: { checked: on ? 'true' : 'false', track: on ? '#1D5FA8' : '#B8C3CF', justify: on ? 'flex-end' : 'flex-start' },
+      hasCond: on,
+      toggleCond: function () { self.setState({ cond: !self.state.cond }); },
+      op: op,
+      opText: OP_TEXT[op],
+      opError: opError,
+      opInvalid: opError ? 'true' : 'false',
+      opBorder: opError ? '#B42318' : '#D6E0EA',
+      onOp: function (e) { self.setState({ op: e.target.value }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
