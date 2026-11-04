@@ -79,6 +79,20 @@ describe('AuthService', () => {
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'vencida' } });
   });
 
+  it('logout clears the stored session and navigates to login without notice', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    service.login('ana@consultorio.com', 'secreta').subscribe();
+    http.expectOne('/api/auth/login').flush(response);
+
+    service.logout();
+
+    expect(service.token()).toBeNull();
+    expect(service.currentUser()).toBeNull();
+    expect(localStorage.length).toBe(0);
+    expect(navigate).toHaveBeenCalledWith(['/login'], {});
+  });
+
   it('refreshCurrentUser updates the user from /api/auth/me', () => {
     service.login('ana@consultorio.com', 'secreta').subscribe();
     http.expectOne('/api/auth/login').flush(response);

@@ -28,6 +28,11 @@ export const routes: Routes = [
         data: { heading: 'Plantillas' },
         loadComponent: () => import('./features/empty-section/empty-section').then((m) => m.EmptySection),
       },
+      {
+        path: 'mas',
+        title: `Más · ${APP_NAME}`,
+        loadComponent: () => import('./features/more/more-page').then((m) => m.MorePage),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

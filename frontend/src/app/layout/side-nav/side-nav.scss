@@ -87,6 +87,9 @@
 }
 
 .side-nav__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -116,4 +119,22 @@
 .side-nav__user-name {
   font-size: 14px;
   font-weight: 700;
+}
+
+.side-nav__action {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }

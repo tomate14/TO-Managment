@@ -13,7 +13,7 @@ export interface LoginResponse {
   user: UserSummary;
 }
 
-export type SessionEndReason = 'expired' | 'invalid';
+export type SessionEndReason = 'expired' | 'invalid' | 'logout';
 
 /** Query params of /login that make it show the "Tu sesión venció" notice. */
 export const SESSION_EXPIRED_QUERY = { sesion: 'vencida' } as const;

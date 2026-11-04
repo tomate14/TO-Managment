@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NAV_ITEMS } from '../nav-items';
+import { TAB_ITEMS } from '../nav-items';
 
 @Component({
   selector: 'app-tab-bar',
@@ -9,5 +9,5 @@ import { NAV_ITEMS } from '../nav-items';
   styleUrl: './tab-bar.scss',
 })
 export class TabBar {
-  protected readonly items = NAV_ITEMS;
+  protected readonly items = TAB_ITEMS;
 }

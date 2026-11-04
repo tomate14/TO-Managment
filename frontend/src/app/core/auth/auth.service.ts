@@ -61,6 +61,11 @@ export class AuthService {
     void this.router.navigate(['/login'], reason === 'expired' ? { queryParams: SESSION_EXPIRED_QUERY } : {});
   }
 
+  /** User-initiated sign-out: drops the client token and returns to the login. */
+  logout(): void {
+    this.endSession('logout');
+  }
+
   private setSession(session: StoredSession): void {
     this.store.save(session);
     this.session.set(session);

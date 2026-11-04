@@ -12,7 +12,12 @@ import { ROLE_LABELS, userInitials } from '../user-initials';
 })
 export class SideNav {
   protected readonly items = NAV_ITEMS;
-  protected readonly user = inject(AuthService).currentUser;
+  private readonly auth = inject(AuthService);
+  protected readonly user = this.auth.currentUser;
   protected readonly roleLabels = ROLE_LABELS;
   protected readonly initials = userInitials;
+
+  protected logout(): void {
+    this.auth.logout();
+  }
 }

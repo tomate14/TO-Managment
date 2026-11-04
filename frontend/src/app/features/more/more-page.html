@@ -1,0 +1,28 @@
+<header class="more__header">
+  <h1 class="more__title">Más</h1>
+</header>
+
+<div class="more__body">
+  @if (user(); as currentUser) {
+    <section class="more__account" aria-label="Tu cuenta">
+      <div class="more__avatar" aria-hidden="true">{{ initials(currentUser.fullName) }}</div>
+      <div class="more__account-text">
+        <span class="more__account-name">{{ currentUser.fullName }}</span>
+        <span class="more__account-email">{{ currentUser.email }}</span>
+      </div>
+      <span class="more__role">{{ roleLabels[currentUser.role] }}</span>
+    </section>
+  }
+
+  <section class="more__group" aria-labelledby="more-account-heading">
+    <h2 id="more-account-heading" class="more__group-title">Mi cuenta</h2>
+    <div class="more__card">
+      <button type="button" class="more__row more__row--danger" (click)="logout()">
+        <span class="more__icon more__icon--danger">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"></path><path d="M10 16l-4-4 4-4M6 12h10"></path></svg>
+        </span>
+        <span class="more__row-label">Cerrar sesión</span>
+      </button>
+    </div>
+  </section>
+</div>
