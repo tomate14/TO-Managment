@@ -1,0 +1,55 @@
+<header class="page-header">
+  <a class="page-header__back page-header__back--mobile-only" routerLink="/mas" aria-label="Volver">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <h1 class="page-header__title">Usuarios</h1>
+  <a class="page-header__action" routerLink="/usuarios/nuevo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo
+  </a>
+</header>
+
+<div class="page-body">
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert">
+      <div>{{ message }}</div>
+    </div>
+  }
+
+  @if (users(); as list) {
+    <ul class="users">
+      @for (user of list; track user.id) {
+        <li class="user-card">
+          <div class="user-card__main">
+            <span class="user-card__avatar" [class.user-card__avatar--inactive]="!user.active" aria-hidden="true">{{ initials(user.fullName) }}</span>
+            <span class="user-card__text">
+              <span class="user-card__name">{{ user.fullName }}@if (isMe(user)) {<span class="user-card__me"> (vos)</span>}</span>
+              <span class="user-card__email">{{ user.email }}</span>
+            </span>
+            <a class="user-card__edit" [routerLink]="['/usuarios', user.id]" [attr.aria-label]="'Editar a ' + user.fullName">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>
+            </a>
+          </div>
+          <div class="user-card__footer">
+            <span class="user-card__badges">
+              <span class="badge" [class.badge--admin]="user.role === 'ADMIN'" [class.badge--therapist]="user.role === 'TERAPEUTA'">{{ roleLabels[user.role] }}</span>
+              <span class="badge" [class.badge--active]="user.active" [class.badge--inactive]="!user.active">{{ user.active ? 'Activo' : 'Inactivo' }}</span>
+            </span>
+            @if (isMe(user)) {
+              <span class="user-card__note">No podés desactivarte</span>
+            } @else {
+              <button type="button" class="switch" role="switch"
+                      [attr.aria-checked]="user.active"
+                      [attr.aria-label]="(user.active ? 'Desactivar a ' : 'Activar a ') + user.fullName"
+                      [disabled]="isPending(user)"
+                      (click)="toggle(user)">
+                <span class="switch__thumb"></span>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  } @else if (!error()) {
+    <p class="users__loading" role="status">Cargando usuarios…</p>
+  }
+</div>

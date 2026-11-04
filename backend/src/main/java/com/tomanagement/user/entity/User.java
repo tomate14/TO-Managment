@@ -87,6 +87,18 @@ public class User {
         return createdAt;
     }
 
+    /**
+     * Edits the profile fields an admin can change; the email is immutable.
+     */
+    public void updateProfile(String fullName, Role role) {
+        this.fullName = Objects.requireNonNull(fullName, "fullName is required");
+        this.role = Objects.requireNonNull(role, "role is required");
+    }
+
+    public void changeActive(boolean active) {
+        this.active = active;
+    }
+
     public static final class Builder {
 
         private String email;

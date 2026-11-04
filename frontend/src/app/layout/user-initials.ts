@@ -14,3 +14,9 @@ export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Administrador/a',
   TERAPEUTA: 'Terapeuta',
 };
+
+/** Compact role names for badges. */
+export const ROLE_SHORT_LABELS: Record<Role, string> = {
+  ADMIN: 'Admin',
+  TERAPEUTA: 'Terapeuta',
+};

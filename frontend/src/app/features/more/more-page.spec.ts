@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { MorePage } from './more-page';
 import { AuthService } from '../../core/auth/auth.service';
 import { UserSummary } from '../../core/auth/auth.models';
@@ -13,7 +14,7 @@ describe('MorePage', () => {
     logout = vi.fn();
     TestBed.configureTestingModule({
       imports: [MorePage],
-      providers: [{ provide: AuthService, useValue: { currentUser: signal(user), logout } }],
+      providers: [provideRouter([]), { provide: AuthService, useValue: { currentUser: signal(user), logout } }],
     });
   });
 
@@ -41,8 +42,18 @@ describe('MorePage', () => {
     expect(logout).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show links whose stories are pending', () => {
+  it('shows admins the Administración section with a link to Usuarios', () => {
     const el = render();
+    expect(el.textContent).toContain('Administración');
+    expect(el.textContent).toContain('Esta sección solo la ven las administradoras.');
+    const links = Array.from(el.querySelectorAll('a')).map((a) => a.getAttribute('href'));
+    expect(links).toEqual(['/usuarios']);
+  });
+
+  it('hides the Administración section from therapists', () => {
+    TestBed.overrideProvider(AuthService, { useValue: { currentUser: signal({ ...user, role: 'TERAPEUTA' }), logout } });
+    const el = render();
+    expect(el.textContent).not.toContain('Administración');
     expect(el.querySelectorAll('a').length).toBe(0);
   });
 });

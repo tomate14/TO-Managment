@@ -21,6 +21,10 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "No tenés permisos para realizar esta acción."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "La ruta solicitada no existe."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no permitido para esta ruta."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "El usuario no existe."),
+    USER_EMAIL_TAKEN(HttpStatus.CONFLICT, "Ya hay un usuario con este email."),
+    SELF_DEACTIVATION_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés desactivarte."),
+    SELF_ROLE_CHANGE_FORBIDDEN(HttpStatus.UNPROCESSABLE_ENTITY, "No podés cambiar tu propio rol."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

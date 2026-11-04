@@ -44,3 +44,6 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 - Limitar intentos de login (p. ej. `limit_req` de nginx con valores en `.env`).
 - En H1.4, tests para `JsonAccessDeniedHandler` y el handler de `AuthenticationException` con el primer endpoint `@PreAuthorize`.
 - Un token firmado sin claim `role` da 500 (NPE) en vez de 401.
+
+## Pendientes heredados de H1.4
+- Revalidar el JWT contra la base (usuario activo y rol actual) en cada request. Hoy, desactivar a alguien o cambiarle el rol recién tiene efecto cuando vence su token. Ajustar `SecurityIntegrationTest`, que emite tokens de usuarios que no existen en la base.

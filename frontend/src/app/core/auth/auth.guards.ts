@@ -16,6 +16,12 @@ export const authGuard: CanActivateFn = () => {
   return router.createUrlTree(['/login']);
 };
 
+/** Admin-only sections; other roles go back to the home section. Runs after authGuard (parent route). */
+export const adminGuard: CanActivateFn = () => {
+  const isAdmin = inject(AuthService).currentUser()?.role === 'ADMIN';
+  return isAdmin ? true : inject(Router).createUrlTree(['/pacientes']);
+};
+
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   return auth.hasValidSession() ? inject(Router).createUrlTree(['/pacientes']) : true;

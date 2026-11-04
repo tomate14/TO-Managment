@@ -26,6 +26,14 @@
     }
   </div>
 
+  @if (user()?.role === 'ADMIN') {
+    <div class="side-nav__links">
+      <p class="side-nav__section">Administración</p>
+      <a class="side-nav__link" routerLink="/usuarios" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Usuarios</a>
+    </div>
+  }
+
   @if (user(); as currentUser) {
     <div class="side-nav__footer">
       <div class="side-nav__user">

@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { ROLE_LABELS, userInitials } from '../../layout/user-initials';
 
-/** Mobile "Más" menu: account card and account actions (more sections arrive with H1.4, H1.5 and É2). */
+/** Mobile "Más" menu: account card, admin section and account actions (more rows arrive with H1.5 and É2). */
 @Component({
   selector: 'app-more-page',
+  imports: [RouterLink],
   templateUrl: './more-page.html',
   styleUrl: './more-page.scss',
 })

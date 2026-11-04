@@ -1,5 +1,6 @@
 package com.tomanagement.user.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.tomanagement.user.entity.Role;
@@ -21,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(@Param("email") String email);
 
     boolean existsByRole(Role role);
+
+    List<User> findAllByOrderByFullNameAsc();
 }

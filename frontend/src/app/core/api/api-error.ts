@@ -7,3 +7,11 @@ export function apiErrorCode(error: unknown): string | null {
   }
   return null;
 }
+
+/** User-facing (Spanish) message of a backend ErrorResponse, or null when there is none. */
+export function apiErrorMessage(error: unknown): string | null {
+  if (error instanceof HttpErrorResponse && error.error && typeof error.error.message === 'string') {
+    return error.error.message;
+  }
+  return null;
+}

@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ActivatedRouteSnapshot, provideRouter, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { authGuard, guestGuard } from './auth.guards';
+import { adminGuard, authGuard, guestGuard } from './auth.guards';
 import { AuthService } from './auth.service';
 
 function run(guard: typeof authGuard) {
@@ -18,6 +18,31 @@ describe('auth guards', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
     auth = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
+  });
+
+  it('adminGuard lets admins through', () => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { currentUser: () => ({ id: 1, email: 'a@c.com', fullName: 'A', role: 'ADMIN' }) } },
+      ],
+    });
+    expect(run(adminGuard)).toBe(true);
+  });
+
+  it('adminGuard sends therapists to /pacientes', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { currentUser: () => ({ id: 2, email: 't@c.com', fullName: 'T', role: 'TERAPEUTA' }) } },
+      ],
+    });
+    const result = run(adminGuard);
+    expect(result instanceof UrlTree).toBe(true);
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/pacientes');
   });
 
   it('authGuard lets a valid session through', () => {

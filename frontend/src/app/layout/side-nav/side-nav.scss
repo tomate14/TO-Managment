@@ -86,6 +86,16 @@
   }
 }
 
+.side-nav__section {
+  margin: 0 0 4px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+
 .side-nav__footer {
   display: flex;
   flex-direction: column;

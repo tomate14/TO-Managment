@@ -14,6 +14,25 @@
     </section>
   }
 
+  @if (user()?.role === 'ADMIN') {
+    <section class="more__group" aria-labelledby="more-admin-heading">
+      <h2 id="more-admin-heading" class="more__group-title">Administración</h2>
+      <div class="more__card">
+        <a class="more__row" routerLink="/usuarios">
+          <span class="more__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+          </span>
+          <span class="more__row-text">
+            <span class="more__row-label">Usuarios</span>
+            <span class="more__row-hint">Terapeutas y administradoras</span>
+          </span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="more__chevron"><path d="M9 5l7 7-7 7"></path></svg>
+        </a>
+      </div>
+      <p class="more__note">Esta sección solo la ven las administradoras.</p>
+    </section>
+  }
+
   <section class="more__group" aria-labelledby="more-account-heading">
     <h2 id="more-account-heading" class="more__group-title">Mi cuenta</h2>
     <div class="more__card">

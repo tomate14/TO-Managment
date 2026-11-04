@@ -1,0 +1,153 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0;
+  padding: 20px 16px;
+}
+
+.user-form__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.user-form__roles {
+  gap: 10px;
+}
+
+.user-form__legend {
+  float: left;
+  margin: 0 0 4px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-error);
+}
+
+.field__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.field__input:disabled {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.role-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  clear: both;
+  padding: 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  cursor: pointer;
+
+  &--selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  &:has(.role-option__input:focus-visible) {
+    outline: 3px solid rgba(29, 95, 168, 0.4);
+    outline-offset: 2px;
+  }
+}
+
+.role-option__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-option__dot {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+
+  .role-option--selected & {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+}
+
+.role-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.role-option__label {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.role-option__hint {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.user-form__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.user-form__submit {
+  flex: 1;
+  height: 52px;
+  box-shadow: none;
+}

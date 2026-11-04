@@ -32,16 +32,28 @@ describe('Shell', () => {
     return Array.from(nav.querySelectorAll('a')).map((a) => a.textContent?.trim());
   }
 
-  it('side nav shows Pacientes and Plantillas; tab bar adds Más', () => {
+  it('side nav shows Pacientes, Plantillas and, for admins, Usuarios; tab bar adds Más', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     const navs = el.querySelectorAll('nav[aria-label="Navegación principal"]');
     expect(navs.length).toBe(2);
-    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas']);
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas', 'Usuarios']);
+    expect(el.querySelector('app-side-nav')?.textContent).toContain('Administración');
     expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Plantillas', 'Más']);
     expect(el.querySelector('app-tab-bar a[href="/mas"]')).toBeTruthy();
     navs.forEach((nav) => expect(nav.querySelector('a[href="/pacientes"]')).toBeTruthy());
+  });
+
+  it('hides the Administración section from therapists', () => {
+    TestBed.overrideProvider(AuthService, {
+      useValue: { currentUser: signal({ ...user, role: 'TERAPEUTA' }), refreshCurrentUser: refresh, logout },
+    });
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas']);
+    expect(el.querySelector('app-side-nav')?.textContent).not.toContain('Administración');
   });
 
   it('side nav logs out when "Cerrar sesión" is pressed', () => {
