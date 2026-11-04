@@ -1,0 +1,30 @@
+server:
+  port: ${BACKEND_PORT}
+
+spring:
+  application:
+    name: to-management-backend
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: ${APP_DB_SCHEMA}
+  flyway:
+    schemas: ${APP_DB_SCHEMA}
+    default-schema: ${APP_DB_SCHEMA}
+    create-schemas: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
