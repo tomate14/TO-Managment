@@ -30,6 +30,13 @@ function type(el: HTMLElement, selector: string, value: string) {
   input.dispatchEvent(new Event('input'));
 }
 
+/** Bypasses jsdom's type=email value sanitization (which strips whitespace) to emit the raw value. */
+function typeRaw(el: HTMLElement, selector: string, value: string) {
+  const input = el.querySelector<HTMLInputElement>(selector)!;
+  Object.defineProperty(input, 'value', { value, configurable: true });
+  input.dispatchEvent(new Event('input'));
+}
+
 function submit(fixture: ComponentFixture<LoginPage>) {
   (fixture.nativeElement as HTMLElement).querySelector('form')!.dispatchEvent(new Event('submit'));
   fixture.detectChanges();
@@ -52,6 +59,53 @@ describe('LoginPage', () => {
     expect(login).not.toHaveBeenCalled();
     expect(el.querySelector('[role="alert"]')?.textContent).toContain('Completá tu email y contraseña');
     expect(el.querySelector('#email')?.getAttribute('aria-invalid')).toBe('true');
+    expect(el.querySelector('#password')?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('with only the password empty, only the password is marked', () => {
+    const { fixture, login, el } = setup();
+    type(el, '#email', 'ana@consultorio.com');
+    submit(fixture);
+    expect(login).not.toHaveBeenCalled();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('Completá tu email y contraseña');
+    expect(el.querySelector('#email')?.getAttribute('aria-invalid')).not.toBe('true');
+    expect(el.querySelector('#password')?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('a whitespace-only email counts as missing and is marked', () => {
+    const { fixture, login, el } = setup();
+    typeRaw(el, '#email', '   ');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    expect(login).not.toHaveBeenCalled();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('Completá tu email y contraseña');
+    expect(el.querySelector('#email')?.getAttribute('aria-invalid')).toBe('true');
+    expect(el.querySelector('#password')?.getAttribute('aria-invalid')).not.toBe('true');
+  });
+
+  it('a valid email with a trailing space logs in with the trimmed email', () => {
+    const { fixture, login, el } = setup();
+    vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    login.mockReturnValue(of(user));
+    typeRaw(el, '#email', 'ana@consultorio.com ');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"]')).toBeNull();
+    expect(login).toHaveBeenCalledWith('ana@consultorio.com', 'secreta');
+  });
+
+  it('a failed submit moves focus to the error banner', async () => {
+    const { fixture, el } = setup();
+    document.body.appendChild(el);
+    try {
+      submit(fixture);
+      await fixture.whenStable();
+      const banner = el.querySelector('[role="alert"]');
+      expect(banner).not.toBeNull();
+      expect(document.activeElement).toBe(banner);
+    } finally {
+      el.remove();
+    }
   });
 
   it('a malformed email shows the format banner without calling the API', () => {

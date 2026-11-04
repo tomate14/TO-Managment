@@ -1,5 +1,5 @@
-import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
+import { AbstractControl, FormControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -23,6 +23,11 @@ const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
 
 const HOME_URL = '/pacientes';
 
+/** Email format check on the trimmed value, so a trailing space from mobile autocomplete is not a format error. */
+function trimmedEmail(control: AbstractControl<string>): ValidationErrors | null {
+  return Validators.email(new FormControl(control.value.trim()));
+}
+
 @Component({
   selector: 'app-login-page',
   imports: [ReactiveFormsModule, LoginHero],
@@ -33,10 +38,11 @@ export class LoginPage {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly injector = inject(Injector);
   private readonly errorBanner = viewChild<ElementRef<HTMLElement>>('errorBanner');
 
   protected readonly form = this.formBuilder.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [trimmedEmail]],
     password: ['', [Validators.required]],
   });
 
@@ -65,7 +71,7 @@ export class LoginPage {
       return true;
     }
     if (kind === 'incomplete') {
-      return this.form.controls[field].hasError('required');
+      return this.isBlank(field);
     }
     return kind === 'emailFormat' && field === 'email';
   }
@@ -79,8 +85,7 @@ export class LoginPage {
       return;
     }
     this.sessionExpired.set(false);
-    const { email, password } = this.form.getRawValue();
-    if (!email.trim() || !password) {
+    if (this.isBlank('email') || this.isBlank('password')) {
       this.fail('incomplete');
       return;
     }
@@ -89,6 +94,7 @@ export class LoginPage {
       return;
     }
     this.loading.set(true);
+    const { email, password } = this.form.getRawValue();
     this.auth.login(email.trim(), password).subscribe({
       next: () => {
         this.loading.set(false);
@@ -99,6 +105,12 @@ export class LoginPage {
         this.fail(this.classify(err));
       },
     });
+  }
+
+  /** A field is missing when it is empty; the email also when it is only whitespace. */
+  private isBlank(field: 'email' | 'password'): boolean {
+    const value = this.form.controls[field].value;
+    return (field === 'email' ? value.trim() : value) === '';
   }
 
   private classify(err: unknown): LoginErrorKind {
@@ -113,6 +125,6 @@ export class LoginPage {
 
   private fail(kind: LoginErrorKind): void {
     this.error.set(kind);
-    queueMicrotask(() => this.errorBanner()?.nativeElement.focus());
+    afterNextRender(() => this.errorBanner()?.nativeElement.focus(), { injector: this.injector });
   }
 }
