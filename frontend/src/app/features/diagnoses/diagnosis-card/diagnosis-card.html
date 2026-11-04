@@ -1,0 +1,31 @@
+<a class="diagnosis-card" [routerLink]="link()">
+  <span class="diagnosis-card__top">
+    <span class="diagnosis-card__title">{{ diagnosis().description }}</span>
+    <span class="treatment-badge" [class.treatment-badge--surgical]="isSurgical()">{{ label() }}</span>
+  </span>
+
+  @if (isSurgical()) {
+    <span class="diagnosis-card__facts">
+      <span class="diagnosis-card__fact">
+        <span class="diagnosis-card__fact-label">Cirugía</span>
+        <span class="diagnosis-card__fact-value">{{ formatDate(diagnosis().treatment.surgeryDate!) }}</span>
+      </span>
+      <span class="diagnosis-card__fact">
+        <span class="diagnosis-card__fact-label">Tipo</span>
+        <span class="diagnosis-card__fact-value">{{ diagnosis().treatment.surgeryType?.name }}</span>
+      </span>
+    </span>
+  } @else {
+    <span class="diagnosis-card__facts">
+      <span class="diagnosis-card__fact">
+        <span class="diagnosis-card__fact-label">Inmovilización</span>
+        <span class="diagnosis-card__fact-value">{{ formatDate(diagnosis().treatment.immobilizationDate!) }}</span>
+      </span>
+    </span>
+  }
+
+  <span class="diagnosis-card__footer">
+    <span>Creado el {{ formatDate(diagnosis().createdDate) }}</span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+  </span>
+</a>

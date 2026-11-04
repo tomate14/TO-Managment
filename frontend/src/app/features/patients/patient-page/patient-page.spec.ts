@@ -6,6 +6,8 @@ import { of, throwError } from 'rxjs';
 import { PatientPage } from './patient-page';
 import { PatientsService } from '../patients.service';
 import { Patient } from '../patients.models';
+import { DiagnosesService } from '../../diagnoses/diagnoses.service';
+import { Diagnosis } from '../../diagnoses/diagnoses.models';
 
 describe('PatientPage', () => {
   const lucia: Patient = {
@@ -13,6 +15,7 @@ describe('PatientPage', () => {
     occupation: 'Docente', healthInsurance: 'OSDE', healthInsuranceNumber: '61 234567 8 01', dominance: 'RIGHT',
   };
   let get: ReturnType<typeof vi.fn>;
+  let listForPatient: ReturnType<typeof vi.fn>;
 
   function render() {
     TestBed.configureTestingModule({
@@ -20,6 +23,7 @@ describe('PatientPage', () => {
       providers: [
         provideRouter([]),
         { provide: PatientsService, useValue: { get } },
+        { provide: DiagnosesService, useValue: { listForPatient } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
       ],
     });
@@ -30,6 +34,27 @@ describe('PatientPage', () => {
 
   beforeEach(() => {
     get = vi.fn(() => of(lucia));
+    listForPatient = vi.fn(() => of([]));
+  });
+
+  it('lists the diagnoses newest first and links to a new one', () => {
+    const patientRef = { id: 7, firstName: 'Lucía', lastName: 'Fernández', dni: '30123456' };
+    const diagnoses: Diagnosis[] = [
+      { id: 2, patient: patientRef, description: 'Fractura distal de radio izquierdo', createdDate: '2026-10-12',
+        treatment: { type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
+          surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true } },
+      { id: 1, patient: patientRef, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
+        treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
+          immobilizationDate: '2026-08-02', requiresScarType: false } },
+    ];
+    listForPatient.mockReturnValue(of(diagnoses));
+    const el = render();
+
+    expect(listForPatient).toHaveBeenCalledWith(7);
+    const cards = el.querySelectorAll('app-diagnosis-card');
+    expect(cards.length).toBe(2);
+    expect(cards[0].textContent).toContain('Fractura distal de radio izquierdo');
+    expect(el.querySelector('a.diagnoses__new')?.getAttribute('href')).toBe('/pacientes/7/diagnosticos/nuevo');
   });
 
   it('shows the name, DNI, age and dominance', () => {

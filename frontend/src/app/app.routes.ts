@@ -41,6 +41,17 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/patients/patient-form-page/patient-form-page').then((m) => m.PatientFormPage),
           },
+          {
+            path: ':id/diagnosticos/nuevo',
+            title: `Nuevo diagnóstico · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/diagnoses/diagnosis-form-page/diagnosis-form-page').then((m) => m.DiagnosisFormPage),
+          },
+          {
+            path: ':id/diagnosticos/:diagnosisId',
+            title: `Diagnóstico · ${APP_NAME}`,
+            loadComponent: () => import('./features/diagnoses/diagnosis-page/diagnosis-page').then((m) => m.DiagnosisPage),
+          },
         ],
       },
       {

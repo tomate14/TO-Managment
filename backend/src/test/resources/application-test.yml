@@ -11,3 +11,4 @@ CORS_ALLOWED_ORIGINS: http://localhost:4200
 ADMIN_EMAIL: Admin.Inicial@Consultorio.com
 ADMIN_PASSWORD: admin-inicial-test
 ADMIN_NAME: Admin Inicial
+APP_TIME_ZONE: America/Argentina/Buenos_Aires

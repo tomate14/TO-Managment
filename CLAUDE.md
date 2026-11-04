@@ -117,6 +117,7 @@ CLAUDE.md
 | `ADMIN_BIND_ADDRESS` | Interfaz del host donde se publican Studio, Postgres y backend (`127.0.0.1`: solo local) |
 | `BACKEND_PORT`, `SPRING_PROFILES_ACTIVE` | Backend |
 | `JWT_SECRET`, `JWT_EXPIRATION_MS` | Firma y expiración de los JWT |
+| `APP_TIME_ZONE` | Zona horaria de las fechas que asigna el sistema (p. ej. la fecha de un diagnóstico) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | Usuario admin inicial (se crea al primer arranque) |
 | `CORS_ALLOWED_ORIGINS` | Orígenes permitidos para el frontend |
 | `FRONTEND_PORT`, `API_BASE_URL` | Frontend |

@@ -52,8 +52,26 @@
     <section class="diagnoses" aria-labelledby="diagnoses-heading">
       <div class="diagnoses__head">
         <h2 id="diagnoses-heading" class="diagnoses__title">Diagnósticos</h2>
+        <a class="diagnoses__new" [routerLink]="['/pacientes', patientId, 'diagnosticos', 'nuevo']">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          <span class="diagnoses__new-short">Nuevo</span><span class="diagnoses__new-long">Nuevo diagnóstico</span>
+        </a>
       </div>
-      <p class="diagnoses__empty">Todavía no hay diagnósticos.</p>
+      @if (diagnosesError(); as message) {
+        <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+      } @else if (diagnoses(); as list) {
+        @if (list.length === 0) {
+          <p class="diagnoses__empty">Todavía no hay diagnósticos.</p>
+        } @else {
+          <div class="diagnoses__list">
+            @for (diagnosis of list; track diagnosis.id) {
+              <app-diagnosis-card [diagnosis]="diagnosis" />
+            }
+          </div>
+        }
+      } @else {
+        <p class="diagnoses__empty" role="status">Cargando diagnósticos…</p>
+      }
     </section>
   </div>
 } @else {

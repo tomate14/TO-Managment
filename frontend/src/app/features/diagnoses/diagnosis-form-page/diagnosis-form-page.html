@@ -1,0 +1,97 @@
+<header class="page-header">
+  <a class="page-header__back" [routerLink]="['/pacientes', patientId]" aria-label="Volver">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <div class="diagnosis-form__titles">
+    <h1 class="page-header__title">Nuevo diagnóstico</h1>
+    @if (subtitle()) {
+      <span class="diagnosis-form__subtitle">{{ subtitle() }}</span>
+    }
+  </div>
+</header>
+
+<form class="diagnosis-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  <section class="diagnosis-form__card">
+    <div class="field">
+      <label class="field__label" for="diagnosis-description">Descripción</label>
+      <textarea id="diagnosis-description" class="field__input diagnosis-form__textarea" formControlName="description" rows="4"
+                maxlength="2000" placeholder="Ej. Fractura distal de radio izquierdo"
+                [class.field__input--invalid]="submitted() && problems().description"
+                [attr.aria-invalid]="submitted() && !!problems().description"></textarea>
+      @if (submitted() && problems().description; as message) { <p class="field__error">{{ message }}</p> }
+      <p class="field__hint">La fecha del diagnóstico se registra automáticamente al guardar.</p>
+    </div>
+  </section>
+
+  <fieldset class="diagnosis-form__card diagnosis-form__treatment">
+    <legend class="diagnosis-form__legend">Tratamiento</legend>
+    @for (option of treatmentOptions; track option.value) {
+      <button type="button" class="treatment-option" [attr.aria-pressed]="type() === option.value" (click)="selectType(option.value)">
+        <span class="treatment-option__dot" aria-hidden="true"></span>
+        <span class="treatment-option__text">
+          <span class="treatment-option__label">{{ option.label }}</span>
+          <span class="treatment-option__hint">{{ option.hint }}</span>
+        </span>
+      </button>
+    }
+    <p class="diagnosis-form__warning">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>
+      El tipo de tratamiento no se puede cambiar después de crear el diagnóstico.
+    </p>
+  </fieldset>
+
+  @if (type() === 'SURGICAL') {
+    <section class="diagnosis-form__card" aria-labelledby="surgery-heading">
+      <h2 id="surgery-heading" class="diagnosis-form__legend">Datos de la cirugía</h2>
+      <div class="field">
+        <label class="field__label" for="surgery-date">Fecha de cirugía</label>
+        <input id="surgery-date" class="field__input" type="date" formControlName="surgeryDate"
+               [class.field__input--invalid]="submitted() && problems().surgeryDate"
+               [attr.aria-invalid]="submitted() && !!problems().surgeryDate">
+        @if (submitted() && problems().surgeryDate; as message) { <p class="field__error">{{ message }}</p> }
+      </div>
+      <div class="field">
+        <label class="field__label" for="stitches-date">Retiro de puntos</label>
+        <input id="stitches-date" class="field__input" type="date" formControlName="stitchesRemovalDate"
+               [min]="form.controls.surgeryDate.value || null" aria-describedby="stitches-hint"
+               [class.field__input--invalid]="submitted() && problems().stitchesRemovalDate"
+               [attr.aria-invalid]="submitted() && !!problems().stitchesRemovalDate">
+        @if (submitted() && problems().stitchesRemovalDate; as message) { <p class="field__error">{{ message }}</p> }
+        <p id="stitches-hint" class="field__hint">El retiro de puntos no puede ser anterior a la cirugía.</p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="surgery-type">Tipo de cirugía</label>
+        <select id="surgery-type" class="field__input" formControlName="surgeryTypeId"
+                [class.field__input--invalid]="submitted() && problems().surgeryTypeId"
+                [attr.aria-invalid]="submitted() && !!problems().surgeryTypeId">
+          <option [ngValue]="null" disabled>Elegí un tipo de cirugía</option>
+          @for (surgeryType of surgeryTypes(); track surgeryType.id) {
+            <option [ngValue]="surgeryType.id">{{ surgeryType.name }}</option>
+          }
+        </select>
+        @if (submitted() && problems().surgeryTypeId; as message) { <p class="field__error">{{ message }}</p> }
+      </div>
+    </section>
+  } @else {
+    <section class="diagnosis-form__card">
+      <div class="field">
+        <label class="field__label" for="immobilization-date">Fecha de inmovilización</label>
+        <input id="immobilization-date" class="field__input" type="date" formControlName="immobilizationDate"
+               [class.field__input--invalid]="submitted() && problems().immobilizationDate"
+               [attr.aria-invalid]="submitted() && !!problems().immobilizationDate">
+        @if (submitted() && problems().immobilizationDate; as message) { <p class="field__error">{{ message }}</p> }
+      </div>
+    </section>
+  }
+
+  <div class="diagnosis-form__actions">
+    <a class="btn-secondary" [routerLink]="['/pacientes', patientId]">Cancelar</a>
+    <button type="submit" class="btn-primary diagnosis-form__submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+      Crear diagnóstico
+    </button>
+  </div>
+</form>

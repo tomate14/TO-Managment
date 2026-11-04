@@ -160,6 +160,34 @@
   font-weight: 800;
 }
 
+.diagnoses__new {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 95, 168, 0.4);
+    outline-offset: 2px;
+  }
+}
+
+.diagnoses__new-long {
+  display: none;
+}
+
+.diagnoses__list {
+  display: grid;
+  gap: 12px;
+}
+
 .diagnoses__empty,
 .patient-loading {
   margin: 0;
@@ -248,5 +276,23 @@
 
   .diagnoses__title {
     font-size: 24px;
+  }
+
+  .diagnoses__new {
+    height: 44px;
+    background: var(--color-primary);
+    color: #fff;
+  }
+
+  .diagnoses__new-short {
+    display: none;
+  }
+
+  .diagnoses__new-long {
+    display: inline;
+  }
+
+  .diagnoses__list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }

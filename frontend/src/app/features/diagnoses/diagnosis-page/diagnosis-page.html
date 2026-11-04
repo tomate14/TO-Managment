@@ -1,0 +1,44 @@
+<header class="page-header">
+  <a class="page-header__back" [routerLink]="['/pacientes', patientId]" aria-label="Volver a la ficha">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <div class="diagnosis-page__titles">
+    <h1 class="page-header__title">Diagnóstico</h1>
+    @if (subtitle()) {
+      <span class="diagnosis-page__subtitle">{{ subtitle() }}</span>
+    }
+  </div>
+</header>
+
+<div class="page-body diagnosis-page">
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  } @else if (diagnosis(); as d) {
+    <section class="diagnosis-summary" aria-labelledby="diagnosis-description">
+      <div class="diagnosis-summary__top">
+        <p id="diagnosis-description" class="diagnosis-summary__description">{{ d.description }}</p>
+        <span class="treatment-badge" [class.treatment-badge--surgical]="d.treatment.type === 'SURGICAL'">{{ label() }}</span>
+      </div>
+      <dl class="diagnosis-summary__data">
+        <div class="diagnosis-summary__row"><dt>Creado</dt><dd>{{ formatDate(d.createdDate) }}</dd></div>
+        @if (d.treatment.type === 'SURGICAL') {
+          <div class="diagnosis-summary__row"><dt>Cirugía</dt><dd>{{ formatDate(d.treatment.surgeryDate!) }}</dd></div>
+          <div class="diagnosis-summary__row"><dt>Retiro de puntos</dt><dd>{{ formatDate(d.treatment.stitchesRemovalDate!) }}</dd></div>
+          <div class="diagnosis-summary__row"><dt>Tipo de cirugía</dt><dd>{{ d.treatment.surgeryType?.name }}</dd></div>
+        } @else {
+          <div class="diagnosis-summary__row"><dt>Inmovilización</dt><dd>{{ formatDate(d.treatment.immobilizationDate!) }}</dd></div>
+        }
+      </dl>
+    </section>
+
+    <section class="follow-ups" aria-labelledby="follow-ups-heading">
+      <div class="follow-ups__head">
+        <h2 id="follow-ups-heading" class="follow-ups__title">Seguimientos</h2>
+        <span class="follow-ups__note">Más recientes primero</span>
+      </div>
+      <p class="follow-ups__empty">Todavía no hay seguimientos.</p>
+    </section>
+  } @else {
+    <p class="follow-ups__empty" role="status">Cargando diagnóstico…</p>
+  }
+</div>

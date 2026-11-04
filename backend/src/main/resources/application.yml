@@ -30,6 +30,7 @@ management:
       show-details: never
 
 app:
+  time-zone: ${APP_TIME_ZONE}
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS}

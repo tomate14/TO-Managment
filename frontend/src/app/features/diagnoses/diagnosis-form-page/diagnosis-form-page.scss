@@ -1,0 +1,154 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.diagnosis-form__titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.diagnosis-form__subtitle {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagnosis-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin: 0;
+  padding: 20px 16px 32px;
+}
+
+.diagnosis-form__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.diagnosis-form__treatment {
+  gap: 10px;
+}
+
+.diagnosis-form__legend {
+  float: left;
+  margin: 0 0 4px;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.diagnosis-form__textarea {
+  height: auto;
+  min-height: 112px;
+  padding: 12px 16px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+select.field__input {
+  appearance: auto;
+}
+
+.treatment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  clear: both;
+  padding: 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-tint);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 95, 168, 0.4);
+    outline-offset: 2px;
+  }
+}
+
+.treatment-option__dot {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+
+  [aria-pressed='true'] > & {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+  }
+}
+
+.treatment-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.treatment-option__label {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.treatment-option__hint {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.diagnosis-form__warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-warning);
+}
+
+.diagnosis-form__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.diagnosis-form__submit {
+  flex: 1;
+  height: 52px;
+  box-shadow: none;
+}

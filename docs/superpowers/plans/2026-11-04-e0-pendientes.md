@@ -52,3 +52,7 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 - Reemplazar `NoRecordedAnswersLookup` por una implementación de `QuestionAnswerLookup` que consulte la tabla de respuestas. Hasta entonces ninguna pregunta queda bloqueada.
 - Usar `ActivationConditionFactory` / `AnswerValue` para aceptar solo respuestas a preguntas activas, y replicar la misma lógica en el formulario del seguimiento.
 - Definir qué pasa con las respuestas de las hijas cuando cambia la respuesta del padre. Propuesta: conservarlas mientras la pantalla esté abierta y descartar las ocultas al guardar.
+
+## Pendientes heredados de É5 (para É6)
+- Sumar el conteo de seguimientos a las tarjetas de diagnóstico ("Creado el … · N seguimientos") y el botón "Nuevo seguimiento" en el detalle.
+- Usar `Treatment.requiresScarType()` para exigir u omitir el tipo de cicatriz del seguimiento.

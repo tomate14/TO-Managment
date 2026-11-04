@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V6).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V7).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -95,3 +95,31 @@ CREATE TABLE IF NOT EXISTS patient (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_patient_dni ON patient (dni);
 CREATE INDEX IF NOT EXISTS ix_patient_name ON patient (lower(last_name), lower(first_name));
+
+-- Diagnósticos y tratamientos (É5)
+CREATE TABLE IF NOT EXISTS treatment (
+    id             BIGSERIAL   PRIMARY KEY,
+    treatment_type VARCHAR(20) NOT NULL CHECK (treatment_type IN ('SURGICAL', 'CONSERVATIVE'))
+);
+
+CREATE TABLE IF NOT EXISTS surgical_treatment (
+    treatment_id          BIGINT PRIMARY KEY REFERENCES treatment (id),
+    surgery_date          DATE   NOT NULL,
+    stitches_removal_date DATE   NOT NULL,
+    surgery_type_id       BIGINT NOT NULL REFERENCES surgery_type (id),
+    CONSTRAINT ck_surgical_treatment_dates CHECK (stitches_removal_date >= surgery_date)
+);
+
+CREATE TABLE IF NOT EXISTS conservative_treatment (
+    treatment_id        BIGINT PRIMARY KEY REFERENCES treatment (id),
+    immobilization_date DATE   NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS diagnosis (
+    id           BIGSERIAL PRIMARY KEY,
+    patient_id   BIGINT    NOT NULL REFERENCES patient (id),
+    description  TEXT      NOT NULL,
+    created_date DATE      NOT NULL,
+    treatment_id BIGINT    NOT NULL UNIQUE REFERENCES treatment (id)
+);
+CREATE INDEX IF NOT EXISTS ix_diagnosis_patient ON diagnosis (patient_id, created_date DESC);

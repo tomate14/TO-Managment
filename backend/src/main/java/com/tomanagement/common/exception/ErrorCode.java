@@ -46,6 +46,12 @@ public enum ErrorCode {
             "Otras preguntas dependen de esta: no se puede eliminar ni cambiar su tipo u opciones."),
     PATIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El paciente no existe."),
     PATIENT_DNI_DUPLICATE(HttpStatus.CONFLICT, "Ya existe un paciente con este DNI."),
+    DIAGNOSIS_NOT_FOUND(HttpStatus.NOT_FOUND, "El diagnóstico no existe."),
+    SURGERY_DATA_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Con cirugía, ingresá la fecha de cirugía, la de retiro de puntos y el tipo de cirugía."),
+    STITCHES_BEFORE_SURGERY(HttpStatus.UNPROCESSABLE_ENTITY, "El retiro de puntos no puede ser anterior a la cirugía."),
+    IMMOBILIZATION_DATE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Sin cirugía, ingresá la fecha de inmovilización."),
+    SURGERY_TYPE_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese tipo de cirugía está inactivo: elegí uno activo."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(
