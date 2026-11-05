@@ -366,6 +366,42 @@ describe('AppointmentForm', () => {
     });
   });
 
+  describe('patient search repeats', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('searches the same text again after a patient was picked', () => {
+      const { fixture, el } = setup();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+      fixture.componentInstance['pickPatient'](patient);
+      fixture.detectChanges();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries on Enter after a failed search', () => {
+      const { el } = setup();
+      search.mockReturnValue(throwError(() => new Error('x')));
+      type(el, 'Luc');
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(1);
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('lets an admin choose among active therapists only', () => {
     const { el } = setup({ user: { id: 1, email: 'a@c.com', fullName: 'Ana', role: 'ADMIN' } });
     const names = Array.from(el.querySelectorAll('#appointment-therapist option')).map((option) => option.textContent?.trim());

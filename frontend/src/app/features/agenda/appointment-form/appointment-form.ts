@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, catchError, debounceTime, distinctUntilChanged, map, merge, of, switchMap, tap } from 'rxjs';
+import { Subject, catchError, debounceTime, filter, map, merge, of, switchMap, tap } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { UserSummary } from '../../../core/auth/auth.models';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
@@ -127,6 +127,7 @@ export class AppointmentForm implements OnInit {
   });
 
   /** Emits the current search text when Enter is pressed, bypassing the debounce. */
+  private lastSearched: string | null = null;
   private readonly searchNow = new Subject<string>();
 
   constructor() {
@@ -185,6 +186,9 @@ export class AppointmentForm implements OnInit {
       .pipe(
         tap((text) => {
           if (text !== this.pickedLabel) {
+            if (this.pickedLabel !== '') {
+              this.lastSearched = null;
+            }
             this.pickedLabel = '';
             this.pickedPatient.set(null);
             this.form.controls.patientId.setValue(null);
@@ -195,7 +199,9 @@ export class AppointmentForm implements OnInit {
         debounceTime(SEARCH_DEBOUNCE_MS),
         // Enter searches right away; the same text is never searched twice in a row.
         (typed) => merge(typed, this.searchNow),
-        distinctUntilChanged(),
+        // Skip only a repeat of the text in flight or already shown; failures and picks reset it.
+        filter((text) => text !== this.lastSearched),
+        tap((text) => (this.lastSearched = text)),
         switchMap((text) => {
           if (text.trim() === '' || text === this.pickedLabel) {
             this.searched.set(false);
@@ -204,7 +210,10 @@ export class AppointmentForm implements OnInit {
           return this.patientsService.search(text, 0, SEARCH_SIZE).pipe(
             tap(() => this.searched.set(true)),
             map((page) => page.content),
-            catchError(() => of<Patient[]>([])),
+            catchError(() => {
+              this.lastSearched = null;
+              return of<Patient[]>([]);
+            }),
           );
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -244,6 +253,7 @@ export class AppointmentForm implements OnInit {
 
   protected pickPatient(patient: Patient): void {
     this.pickedLabel = this.patientLabel(patient);
+    this.lastSearched = null;
     this.searchControl.setValue(this.pickedLabel, { emitEvent: false });
     this.pickedPatient.set(patient);
     this.results.set([]);
