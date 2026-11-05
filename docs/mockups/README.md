@@ -21,6 +21,7 @@ Las imágenes están a 2x (390 px de ancho lógico en mobile, 1440 px en escrito
 | H5.1 Crear diagnóstico | `h5.1-crear-diagnostico/` | quirúrgico, conservador |
 | H5.2 / H6.4 Diagnóstico e historial | `h5.2-h6.4-diagnostico-y-seguimientos/` | historial con respuestas de plantilla |
 | H6.1–H6.3 Nuevo seguimiento | `h6.1-h6.3-nuevo-seguimiento/` | con férula (pregunta hija visible), sin férula, desktop |
+| H7.1–H7.4 Agenda de turnos | `h7.1-agenda/` | calendario, turnos asignados y reserva (mobile y desktop) |
 
 ## Tokens de diseño
 

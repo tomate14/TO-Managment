@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Agenda · Escritorio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-tab:focus-visible,.to-chip:focus-visible,.to-ev:focus-visible,.to-icon:focus-visible,.to-slot:focus-visible,.to-btn:focus-visible{outline:3px solid rgba(29,95,168,.45);outline-offset:2px}
+.to-ev:hover{filter:brightness(.97)}
+.to-btn:hover{background:#184F8C !important}
+.to-check{width:18px;height:18px;margin:0;accent-color:#1D5FA8}
+.to-slot:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; display: flex; flex-wrap: wrap; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24">
+<div style="flex: 1 0 248px; max-width: 248px; display: flex">
+<dc-import name="SideNav" active="agenda" hint-size="248px,900px"></dc-import>
+</div>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Agenda</h1>
+<p style="margin: 0; font-size: 14px; color: #4F5D6B">Turnos de todo el equipo.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<div role="tablist" aria-label="Vista de la agenda" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #E9EEF4; border-radius: 14px">
+<button type="button" role="tab" class="to-tab" aria-selected="{{calTab.selected}}" onClick="{{showCal}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 11px; background: {{calTab.bg}}; color: {{calTab.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: {{calTab.shadow}}; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Calendario</button>
+<button type="button" role="tab" class="to-tab" aria-selected="{{listTab.selected}}" onClick="{{showList}}" style="height: 40px; padding: 0 18px; border: 0; border-radius: 11px; background: {{listTab.bg}}; color: {{listTab.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: {{listTab.shadow}}; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"></rect><rect x="4" y="13" width="16" height="7" rx="2"></rect></svg>Turnos asignados</button>
+</div>
+<button type="button" class="to-btn" onClick="{{openBooking}}" style="height: 48px; padding: 0 20px 0 16px; border: 0; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo turno</button>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<aside style="flex: 1 1 240px; max-width: 260px; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{isCal}}" hint-placeholder-val="{{ true }}">
+<section aria-label="Noviembre 2026" style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
+<span style="font-size: 14px; font-weight: 800; padding-left: 4px">Noviembre 2026</span>
+<span style="display: flex">
+<button type="button" class="to-icon" aria-label="Mes anterior" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #121A24; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+<button type="button" class="to-icon" aria-label="Mes siguiente" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #121A24; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+</span>
+</div>
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 2px; text-align: center">
+<sc-for list="{{dowLetters}}" as="l" hint-placeholder-count="7"><span style="font-size: 11px; font-weight: 700; color: #4F5D6B; padding: 4px 0">{{l}}</span></sc-for>
+<sc-for list="{{month}}" as="m" hint-placeholder-count="42">
+<span style="height: 30px; display: flex; align-items: center; justify-content: center; background: {{m.rowBg}}; border-radius: {{m.radius}}"><span style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: {{m.weight}}; background: {{m.bg}}; color: {{m.color}}">{{m.n}}</span></span>
+</sc-for>
+</div>
+</section>
+</sc-if>
+<fieldset style="margin: 0; background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+<legend style="float: left; padding: 0; margin: 0 0 8px; font-size: 14px; font-weight: 800">Terapeutas</legend>
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+<label style="clear: both; min-height: 40px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; cursor: pointer">
+<input type="checkbox" class="to-check" checked="{{f.on}}" onChange="{{f.toggle}}">
+<span style="width: 10px; height: 10px; border-radius: 3px; background: {{f.dot}}; display: block"></span>
+<span style="flex: 1">{{f.name}}</span>
+<span style="font-size: 12px; color: #4F5D6B; font-variant-numeric: tabular-nums">{{f.count}}</span>
+</label>
+</sc-for>
+</fieldset>
+</aside>
+<section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+<sc-if value="{{isCal}}" hint-placeholder-val="{{ true }}">
+<div role="tabpanel" aria-label="Calendario" style="display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" style="height: 40px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #121A24; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Hoy</button>
+<button type="button" class="to-icon" aria-label="Semana anterior" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #121A24; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+<button type="button" class="to-icon" aria-label="Semana siguiente" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #121A24; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></button>
+<h2 style="margin: 0 0 0 4px; font-size: 20px; font-weight: 800">2 – 8 de noviembre de 2026</h2>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; overflow-x: auto">
+<div style="min-width: 760px">
+<div style="display: grid; grid-template-columns: 56px repeat(7, minmax(0, 1fr)); border-bottom: 1px solid #D6E0EA">
+<span></span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; border-left: 1px solid #EDF1F5">
+<span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {{d.dowColor}}">{{d.dow}}</span>
+<span style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800; background: {{d.circleBg}}; color: {{d.numColor}}">{{d.d}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: 56px repeat(7, minmax(0, 1fr)); height: 624px">
+<div style="position: relative">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="12">
+<span style="position: absolute; right: 8px; top: {{h.top}}px; transform: translateY(-50%); font-size: 11px; font-weight: 600; color: #4F5D6B; font-variant-numeric: tabular-nums">{{h.label}}</span>
+</sc-for>
+</div>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="position: relative; border-left: 1px solid #EDF1F5; background-color: {{d.colBg}}; background-image: repeating-linear-gradient(to bottom, #E6ECF2 0, #E6ECF2 1px, transparent 1px, transparent 52px)">
+<sc-for list="{{d.events}}" as="e" hint-placeholder-count="2">
+<a href="D-Patient.dc.html" class="to-ev" aria-label="{{e.aria}}" style="position: absolute; top: {{e.top}}px; height: {{e.height}}px; left: {{e.left}}; width: {{e.width}}; box-sizing: border-box; padding: 4px 6px; border-radius: 8px; background: {{e.bg}}; color: {{e.fg}}; text-decoration: none; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #FFFFFF">
+<span style="font-size: 12px; font-weight: 800; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{e.patient}}</span>
+<span style="font-size: 11px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{e.range}}</span>
+</a>
+</sc-for>
+<sc-if value="{{d.isToday}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: {{nowTop}}px; height: 2px; background: #B42318"><span style="position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: #B42318; display: block"></span></div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isList}}" hint-placeholder-val="{{ false }}">
+<div role="tabpanel" aria-label="Turnos asignados" style="display: flex; flex-direction: column; gap: 18px">
+<div role="group" aria-label="Período" style="display: flex; gap: 8px">
+<sc-for list="{{ranges}}" as="r" hint-placeholder-count="2">
+<button type="button" class="to-chip" onClick="{{r.pick}}" aria-pressed="{{r.pressed}}" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{r.border}}; background: {{r.bg}}; color: {{r.color}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">{{r.label}}</button>
+</sc-for>
+</div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 800; color: #0E2944">{{g.title}} <span style="font-weight: 600; color: #4F5D6B">· {{g.count}}</span></h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px">
+<sc-for list="{{g.items}}" as="c" hint-placeholder-count="3">
+<article style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
+<span style="display: flex; align-items: baseline; gap: 6px; font-variant-numeric: tabular-nums"><span style="font-size: 20px; font-weight: 800; color: #0E2944">{{c.start}}</span><span style="font-size: 13px; color: #4F5D6B">a {{c.end}}</span></span>
+<span style="padding: 4px 9px; border-radius: 999px; background: {{c.stBg}}; color: {{c.stFg}}; font-size: 11px; font-weight: 700">{{c.status}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 16px; font-weight: 700">{{c.patient}}</span>
+<span style="font-size: 13px; color: #4F5D6B">{{c.dx}}</span>
+</div>
+<span style="align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: {{c.bg}}; color: {{c.fg}}; font-size: 12px; font-weight: 700"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{c.dot}}; display: block"></span>{{c.therapist}}</span>
+<div style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #EDF1F5">
+<button type="button" onClick="{{openBooking}}" style="flex: 1; height: 40px; border-radius: 10px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #121A24; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Reprogramar</button>
+<a href="D-Patient.dc.html" style="flex: 1; height: 40px; border-radius: 10px; background: #E4EEF8; color: #0E2944; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 13px; font-weight: 700">Ver ficha</a>
+<button type="button" aria-label="{{c.cancelLabel}}" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 10px; border: 1.5px solid #F3C7C2; background: #FFFFFF; color: #B42318; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</article>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</sc-if>
+</section>
+</div>
+</main>
+<sc-if value="{{booking}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" onClick="{{closeBooking}}" style="position: absolute; inset: 0; background: rgba(14, 41, 68, 0.38)"></div>
+<aside role="dialog" aria-modal="true" aria-labelledby="bk-title" style="position: absolute; top: 0; right: 0; bottom: 0; width: 440px; max-width: 100%; box-sizing: border-box; background: #FFFFFF; box-shadow: -20px 0 40px -20px rgba(14, 41, 68, 0.5); display: flex; flex-direction: column">
+<div style="height: 68px; flex-shrink: 0; padding: 0 12px 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #D6E0EA">
+<h2 id="bk-title" style="margin: 0; font-size: 19px; font-weight: 800">Nuevo turno</h2>
+<button type="button" class="to-icon" onClick="{{closeBooking}}" aria-label="Cerrar" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: #121A24; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+<form style="flex: 1; overflow: auto; margin: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bpat" style="font-size: 14px; font-weight: 600">Paciente</label>
+<input id="bpat" class="to-input" type="search" value="Lucía Fernández · DNI 30.123.456" style="height: 46px; box-sizing: border-box; padding: 0 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 15px; color: #121A24">
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bdx" style="font-size: 14px; font-weight: 600">Diagnóstico <span style="font-weight: 500; color: #4F5D6B">(opc.)</span></label>
+<select id="bdx" class="to-input" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 14px; color: #121A24"><option>Fractura distal de radio</option><option>Sin diagnóstico</option></select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bth" style="font-size: 14px; font-weight: 600">Terapeuta</label>
+<select id="bth" class="to-input" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 14px; color: #121A24"><option>Carla Ríos</option><option>Mariana Gómez</option><option>Paula Vidal</option><option>Sofía Núñez</option></select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bfd" style="font-size: 14px; font-weight: 600">Fecha</label>
+<input id="bfd" class="to-input" type="date" value="2026-11-05" min="2026-11-05" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 14px; color: #121A24">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bdu" style="font-size: 14px; font-weight: 600">Duración</label>
+<select id="bdu" class="to-input" style="height: 46px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 14px; color: #121A24"><option>45 minutos</option><option>30 minutos</option><option>60 minutos</option></select>
+</div>
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 14px; font-weight: 600">Horario disponible <span style="font-weight: 500; color: #4F5D6B">· Carla Ríos</span></legend>
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{slots}}" as="sl" hint-placeholder-count="15">
+<button type="button" class="to-slot" onClick="{{sl.pick}}" disabled="{{sl.busy}}" aria-pressed="{{sl.pressed}}" aria-label="{{sl.aria}}" style="height: 44px; border-radius: 10px; border: 1.5px solid {{sl.border}}; background: {{sl.bg}}; color: {{sl.color}}; font-family: inherit; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; text-decoration: {{sl.deco}}">{{sl.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="bnt" style="font-size: 14px; font-weight: 600">Notas <span style="font-weight: 500; color: #4F5D6B">(opcional)</span></label>
+<textarea id="bnt" class="to-input" rows="2" placeholder="Ej. traer la férula" style="box-sizing: border-box; padding: 10px 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; font-family: inherit; font-size: 15px; color: #121A24; resize: vertical"></textarea>
+</div>
+<div role="status" style="padding: 12px 14px; border-radius: 14px; background: #E4EEF8; color: #0E2944; font-size: 14px; line-height: 1.45"><strong>Jueves 5 de noviembre · {{summary}}</strong><br>Lucía Fernández con Carla Ríos</div>
+</form>
+<div style="flex-shrink: 0; padding: 14px 24px 20px; border-top: 1px solid #D6E0EA; display: flex; gap: 10px">
+<button type="button" onClick="{{closeBooking}}" style="height: 48px; padding: 0 18px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; color: #121A24; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Cancelar</button>
+<button type="button" class="to-btn" onClick="{{closeBooking}}" style="flex: 1; height: 48px; border: 0; border-radius: 12px; background: #1D5FA8; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Reservar turno</button>
+</div>
+</aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"tab":{"editor":"enum","options":["calendar","cards"],"default":"calendar"},"booking":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+var THERAPISTS = {
+  MG: { name: 'Mariana Gómez', bg: '#DCE8F7', fg: '#0E3A6E', dot: '#1D5FA8' },
+  CR: { name: 'Carla Ríos', bg: '#D3EEEA', fg: '#0B4F4C', dot: '#0F7B78' },
+  PV: { name: 'Paula Vidal', bg: '#FBE7CF', fg: '#6B3A06', dot: '#B45309' },
+  SN: { name: 'Sofía Núñez', bg: '#E8E0F6', fg: '#45297A', dot: '#6D4AB0' }
+};
+var PATIENTS = { LF: 'Lucía Fernández', JP: 'Julián Pereyra', MS: 'María Inés Sosa', RC: 'Ricardo Castro', AL: 'Agustina López', DM: 'Diego Medina' };
+var DAYS = [
+  { d: 2, dow: 'Lun', long: 'lunes' }, { d: 3, dow: 'Mar', long: 'martes' }, { d: 4, dow: 'Mié', long: 'miércoles' },
+  { d: 5, dow: 'Jue', long: 'jueves' }, { d: 6, dow: 'Vie', long: 'viernes' }, { d: 7, dow: 'Sáb', long: 'sábado' }, { d: 8, dow: 'Dom', long: 'domingo' }
+];
+var APPTS = [
+  { d: 2, s: '09:00', e: '09:45', p: 'LF', t: 'MG', dx: 'Fractura distal de radio izquierdo', st: 'ok' },
+  { d: 2, s: '11:00', e: '11:45', p: 'DM', t: 'CR', dx: 'Tenosinovitis de De Quervain', st: 'ok' },
+  { d: 2, s: '15:00', e: '16:00', p: 'MS', t: 'MG', dx: 'Síndrome del túnel carpiano', st: 'ok' },
+  { d: 3, s: '08:30', e: '09:15', p: 'JP', t: 'CR', dx: 'Lesión de tendones flexores', st: 'ok' },
+  { d: 3, s: '10:00', e: '10:45', p: 'AL', t: 'SN', dx: 'Epicondilitis', st: 'ok' },
+  { d: 3, s: '10:00', e: '10:45', p: 'RC', t: 'PV', dx: 'Hombro congelado', st: 'ok' },
+  { d: 4, s: '09:00', e: '10:00', p: 'RC', t: 'PV', dx: 'Hombro congelado', st: 'ok' },
+  { d: 4, s: '13:30', e: '14:15', p: 'DM', t: 'CR', dx: 'Tenosinovitis de De Quervain', st: 'ok' },
+  { d: 5, s: '08:30', e: '09:15', p: 'LF', t: 'MG', dx: 'Fractura distal de radio izquierdo', st: 'ok' },
+  { d: 5, s: '09:00', e: '09:45', p: 'JP', t: 'CR', dx: 'Lesión de tendones flexores', st: 'ok' },
+  { d: 5, s: '10:30', e: '11:30', p: 'MS', t: 'MG', dx: 'Síndrome del túnel carpiano', st: 'pending' },
+  { d: 5, s: '14:00', e: '14:45', p: 'RC', t: 'PV', dx: 'Hombro congelado', st: 'ok' },
+  { d: 5, s: '14:15', e: '15:00', p: 'AL', t: 'SN', dx: 'Epicondilitis', st: 'ok' },
+  { d: 5, s: '16:30', e: '17:15', p: 'DM', t: 'CR', dx: 'Tenosinovitis de De Quervain', st: 'pending' },
+  { d: 6, s: '08:30', e: '09:15', p: 'LF', t: 'MG', dx: 'Fractura distal de radio izquierdo', st: 'ok' },
+  { d: 6, s: '09:00', e: '09:45', p: 'AL', t: 'SN', dx: 'Epicondilitis', st: 'ok' },
+  { d: 6, s: '12:00', e: '12:45', p: 'JP', t: 'CR', dx: 'Lesión de tendones flexores', st: 'pending' },
+  { d: 6, s: '16:00', e: '16:45', p: 'MS', t: 'MG', dx: 'Síndrome del túnel carpiano', st: 'ok' },
+  { d: 7, s: '09:00', e: '10:00', p: 'DM', t: 'CR', dx: 'Tenosinovitis de De Quervain', st: 'ok' }
+];
+var TODAY = 5, NOW = 11 * 60 + 40, START = 8 * 60, PX = 52 / 60;
+var BUSY = ['09:00', '09:30', '16:30', '17:00'], PAST = ['08:00', '08:30', '10:00', '10:30', '11:00', '11:30'];
+function toMin(x) { var a = x.split(':'); return Number(a[0]) * 60 + Number(a[1]); }
+function fmt(m) { var h = Math.floor(m / 60), mm = m % 60; return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm; }
+function layout(list) {
+  var ev = list.map(function (a) { return Object.assign({}, a, { sm: toMin(a.s), em: toMin(a.e) }); })
+    .sort(function (a, b) { return a.sm - b.sm || b.em - a.em; });
+  var cluster = [], lanes = [], end = -1;
+  function flush() { cluster.forEach(function (x) { x.n = lanes.length; }); cluster = []; lanes = []; end = -1; }
+  ev.forEach(function (x) {
+    if (cluster.length && x.sm >= end) flush();
+    var i = 0; while (i < lanes.length && lanes[i] > x.sm) i++;
+    lanes[i] = x.em; x.lane = i; cluster.push(x); end = Math.max(end, x.em);
+  });
+  flush();
+  return ev;
+}
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: null, booking: null, range: 'week', off: {}, slot: '12:00' };
+  }
+  renderVals() {
+    var self = this;
+    var tab = this.state.tab || this.props.tab || 'calendar';
+    var booking = this.state.booking !== null ? this.state.booking : !!this.props.booking;
+    var off = this.state.off;
+    var visible = APPTS.filter(function (a) { return !off[a.t]; });
+    function seg(on) { return { selected: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', color: on ? '#0E2944' : '#4F5D6B', shadow: on ? '0 1px 3px rgba(14,41,68,0.18)' : 'none' }; }
+    var hours = [];
+    for (var h = 9; h < 20; h++) hours.push({ label: (h < 10 ? '0' : '') + h + ':00', top: (h * 60 - START) * PX });
+    var month = [];
+    for (var i = 0; i < 42; i++) {
+      var n = i < 6 ? 26 + i : (i < 36 ? i - 5 : i - 35);
+      var inMonth = i >= 6 && i < 36;
+      var inWeek = i >= 7 && i <= 13;
+      var isToday = i === 10;
+      month.push({
+        n: n,
+        bg: isToday ? '#1D5FA8' : 'transparent',
+        color: isToday ? '#FFFFFF' : (inMonth ? '#121A24' : '#8A96A3'),
+        weight: isToday || inWeek ? '800' : '600',
+        rowBg: inWeek ? '#E4EEF8' : 'transparent',
+        radius: i === 7 ? '999px 0 0 999px' : (i === 13 ? '0 999px 999px 0' : '0')
+      });
+    }
+    var shown = visible.filter(function (a) { return self.state.range === 'today' ? a.d === TODAY : a.d >= TODAY; });
+    var openBooking = function () { self.setState({ booking: true }); };
+    var slots = [];
+    for (var m = 8 * 60; m < 19 * 60 + 30; m += 30) slots.push(fmt(m));
+    return {
+      isCal: tab === 'calendar', isList: tab === 'cards',
+      calTab: seg(tab === 'calendar'), listTab: seg(tab === 'cards'),
+      showCal: function () { self.setState({ tab: 'calendar' }); },
+      showList: function () { self.setState({ tab: 'cards' }); },
+      booking: booking, openBooking: openBooking,
+      closeBooking: function () { self.setState({ booking: false }); },
+      dowLetters: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+      month: month,
+      filters: Object.keys(THERAPISTS).map(function (k) {
+        var th = THERAPISTS[k];
+        var c = APPTS.filter(function (a) { return a.t === k; }).length;
+        return { name: th.name, dot: th.dot, on: !off[k], count: c, toggle: function () { var next = Object.assign({}, self.state.off); next[k] = !next[k]; self.setState({ off: next }); } };
+      }),
+      hours: hours,
+      nowTop: (NOW - START) * PX,
+      days: DAYS.map(function (x) {
+        var today = x.d === TODAY;
+        return {
+          d: x.d, dow: x.dow, isToday: today,
+          dowColor: today ? '#1D5FA8' : '#4F5D6B',
+          circleBg: today ? '#1D5FA8' : 'transparent',
+          numColor: today ? '#FFFFFF' : '#121A24',
+          colBg: x.d >= 7 ? '#FAFBFD' : '#FFFFFF',
+          events: layout(visible.filter(function (a) { return a.d === x.d; })).map(function (a) {
+            var th = THERAPISTS[a.t];
+            return {
+              top: (a.sm - START) * PX, height: (a.em - a.sm) * PX - 2,
+              left: 'calc(100% * ' + a.lane + ' / ' + a.n + ' + 2px)',
+              width: 'calc(100% / ' + a.n + ' - 4px)',
+              bg: th.bg, fg: th.fg, patient: PATIENTS[a.p], range: a.s + '–' + a.e,
+              aria: PATIENTS[a.p] + ', ' + x.long + ' ' + x.d + ', ' + a.s + ' a ' + a.e + ', con ' + th.name
+            };
+          })
+        };
+      }),
+      ranges: [{ k: 'today', label: 'Hoy' }, { k: 'week', label: 'Esta semana' }].map(function (r) {
+        var on = r.k === self.state.range;
+        return { label: r.label, pressed: on ? 'true' : 'false', border: on ? '#0E2944' : '#D6E0EA', bg: on ? '#0E2944' : '#FFFFFF', color: on ? '#FFFFFF' : '#121A24', pick: function () { self.setState({ range: r.k }); } };
+      }),
+      groups: DAYS.filter(function (x) { return shown.some(function (a) { return a.d === x.d; }); }).map(function (x) {
+        var items = shown.filter(function (a) { return a.d === x.d; }).sort(function (a, b) { return toMin(a.s) - toMin(b.s); }).map(function (a) {
+          var th = THERAPISTS[a.t];
+          return {
+            start: a.s, end: a.e, patient: PATIENTS[a.p], dx: a.dx, therapist: th.name, bg: th.bg, fg: th.fg, dot: th.dot,
+            status: a.st === 'ok' ? 'Confirmado' : 'A confirmar',
+            stBg: a.st === 'ok' ? '#E3F3EA' : '#FFF6E5', stFg: a.st === 'ok' ? '#1B6B42' : '#6B4600',
+            cancelLabel: 'Cancelar turno de ' + PATIENTS[a.p]
+          };
+        });
+        var prefix = x.d === TODAY ? 'Hoy · ' : (x.d === TODAY + 1 ? 'Mañana · ' : '');
+        var lbl = x.long + ' ' + x.d + ' de noviembre';
+        return { title: prefix ? prefix + lbl : lbl.charAt(0).toUpperCase() + lbl.slice(1), count: items.length + (items.length === 1 ? ' turno' : ' turnos'), items: items };
+      }),
+      slots: slots.map(function (s) {
+        var busy = BUSY.indexOf(s) >= 0 || PAST.indexOf(s) >= 0;
+        var on = s === self.state.slot;
+        return {
+          label: s, busy: busy, pressed: on ? 'true' : 'false', aria: s + (busy ? ', no disponible' : ''),
+          border: on ? '#1D5FA8' : (busy ? '#EEF1F4' : '#D6E0EA'),
+          bg: on ? '#1D5FA8' : (busy ? '#EEF1F4' : '#FFFFFF'),
+          color: on ? '#FFFFFF' : (busy ? '#6B7480' : '#121A24'),
+          deco: busy ? 'line-through' : 'none',
+          pick: function () { if (!busy) self.setState({ slot: s }); }
+        };
+      }),
+      summary: this.state.slot + ' a ' + fmt(toMin(this.state.slot) + 45)
+    };
+  }
+}
+</script>
+</body>
+</html>
