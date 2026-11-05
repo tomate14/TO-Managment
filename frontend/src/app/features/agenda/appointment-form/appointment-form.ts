@@ -6,7 +6,8 @@ import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { UserSummary } from '../../../core/auth/auth.models';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
 import { DiagnosesService } from '../../diagnoses/diagnoses.service';
-import { formatDni, fullName, listName } from '../../patients/patient-format';
+import { PatientForm } from '../../patients/patient-form/patient-form';
+import { formatDni, fullName, isValidDni, listName, normalizeDni } from '../../patients/patient-format';
 import { Patient } from '../../patients/patients.models';
 import { PatientsService } from '../../patients/patients.service';
 import { addMinutes, longDate } from '../agenda-dates';
@@ -35,7 +36,7 @@ interface FormValues {
 /** Shared by the desktop side panel and the mobile pages: books a new appointment or reschedules one. */
 @Component({
   selector: 'app-appointment-form',
-  imports: [ReactiveFormsModule, SlotGrid],
+  imports: [ReactiveFormsModule, SlotGrid, PatientForm],
   templateUrl: './appointment-form.html',
   styleUrl: './appointment-form.scss',
 })
@@ -54,6 +55,7 @@ export class AppointmentForm implements OnInit {
   readonly saved = output<Appointment>();
   readonly cancelled = output<void>();
 
+  protected readonly formatDni = formatDni;
   protected readonly durations = DURATIONS;
   protected readonly notesMax = NOTES_MAX;
 
@@ -73,6 +75,17 @@ export class AppointmentForm implements OnInit {
   protected readonly diagnoses = signal<Diagnosis[]>([]);
   protected readonly results = signal<Patient[]>([]);
   protected readonly searched = signal(false);
+  private readonly searchedText = signal('');
+  /** "booking" shows the appointment fields; "register" swaps them for the quick patient registration. */
+  protected readonly view = signal<'booking' | 'register'>('booking');
+  /** Digits of the last search when it looked like a DNI and found nobody; null otherwise. */
+  protected readonly missingDni = computed(() => {
+    if (!this.searched() || this.results().length > 0) {
+      return null;
+    }
+    const digits = normalizeDni(this.searchedText());
+    return isValidDni(digits) ? digits : null;
+  });
   protected readonly pickedPatient = signal<Pick<Patient, 'id' | 'firstName' | 'lastName' | 'dni'> | null>(null);
   protected readonly slotsError = signal<string | null>(null);
   protected readonly saving = signal(false);
@@ -177,7 +190,10 @@ export class AppointmentForm implements OnInit {
             return of<Patient[]>([]);
           }
           return this.patientsService.search(text, 0, SEARCH_SIZE).pipe(
-            tap(() => this.searched.set(true)),
+            tap(() => {
+              this.searchedText.set(text);
+              this.searched.set(true);
+            }),
             map((page) => page.content),
             catchError(() => of<Patient[]>([])),
           );
@@ -224,6 +240,20 @@ export class AppointmentForm implements OnInit {
     this.results.set([]);
     this.searched.set(false);
     this.form.patchValue({ patientId: patient.id, diagnosisId: null });
+  }
+
+  protected startRegistration(): void {
+    this.view.set('register');
+  }
+
+  protected backToBooking(): void {
+    this.view.set('booking');
+  }
+
+  /** A freshly registered patient is selected exactly as if it had been picked from the search results. */
+  protected onPatientRegistered(patient: Patient): void {
+    this.pickPatient(patient);
+    this.view.set('booking');
   }
 
   protected pickSlot(time: string): void {

@@ -1,9 +1,17 @@
 import {
-  ageInYears, dominanceLabel, formatDate, formatDni, fullName, listName, normalizeDni, patientInitials, telHref, todayIso,
+  ageInYears, dominanceLabel, formatDate, formatDni, fullName, isValidDni, listName, normalizeDni, patientInitials, telHref, todayIso,
 } from './patient-format';
 
 describe('patient format helpers', () => {
   const lucia = { firstName: 'Lucía', lastName: 'Fernández' };
+
+  it('accepts DNIs of 6 to 9 digits only', () => {
+    expect(isValidDni('123456')).toBe(true);
+    expect(isValidDni('123456789')).toBe(true);
+    expect(isValidDni('12345')).toBe(false);
+    expect(isValidDni('1234567890')).toBe(false);
+    expect(isValidDni('12a456')).toBe(false);
+  });
 
   it('formats and normalizes DNIs', () => {
     expect(formatDni('30123456')).toBe('30.123.456');

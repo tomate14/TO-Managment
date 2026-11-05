@@ -1,0 +1,103 @@
+<form class="patient-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  <section class="patient-form__card" aria-labelledby="personal-heading">
+    <h2 id="personal-heading" class="patient-form__heading">Datos personales</h2>
+
+    <div class="field">
+      <label class="field__label" for="patient-dni">DNI</label>
+      <input id="patient-dni" class="field__input" formControlName="dni" inputmode="numeric" autocomplete="off" maxlength="12"
+             [class.field__input--invalid]="fieldError('dni')" [attr.aria-invalid]="!!fieldError('dni')"
+             [attr.aria-describedby]="fieldError('dni') ? 'patient-dni-error patient-dni-hint' : 'patient-dni-hint'">
+      @if (fieldError('dni'); as message) {
+        <p id="patient-dni-error" class="field__error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>{{ message }}
+        </p>
+      }
+      <p id="patient-dni-hint" class="field__hint">El DNI no se puede modificar después.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-first-name">Nombre</label>
+      <input id="patient-first-name" class="field__input" formControlName="firstName" autocomplete="off" maxlength="80"
+             [class.field__input--invalid]="fieldError('firstName')" [attr.aria-invalid]="!!fieldError('firstName')">
+      @if (fieldError('firstName'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-last-name">Apellido</label>
+      <input id="patient-last-name" class="field__input" formControlName="lastName" autocomplete="off" maxlength="80"
+             [class.field__input--invalid]="fieldError('lastName')" [attr.aria-invalid]="!!fieldError('lastName')">
+      @if (fieldError('lastName'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-birth-date">Fecha de nacimiento</label>
+      <input id="patient-birth-date" class="field__input" type="date" formControlName="birthDate" [max]="today"
+             [class.field__input--invalid]="fieldError('birthDate')" [attr.aria-invalid]="!!fieldError('birthDate')">
+      @if (fieldError('birthDate'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-phone">Teléfono</label>
+      <input id="patient-phone" class="field__input" type="tel" formControlName="phone" autocomplete="off" maxlength="40"
+             placeholder="249 412-3456"
+             [class.field__input--invalid]="fieldError('phone')" [attr.aria-invalid]="!!fieldError('phone')">
+      @if (fieldError('phone'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-occupation">Ocupación</label>
+      <input id="patient-occupation" class="field__input" formControlName="occupation" autocomplete="off" maxlength="120"
+             placeholder="Ej. docente, carpintero"
+             [class.field__input--invalid]="fieldError('occupation')" [attr.aria-invalid]="!!fieldError('occupation')">
+      @if (fieldError('occupation'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+  </section>
+
+  <section class="patient-form__card" aria-labelledby="coverage-heading">
+    <h2 id="coverage-heading" class="patient-form__heading">Cobertura</h2>
+
+    <div class="field">
+      <label class="field__label" for="patient-insurance">Obra social</label>
+      <input id="patient-insurance" class="field__input" formControlName="healthInsurance" autocomplete="off" maxlength="120"
+             placeholder="Ej. OSDE"
+             [class.field__input--invalid]="fieldError('healthInsurance')" [attr.aria-invalid]="!!fieldError('healthInsurance')">
+      @if (fieldError('healthInsurance'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="patient-insurance-number">Número de afiliado</label>
+      <input id="patient-insurance-number" class="field__input" formControlName="healthInsuranceNumber" autocomplete="off"
+             inputmode="numeric" maxlength="60"
+             [class.field__input--invalid]="fieldError('healthInsuranceNumber')"
+             [attr.aria-invalid]="!!fieldError('healthInsuranceNumber')">
+      @if (fieldError('healthInsuranceNumber'); as message) { <p class="field__error">{{ message }}</p> }
+    </div>
+  </section>
+
+  <fieldset class="patient-form__card patient-form__dominance">
+    <legend class="patient-form__heading">Dominancia</legend>
+    <div class="segmented">
+      @for (option of dominanceOptions; track option.value) {
+        <button type="button" class="segmented__option" [attr.aria-pressed]="form.controls.dominance.value === option.value"
+                (click)="selectDominance(option.value)">{{ option.label }}</button>
+      }
+    </div>
+  </fieldset>
+
+  <p class="field__hint patient-form__note">Todos los campos son obligatorios.</p>
+
+  <div class="patient-form__actions">
+    @if (cancelLink(); as link) {
+      <a class="btn-secondary" [routerLink]="link">{{ cancelLabel() }}</a>
+    } @else {
+      <button type="button" class="btn-secondary" (click)="cancelled.emit()">{{ cancelLabel() }}</button>
+    }
+    <button type="submit" class="btn-primary patient-form__submit" [disabled]="saving() || loading()" [attr.aria-busy]="saving()">
+      {{ submitLabel() }}
+    </button>
+  </div>
+</form>

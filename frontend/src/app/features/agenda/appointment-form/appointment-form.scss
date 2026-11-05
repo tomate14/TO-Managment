@@ -10,6 +10,37 @@
   margin: 0;
 }
 
+.booking[hidden] {
+  display: none;
+}
+
+.register__title {
+  margin: 0;
+  padding: 20px 16px 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.booking__missing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.booking__register {
+  height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .booking__body {
   display: flex;
   flex-direction: column;

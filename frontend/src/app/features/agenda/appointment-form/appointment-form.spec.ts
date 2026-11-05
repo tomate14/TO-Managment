@@ -29,14 +29,19 @@ describe('AppointmentForm', () => {
   let book: ReturnType<typeof vi.fn>;
   let reschedule: ReturnType<typeof vi.fn>;
 
+  let search: ReturnType<typeof vi.fn>;
+  let create: ReturnType<typeof vi.fn>;
+
   function setup(options: { mode?: 'new' | 'reschedule'; appointment?: Appointment; user?: UserSummary } = {}) {
+    search = vi.fn().mockReturnValue(of({ content: [patient] }));
+    create = vi.fn().mockReturnValue(of(patient));
     availability = vi.fn().mockReturnValue(of(slots));
     book = vi.fn().mockReturnValue(of(appointmentOf({ id: 99 })));
     reschedule = vi.fn().mockReturnValue(of(appointmentOf({ id: 5 })));
     TestBed.configureTestingModule({
       providers: [
         { provide: AgendaService, useValue: { availability, book, reschedule } },
-        { provide: PatientsService, useValue: { search: vi.fn().mockReturnValue(of({ content: [patient] })) } },
+        { provide: PatientsService, useValue: { search, create } },
         { provide: DiagnosesService, useValue: { listForPatient: vi.fn().mockReturnValue(of([])) } },
       ],
     });
@@ -138,6 +143,113 @@ describe('AppointmentForm', () => {
     fixture.detectChanges();
     expect(el.textContent).toContain('No hay horarios disponibles para este día.');
     expect(el.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  describe('quick patient registration', () => {
+    const typeSearch = (fixture: { detectChanges(): void }, el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      vi.advanceTimersByTime(300);
+      fixture.detectChanges();
+    };
+    const fillPatientForm = (el: HTMLElement) => {
+      const values: Record<string, string> = {
+        '#patient-first-name': 'Lucía',
+        '#patient-last-name': 'Fernández',
+        '#patient-birth-date': '1984-03-21',
+        '#patient-phone': '249 412-3456',
+        '#patient-occupation': 'Docente',
+        '#patient-insurance': 'OSDE',
+        '#patient-insurance-number': '61 234567 8 01',
+      };
+      for (const [selector, value] of Object.entries(values)) {
+        const input = el.querySelector<HTMLInputElement>(selector)!;
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+      }
+    };
+    const buttonByText = (el: HTMLElement, text: string) =>
+      Array.from(el.querySelectorAll('button')).find((button) => button.textContent?.trim() === text);
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('offers "Dar de alta" for a DNI search without results, not for a name search', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      typeSearch(fixture, el, '30.123.456');
+      expect(el.textContent).toContain('No encontramos el DNI 30.123.456.');
+      expect(buttonByText(el, 'Dar de alta')).toBeDefined();
+
+      typeSearch(fixture, el, 'Lucía');
+      expect(el.textContent).toContain('No encontramos pacientes con esa búsqueda.');
+      expect(buttonByText(el, 'Dar de alta')).toBeUndefined();
+    });
+
+    it('keeps the generic message for digit searches that are not a valid DNI', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      for (const text of ['12', '1234567890']) {
+        typeSearch(fixture, el, text);
+        expect(el.textContent).toContain('No encontramos pacientes con esa búsqueda.');
+        expect(buttonByText(el, 'Dar de alta')).toBeUndefined();
+      }
+    });
+
+    it('opens the patient form with the DNI prefilled', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      typeSearch(fixture, el, '30123456');
+      buttonByText(el, 'Dar de alta')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('.register__title')?.textContent).toContain('Nuevo paciente');
+      expect(el.querySelector<HTMLInputElement>('#patient-dni')?.value).toBe('30123456');
+      expect(buttonByText(el, 'Guardar paciente')).toBeDefined();
+    });
+
+    it('selects the saved patient and keeps the booking choices', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      const notes = el.querySelector<HTMLTextAreaElement>('#appointment-notes')!;
+      notes.value = 'Traer la férula';
+      notes.dispatchEvent(new Event('input'));
+      const duration = el.querySelector<HTMLSelectElement>('#appointment-duration')!;
+      duration.selectedIndex = 0;
+      duration.dispatchEvent(new Event('change'));
+      const chosenDuration = fixture.componentInstance.form.controls.durationMinutes.value;
+      fixture.detectChanges();
+
+      typeSearch(fixture, el, '30123456');
+      buttonByText(el, 'Dar de alta')!.click();
+      fixture.detectChanges();
+      fillPatientForm(el);
+      el.querySelector('app-patient-form form')!.dispatchEvent(new Event('submit'));
+      fixture.detectChanges();
+
+      expect(create).toHaveBeenCalledWith(expect.objectContaining({ dni: '30123456', firstName: 'Lucía' }));
+      expect(el.querySelector('app-patient-form')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('#appointment-patient-search')?.value).toContain('Lucía Fernández');
+      const { form } = fixture.componentInstance;
+      expect(form.controls.patientId.value).toBe(7);
+      expect(form.controls.date.value).toBe('2026-11-05');
+      expect(form.controls.durationMinutes.value).toBe(chosenDuration);
+      expect(form.controls.notes.value).toBe('Traer la férula');
+      expect(availability).toHaveBeenLastCalledWith(expect.objectContaining({ patientId: 7, date: '2026-11-05' }));
+    });
+
+    it('returns to the booking with the search text kept', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      typeSearch(fixture, el, '30123456');
+      buttonByText(el, 'Dar de alta')!.click();
+      fixture.detectChanges();
+      buttonByText(el, 'Volver al turno')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('app-patient-form')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('#appointment-patient-search')?.value).toBe('30123456');
+      expect(create).not.toHaveBeenCalled();
+    });
   });
 
   it('lets an admin choose among active therapists only', () => {
