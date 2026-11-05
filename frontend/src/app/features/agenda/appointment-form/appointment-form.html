@@ -2,7 +2,7 @@
   <section class="register" aria-labelledby="register-heading">
     <h2 id="register-heading" class="register__title">Nuevo paciente</h2>
     <app-patient-form
-      [initialDni]="missingDni() ?? ''"
+      [initialDni]="registrationDni()"
       cancelLabel="Volver al turno"
       (saved)="onPatientRegistered($event)"
       (cancelled)="backToBooking()"
@@ -31,14 +31,10 @@
             }
           </ul>
         } @else if (searched()) {
-          @if (missingDni(); as dni) {
-            <div class="booking__missing">
-              <p class="booking__hint">No encontramos el DNI {{ formatDni(dni) }}.</p>
-              <button type="button" class="booking__register" (click)="startRegistration()">Dar de alta</button>
-            </div>
-          } @else {
-            <p class="booking__hint">No encontramos pacientes con esa búsqueda.</p>
-          }
+          <p class="booking__hint">No encontramos pacientes con esa búsqueda.</p>
+        }
+        @if (patientError(); as message) {
+          <p id="appointment-patient-error" class="field__error" role="alert">{{ message }}</p>
         }
       } @else {
         <span class="field__label" id="appointment-patient-label">Paciente</span>
