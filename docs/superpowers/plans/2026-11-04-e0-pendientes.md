@@ -60,3 +60,11 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 ## Pendientes de É6
 - Los rangos clínicos (`ClinicalRange`: edema 0–50, dolor 0–10, ROM 0–360, fuerza 0–100) son una propuesta: confirmarlos con la terapeuta.
 - No hay edición ni borrado de seguimientos (no están en el spec ni en los mockups).
+
+## Pendientes de É7 (Agenda)
+- Fuera de alcance por decisión del spec: horarios por terapeuta, estados del turno, recordatorios, turnos recurrentes, historial de cancelados y feriados.
+- Accesibilidad: el panel de reserva de escritorio no tiene semántica de diálogo (Escape, foco); al confirmar la cancelación en una card se pierde el foco; las fechas de la tira semanal y del mini calendario se anuncian en formato ISO.
+- El formulario de reserva móvil usa un select de duración (el mockup propone un control segmentado 30'/45'/60') y no agrupa en tarjetas ni muestra el resumen oscuro del mockup.
+- "Hoy" se toma del navegador (la clínica tiene una sola zona horaria) y no se actualiza si la página queda abierta pasada la medianoche.
+- Errores de búsqueda de pacientes y de carga de diagnósticos en el formulario no muestran mensaje.
+- Endurecimiento del backend sin efecto visible: mapear la violación de restricción con `getMostSpecificCause()`, `forRole` sin política registrada, tests extra de bordes (paciente superpuesto entre terapeutas, 45 min al cierre).
