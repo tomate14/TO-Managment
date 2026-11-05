@@ -125,6 +125,17 @@ describe('PatientsPage', () => {
       expect(search).toHaveBeenCalledWith('fernán', 0);
     });
 
+    it('retries on Enter after a failed load', () => {
+      const { el } = setup(false);
+      search.mockClear();
+      search.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+      type(el, 'fernán');
+      pressEnter(el);
+      expect(search).toHaveBeenCalledTimes(1);
+      pressEnter(el);
+      expect(search).toHaveBeenCalledTimes(2);
+    });
+
     it('does not request again when the debounce fires after Enter with the same text', () => {
       const { el } = setup(false);
       search.mockClear();

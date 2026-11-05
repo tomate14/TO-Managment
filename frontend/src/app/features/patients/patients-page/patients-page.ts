@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, effect, inject, signal, untracked } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, merge } from 'rxjs';
+import { Subject, debounceTime, filter, merge, tap } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { userInitials } from '../../../layout/user-initials';
@@ -49,13 +49,19 @@ export class PatientsPage {
   protected readonly userInitials = userInitials;
 
   private requestId = 0;
+  private lastSearched: string | null = '';
   /** Emits the current search text when Enter is pressed, bypassing the debounce. */
   private readonly searchNow = new Subject<string>();
 
   constructor() {
     // The debounced text and Enter feed one stream; the same text is never requested twice in a row.
     merge(this.query.valueChanges.pipe(debounceTime(SEARCH_DEBOUNCE_MS)), this.searchNow)
-      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        // Skip only a repeat of the text in flight or already shown; a failed load resets it.
+        filter((text) => text !== this.lastSearched),
+        tap((text) => (this.lastSearched = text)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((text) => {
         this.searchedText.set(text.trim());
         this.load(0, false);
@@ -101,6 +107,7 @@ export class PatientsPage {
       },
       error: () => {
         if (id === this.requestId) {
+          this.lastSearched = null;
           this.loading.set(false);
           this.error.set(LOAD_ERROR);
         }
