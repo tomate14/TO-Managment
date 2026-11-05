@@ -150,7 +150,7 @@ describe('AppointmentForm', () => {
       const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
       input.value = text;
       input.dispatchEvent(new Event('input'));
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(1000);
       fixture.detectChanges();
     };
     beforeEach(() => vi.useFakeTimers());
@@ -196,7 +196,7 @@ describe('AppointmentForm', () => {
       const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
       input.value = text;
       input.dispatchEvent(new Event('input'));
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(1000);
       fixture.detectChanges();
     };
     const fillPatientForm = (el: HTMLElement) => {
@@ -305,6 +305,100 @@ describe('AppointmentForm', () => {
       expect(el.querySelector('#appointment-patient-error')?.textContent).toContain('Elegí un paciente o ingresá su DNI.');
       expect(book).not.toHaveBeenCalled();
       expect(search).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('patient search timing', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    const pressEnter = (el: HTMLElement) => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true });
+      el.querySelector<HTMLInputElement>('#appointment-patient-search')!.dispatchEvent(event);
+      return event;
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('does not search before 1000 ms without keystrokes, and searches after', () => {
+      const { el } = setup();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      type(el, 'Lucí');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('Lucí', 0, expect.any(Number));
+    });
+
+    it('searches immediately on Enter without submitting the booking', () => {
+      const { fixture, el } = setup();
+      type(el, 'Lucía');
+      const event = pressEnter(el);
+      fixture.detectChanges();
+      expect(event.defaultPrevented).toBe(true);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('Lucía', 0, expect.any(Number));
+      expect(book).not.toHaveBeenCalled();
+      expect(el.querySelector('#appointment-patient-error')).toBeNull();
+    });
+
+    it('does not search again when the debounce fires after Enter with the same text', () => {
+      const { el } = setup();
+      type(el, 'Lucía');
+      pressEnter(el);
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('searches again when a different text is typed after Enter', () => {
+      const { el } = setup();
+      type(el, 'Lucía');
+      pressEnter(el);
+      type(el, 'Lucía F');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(2);
+      expect(search).toHaveBeenLastCalledWith('Lucía F', 0, expect.any(Number));
+    });
+  });
+
+  describe('patient search repeats', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('searches the same text again after a patient was picked', () => {
+      const { fixture, el } = setup();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+      fixture.componentInstance['pickPatient'](patient);
+      fixture.detectChanges();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries on Enter after a failed search', () => {
+      const { el } = setup();
+      search.mockReturnValue(throwError(() => new Error('x')));
+      type(el, 'Luc');
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(1);
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(2);
     });
   });
 
