@@ -187,6 +187,16 @@ describe('AppointmentForm', () => {
       expect(buttonByText(el, 'Dar de alta')).toBeUndefined();
     });
 
+    it('keeps the generic message for digit searches that are not a valid DNI', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      for (const text of ['12', '1234567890']) {
+        typeSearch(fixture, el, text);
+        expect(el.textContent).toContain('No encontramos pacientes con esa búsqueda.');
+        expect(buttonByText(el, 'Dar de alta')).toBeUndefined();
+      }
+    });
+
     it('opens the patient form with the DNI prefilled', () => {
       const { fixture, el } = setup();
       search.mockReturnValue(of({ content: [] }));

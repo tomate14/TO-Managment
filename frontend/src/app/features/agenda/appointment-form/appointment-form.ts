@@ -7,7 +7,7 @@ import { UserSummary } from '../../../core/auth/auth.models';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
 import { DiagnosesService } from '../../diagnoses/diagnoses.service';
 import { PatientForm } from '../../patients/patient-form/patient-form';
-import { formatDni, fullName, listName, normalizeDni } from '../../patients/patient-format';
+import { formatDni, fullName, isValidDni, listName, normalizeDni } from '../../patients/patient-format';
 import { Patient } from '../../patients/patients.models';
 import { PatientsService } from '../../patients/patients.service';
 import { addMinutes, longDate } from '../agenda-dates';
@@ -84,7 +84,7 @@ export class AppointmentForm implements OnInit {
       return null;
     }
     const digits = normalizeDni(this.searchedText());
-    return /^\d+$/.test(digits) ? digits : null;
+    return isValidDni(digits) ? digits : null;
   });
   protected readonly pickedPatient = signal<Pick<Patient, 'id' | 'firstName' | 'lastName' | 'dni'> | null>(null);
   protected readonly slotsError = signal<string | null>(null);

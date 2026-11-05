@@ -1,8 +1,8 @@
-import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
-import { normalizeDni, todayIso } from '../patient-format';
+import { isValidDni, normalizeDni, todayIso } from '../patient-format';
 import { DOMINANCE_OPTIONS, Dominance, PATIENT_ERROR_CODES, Patient, PatientData } from '../patients.models';
 import { PatientsService } from '../patients.service';
 
@@ -30,7 +30,7 @@ function notBlank(control: AbstractControl<string>): ValidationErrors | null {
 /** 6 to 9 digits once dots and spaces are removed (same rule as the backend). */
 function dniFormat(control: AbstractControl<string>): ValidationErrors | null {
   const digits = normalizeDni(control.value);
-  return digits === '' || /^\d{6,9}$/.test(digits) ? null : { dni: true };
+  return digits === '' || isValidDni(digits) ? null : { dni: true };
 }
 
 function notFuture(control: AbstractControl<string>): ValidationErrors | null {
@@ -61,7 +61,6 @@ export class PatientForm implements OnInit {
   readonly saved = output<Patient>();
   readonly cancelled = output<void>();
 
-  protected readonly isEdit = computed(() => this.patientId() !== null);
   protected readonly today = todayIso();
   protected readonly dominanceOptions = DOMINANCE_OPTIONS;
 
