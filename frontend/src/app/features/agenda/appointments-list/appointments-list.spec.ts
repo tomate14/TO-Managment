@@ -29,6 +29,14 @@ describe('AppointmentsList', () => {
     expect(el.textContent).not.toContain('Mañana');
   });
 
+  it('does not list past days in "Esta semana"', () => {
+    const { fixture, el } = setup();
+    fixture.componentRef.setInput('appointments', [...appointments, appointmentOf({ id: 9, date: '2026-11-03' })]);
+    fixture.detectChanges();
+    expect(el.textContent).not.toContain('martes 3 de noviembre');
+    expect(el.textContent).toContain('Hoy · jueves 5 de noviembre');
+  });
+
   it('shows the empty state', () => {
     const { fixture, el } = setup();
     fixture.componentRef.setInput('appointments', []);

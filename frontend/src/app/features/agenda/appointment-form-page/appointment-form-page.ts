@@ -26,6 +26,9 @@ export class AppointmentFormPage {
   private readonly id = this.route.snapshot.paramMap.get('id');
   protected readonly mode = this.id === null ? 'new' : 'reschedule';
   protected readonly title = this.mode === 'new' ? 'Nuevo turno' : 'Reprogramar turno';
+  private readonly vista = this.route.snapshot.queryParamMap.get('vista');
+  /** Keeps the agenda tab the user came from on the header back link. */
+  protected readonly backQueryParams = this.vista === null ? {} : { vista: this.vista };
   protected readonly therapists = signal<AgendaTherapist[]>([]);
   protected readonly appointment = signal<Appointment | null>(null);
   protected readonly ready = signal(false);
@@ -46,7 +49,6 @@ export class AppointmentFormPage {
   }
 
   protected back(): void {
-    const vista = this.route.snapshot.queryParamMap.get('vista');
-    void this.router.navigate(['/agenda'], vista === null ? {} : { queryParams: { vista } });
+    void this.router.navigate(['/agenda'], this.vista === null ? {} : { queryParams: { vista: this.vista } });
   }
 }

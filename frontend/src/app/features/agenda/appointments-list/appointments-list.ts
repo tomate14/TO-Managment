@@ -21,8 +21,11 @@ export class AppointmentsList {
   readonly range = signal<AppointmentsRange>('semana');
 
   protected readonly groups = computed(() => {
-    const visible =
-      this.range() === 'hoy' ? this.appointments().filter((appointment) => appointment.date === this.today()) : this.appointments();
+    const today = this.today();
+    // "Hoy" is today only; "Esta semana" starts at today (past days of the week are not listed).
+    const visible = this.appointments().filter((appointment) =>
+      this.range() === 'hoy' ? appointment.date === today : appointment.date >= today,
+    );
     return groupByDay(visible).map((group) => ({
       date: group.date,
       appointments: group.appointments,

@@ -1,7 +1,7 @@
-import { Component, DestroyRef, computed, inject, linkedSignal, signal } from '@angular/core';
+import { Component, DestroyRef, Signal, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, catchError, of, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, map, switchMap } from 'rxjs';
 import { apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
@@ -55,9 +55,10 @@ export class AgendaPage {
   protected readonly now = signal(currentTime());
   protected readonly days = computed(() => weekDays(this.anchorDate()));
   protected readonly title = computed(() => weekTitle(this.anchorDate()));
+  /** Counts come from the unfiltered week, so deselected therapists keep their real number. */
   protected readonly counts = computed(() => {
     const counts = new Map<number, number>();
-    for (const appointment of this.appointments()) {
+    for (const appointment of this.loaded()) {
       counts.set(appointment.therapist.id, (counts.get(appointment.therapist.id) ?? 0) + 1);
     }
     return counts;
@@ -66,7 +67,14 @@ export class AgendaPage {
   protected readonly selectedTherapistIds = signal<Set<number>>(new Set());
   /** Admins only: the week is not requested until the therapist list (and its default selection) has arrived. */
   private readonly therapistsLoaded = signal(false);
-  protected readonly appointments = signal<Appointment[]>([]);
+  /** Keeps the load-error alert visible after later successful week loads (admin without therapist list). */
+  private therapistsFailed = false;
+  private readonly loaded = signal<Appointment[]>([]);
+  private readonly loadedCurrentWeek = signal<Appointment[]>([]);
+  /** Calendar's week, filtered by the selected therapists. */
+  protected readonly appointments = computed(() => this.visible(this.loaded()));
+  /** Real current week for "Turnos asignados", filtered by the selected therapists. */
+  protected readonly currentWeekAppointments = computed(() => this.visible(this.loadedCurrentWeek()));
   protected readonly error = signal<string | null>(null);
   protected readonly formOpen = signal<AgendaForm | null>(null);
 
@@ -78,39 +86,14 @@ export class AgendaPage {
     const clock = setInterval(() => this.now.set(currentTime()), CLOCK_REFRESH_MS);
     inject(DestroyRef).onDestroy(() => clearInterval(clock));
 
-    toObservable(
-      computed(() => ({
-        anchor: this.anchorDate(),
-        ids: [...this.selectedTherapistIds()],
-        tick: this.reloadTick(),
-        ready: !this.isAdmin() || this.therapistsLoaded(),
-      })),
-    )
-      .pipe(
-        switchMap(({ anchor, ids, ready }) => {
-          if (!ready) {
-            return EMPTY;
-          }
-          // An empty list means "no filter" for the service, so an admin with nothing selected sees nothing.
-          if (this.isAdmin() && ids.length === 0) {
-            return of<Appointment[]>([]);
-          }
-          const start = weekStart(anchor);
-          return this.agendaService.list(start, addDays(start, 6), ids).pipe(
-            catchError(() => {
-              this.error.set(LOAD_ERROR);
-              return of(null);
-            }),
-          );
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe((appointments) => {
-        if (appointments) {
-          this.error.set(null);
-          this.appointments.set(appointments);
-        }
-      });
+    // The calendar's week (follows anchorDate).
+    this.loadWeek(computed(() => ({ anchor: this.anchorDate(), tick: this.reloadTick(), ready: this.canLoad() }))).subscribe(
+      (appointments) => this.loaded.set(appointments),
+    );
+    // "Turnos asignados": always the real current week, whatever the calendar shows.
+    this.loadWeek(computed(() => ({ anchor: this.today, tick: this.reloadTick(), ready: this.canLoad() }))).subscribe(
+      (appointments) => this.loadedCurrentWeek.set(appointments),
+    );
 
     if (this.auth.currentUser()?.role === 'ADMIN') {
       this.agendaService.therapists().subscribe({
@@ -121,10 +104,54 @@ export class AgendaPage {
         },
         error: () => {
           this.therapists.set([]);
+          this.therapistsFailed = true;
+          this.error.set(LOAD_ERROR);
           this.therapistsLoaded.set(true);
         },
       });
     }
+  }
+
+  /**
+   * Fetches the week of the given anchor whenever the trigger changes. Admins always get every visible therapist's
+   * appointments (the selection filters on the client, so the filter counts stay real); therapists send no ids and the
+   * server restricts to their own.
+   */
+  private loadWeek(trigger: Signal<{ anchor: string; tick: number; ready: boolean }>): Observable<Appointment[]> {
+    return toObservable(trigger).pipe(
+      switchMap(({ anchor, ready }) => {
+        if (!ready) {
+          return EMPTY;
+        }
+        const start = weekStart(anchor);
+        const ids = this.isAdmin() ? this.therapists().map((therapist) => therapist.id) : [];
+        return this.agendaService.list(start, addDays(start, WEEK_LENGTH - 1), ids).pipe(
+          map((appointments) => {
+            this.error.set(this.therapistsFailed ? LOAD_ERROR : null);
+            return appointments;
+          }),
+          catchError(() => {
+            this.error.set(LOAD_ERROR);
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(),
+    );
+  }
+
+  /** Admins: the week is not requested until the therapist list has arrived. */
+  private canLoad(): boolean {
+    return !this.isAdmin() || this.therapistsLoaded();
+  }
+
+  /** Admins see only the selected therapists (an empty selection shows nothing); therapists see what the server sent. */
+  private visible(appointments: Appointment[]): Appointment[] {
+    if (!this.isAdmin()) {
+      return appointments;
+    }
+    const selected = this.selectedTherapistIds();
+    return appointments.filter((appointment) => selected.has(appointment.therapist.id));
   }
 
   reload(): void {
@@ -161,7 +188,7 @@ export class AgendaPage {
     if (this.isDesktop()) {
       this.formOpen.set({ mode: 'reschedule', appointment });
     } else {
-      void this.router.navigate(['/agenda', appointment.id, 'reprogramar']);
+      void this.router.navigate(['/agenda', appointment.id, 'reprogramar'], { queryParams: { vista: this.view() } });
     }
   }
 
@@ -188,7 +215,7 @@ export class AgendaPage {
     if (this.isDesktop()) {
       this.formOpen.set({ mode: 'new' });
     } else {
-      void this.router.navigate(['/agenda/nuevo']);
+      void this.router.navigate(['/agenda/nuevo'], { queryParams: { vista: this.view() } });
     }
   }
 }
