@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nuevo turno</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.to-input:focus{outline:none;border-color:#1D5FA8 !important;box-shadow:0 0 0 4px rgba(29,95,168,.18)}
+.to-slot:focus-visible,.to-seg:focus-visible{outline:3px solid rgba(29,95,168,.45);outline-offset:2px}
+.to-slot:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div style="width: 390px; height: 1120px; box-sizing: border-box; background: #F5F8FB; font-family: 'Manrope', system-ui, sans-serif; color: #121A24; display: flex; flex-direction: column; overflow: hidden">
+<header style="height: 60px; flex-shrink: 0; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: #FFFFFF; border-bottom: 1px solid #D6E0EA">
+<a href="M-Agenda.dc.html" aria-label="Cerrar" style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #121A24"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<h1 style="margin: 0; font-size: 17px; font-weight: 700">Nuevo turno</h1>
+</header>
+<form style="flex: 1; margin: 0; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px">
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="pat" style="font-size: 14px; font-weight: 600">Paciente</label>
+<div style="position: relative">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F5D6B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 14px; top: 15px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input id="pat" class="to-input" type="search" value="Lucía Fernández · DNI 30.123.456" style="width: 100%; height: 50px; box-sizing: border-box; padding: 0 14px 0 44px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="dx" style="font-size: 14px; font-weight: 600">Diagnóstico <span style="font-weight: 500; color: #4F5D6B">(opcional)</span></label>
+<select id="dx" class="to-input" style="height: 50px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<option>Fractura distal de radio izquierdo</option>
+<option>Tenosinovitis de De Quervain</option>
+<option>Sin diagnóstico asociado</option>
+</select>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="th" style="font-size: 14px; font-weight: 600">Terapeuta</label>
+<select id="th" class="to-input" style="height: 50px; box-sizing: border-box; padding: 0 12px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24">
+<option>Carla Ríos</option>
+<option>Mariana Gómez</option>
+<option>Paula Vidal</option>
+<option>Sofía Núñez</option>
+</select>
+</div>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="fd" style="font-size: 14px; font-weight: 600">Fecha</label>
+<input id="fd" class="to-input" type="date" value="2026-11-05" min="2026-11-05" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 10px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 15px; color: #121A24">
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px">
+<legend style="padding: 0; margin-bottom: 6px; font-size: 14px; font-weight: 600">Duración</legend>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; background: #F0F4F8; border-radius: 12px; height: 50px; box-sizing: border-box">
+<sc-for list="{{durations}}" as="du" hint-placeholder-count="3">
+<button type="button" class="to-seg" onClick="{{du.pick}}" aria-pressed="{{du.pressed}}" aria-label="{{du.aria}}" style="border: 0; border-radius: 9px; background: {{du.bg}}; color: {{du.color}}; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: {{du.shadow}}; padding: 0">{{du.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+</div>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 14px; font-weight: 600">Horario disponible <span style="font-weight: 500; color: #4F5D6B">· Carla Ríos</span></legend>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{slots}}" as="sl" hint-placeholder-count="12">
+<button type="button" class="to-slot" onClick="{{sl.pick}}" disabled="{{sl.busy}}" aria-pressed="{{sl.pressed}}" aria-label="{{sl.aria}}" style="height: 44px; border-radius: 10px; border: 1.5px solid {{sl.border}}; background: {{sl.bg}}; color: {{sl.color}}; font-family: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; text-decoration: {{sl.deco}}">{{sl.label}}</button>
+</sc-for>
+</div>
+<p style="margin: 0; display: flex; gap: 14px; font-size: 12px; color: #4F5D6B"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 4px; border: 1.5px solid #D6E0EA; background: #FFFFFF; display: block"></span>Libre</span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #EEF1F4; display: block"></span>Ocupado</span></p>
+</fieldset>
+</section>
+<section style="background: #FFFFFF; border: 1px solid #D6E0EA; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 6px">
+<label for="nt" style="font-size: 14px; font-weight: 600">Notas <span style="font-weight: 500; color: #4F5D6B">(opcional)</span></label>
+<textarea id="nt" class="to-input" rows="3" placeholder="Ej. traer la férula" style="box-sizing: border-box; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #D6E0EA; background: #FFFFFF; font-family: inherit; font-size: 16px; color: #121A24; resize: vertical"></textarea>
+</section>
+<div role="status" style="padding: 14px 16px; border-radius: 16px; background: #0E2944; color: #FFFFFF; display: flex; align-items: center; gap: 12px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8FC2F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 800">Jueves 5 de noviembre · {{summary}}</span><span style="font-size: 13px; color: rgba(255, 255, 255, 0.78)">Lucía Fernández con Carla Ríos</span></span>
+</div>
+</form>
+<div style="flex-shrink: 0; padding: 12px 16px 20px; background: #FFFFFF; border-top: 1px solid #D6E0EA; display: flex; gap: 10px">
+<a href="M-Agenda.dc.html" style="height: 52px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #D6E0EA; color: #121A24; display: flex; align-items: center; text-decoration: none; font-size: 15px; font-weight: 700">Cancelar</a>
+<a href="M-Agenda-cards.dc.html" style="flex: 1; height: 52px; border-radius: 14px; background: #1D5FA8; color: #FFFFFF; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; font-weight: 700">Reservar turno</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1120}}'>
+var BUSY = ['09:00', '09:30', '16:30', '17:00'];
+var PAST = ['08:00', '08:30', '10:00', '10:30', '11:00', '11:30'];
+function toMin(x) { var a = x.split(':'); return Number(a[0]) * 60 + Number(a[1]); }
+function fmt(m) { var h = Math.floor(m / 60), mm = m % 60; return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm; }
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { slot: '12:00', dur: 45 };
+  }
+  renderVals() {
+    var self = this;
+    var slots = [];
+    for (var m = 8 * 60; m < 19 * 60; m += 30) slots.push(fmt(m));
+    return {
+      durations: [30, 45, 60].map(function (d) {
+        var on = d === self.state.dur;
+        return { label: d + "'", aria: d + ' minutos', pressed: on ? 'true' : 'false', bg: on ? '#FFFFFF' : 'transparent', color: on ? '#0E2944' : '#4F5D6B', shadow: on ? '0 1px 3px rgba(14,41,68,0.18)' : 'none', pick: function () { self.setState({ dur: d }); } };
+      }),
+      slots: slots.map(function (s) {
+        var busy = BUSY.indexOf(s) >= 0 || PAST.indexOf(s) >= 0;
+        var on = s === self.state.slot;
+        return {
+          label: s, busy: busy, pressed: on ? 'true' : 'false',
+          aria: s + (busy ? ', no disponible' : ''),
+          border: on ? '#1D5FA8' : (busy ? '#EEF1F4' : '#D6E0EA'),
+          bg: on ? '#1D5FA8' : (busy ? '#EEF1F4' : '#FFFFFF'),
+          color: on ? '#FFFFFF' : (busy ? '#6B7480' : '#121A24'),
+          deco: busy ? 'line-through' : 'none',
+          pick: function () { if (!busy) self.setState({ slot: s }); }
+        };
+      }),
+      summary: this.state.slot + ' a ' + fmt(toMin(this.state.slot) + this.state.dur)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -230,13 +230,24 @@ Como terapeuta quiero ver los seguimientos de un diagnóstico, con sus evaluacio
 - Orden cronológico descendente.
 - Las respuestas muestran el texto de la pregunta, aunque la pregunta esté inactiva.
 
+### É7 — Agenda de turnos
+
+Diseño detallado en `2026-11-05-agenda-design.md` (mockups en `docs/mockups/h7.1-agenda/`).
+
+- **H7.1 Ver la agenda (calendario):** semana en escritorio y día en celular; admin ve a todo el equipo, terapeuta solo lo suyo.
+- **H7.2 Ver turnos asignados (cards):** agrupados por día, con Reprogramar, Ver ficha y Cancelar.
+- **H7.3 Reservar turno:** paciente, diagnóstico opcional, terapeuta, fecha, duración (30/45/60) y horario libre (lunes a sábado, 08:00–20:00).
+- **H7.4 Reprogramar y cancelar:** cancelar borra el turno.
+
 ## 7. Orden de implementación sugerido
 
 H0.1 → É1 → É2 → É4 → É5 → É3 → É6. Cada historia con pantallas queda bloqueada hasta tener su mockup.
 
 ## 8. Fuera de alcance (MVP)
 
-Recuperar la contraseña por email, gráficos de evolución, reportes y exportación, turnos o agenda, adjuntos (imágenes o PDFs) y auditoría detallada de cambios.
+> La agenda de turnos salió de esta lista: se suma como É7 (2026-11-05).
+
+Recuperar la contraseña por email, gráficos de evolución, reportes y exportación, adjuntos (imágenes o PDFs) y auditoría detallada de cambios.
 
 ## 9. Pruebas
 
