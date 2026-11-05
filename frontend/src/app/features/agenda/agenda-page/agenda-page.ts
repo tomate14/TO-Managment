@@ -2,12 +2,14 @@ import { Component, DestroyRef, computed, inject, linkedSignal, signal } from '@
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, catchError, of, switchMap } from 'rxjs';
+import { apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { AgendaTabs, AgendaView } from '../agenda-tabs/agenda-tabs';
 import { AGENDA_TODAY, addDays, shiftMonth, weekDays, weekStart, weekTitle } from '../agenda-dates';
 import { AgendaTherapist, Appointment } from '../agenda.models';
 import { AgendaService } from '../agenda.service';
+import { AppointmentsList } from '../appointments-list/appointments-list';
 import { DayTimeline } from '../day-timeline/day-timeline';
 import { MiniMonth } from '../mini-month/mini-month';
 import { TherapistFilter } from '../therapist-filter/therapist-filter';
@@ -17,6 +19,7 @@ import { WeekStrip } from '../week-strip/week-strip';
 export type AgendaForm = { mode: 'new' } | { mode: 'reschedule'; appointment: Appointment };
 
 const LOAD_ERROR = 'No pudimos cargar la agenda. Intentá de nuevo en unos minutos.';
+const CANCEL_ERROR = 'No pudimos cancelar el turno. Intentá de nuevo.';
 const CLOCK_REFRESH_MS = 60_000;
 const WEEK_LENGTH = 7;
 
@@ -29,7 +32,7 @@ function currentTime(): string {
 /** E7 agenda screen: header, view tabs and the visible week's appointments (calendar / cards plug in here). */
 @Component({
   selector: 'app-agenda-page',
-  imports: [AgendaTabs, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
+  imports: [AgendaTabs, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
   templateUrl: './agenda-page.html',
   styleUrl: './agenda-page.scss',
 })
@@ -158,6 +161,16 @@ export class AgendaPage {
     } else {
       void this.router.navigate(['/agenda', appointment.id, 'reprogramar']);
     }
+  }
+
+  protected cancelAppointment(appointment: Appointment): void {
+    this.agendaService.cancel(appointment.id).subscribe({
+      next: () => {
+        this.error.set(null);
+        this.reload();
+      },
+      error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? CANCEL_ERROR),
+    });
   }
 
   protected newAppointment(): void {

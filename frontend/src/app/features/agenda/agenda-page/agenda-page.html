@@ -72,7 +72,14 @@
         </div>
       </div>
     } @else {
-      <div class="agenda-panel" role="tabpanel" id="agenda-panel-turnos" aria-labelledby="agenda-tab-turnos"></div>
+      <div class="agenda-panel" role="tabpanel" id="agenda-panel-turnos" aria-labelledby="agenda-tab-turnos">
+        <app-appointments-list
+          [appointments]="appointments()"
+          [today]="today"
+          (reschedule)="openAppointment($event)"
+          (cancel)="cancelAppointment($event)"
+        />
+      </div>
     }
   </section>
 </div>

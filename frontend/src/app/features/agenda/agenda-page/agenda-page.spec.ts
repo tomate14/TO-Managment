@@ -2,7 +2,8 @@ import { vi } from 'vitest';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { appointmentOf } from '../agenda-test-data';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AGENDA_TODAY } from '../agenda-dates';
 import { AgendaTherapist } from '../agenda.models';
@@ -64,6 +65,30 @@ describe('AgendaPage', () => {
     expect(list).toHaveBeenLastCalledWith('2026-11-09', '2026-11-15', expect.any(Array));
     click('.calendar-toolbar__today');
     expect(list).toHaveBeenLastCalledWith('2026-11-02', '2026-11-08', expect.any(Array));
+  });
+
+  it('cancels an appointment, reloads the week and shows an alert on failure', () => {
+    const cancel = vi.fn().mockReturnValueOnce(of(undefined)).mockReturnValueOnce(throwError(() => new Error('x')));
+    list = vi.fn().mockReturnValue(of([appointmentOf({ id: 5 })]));
+    TestBed.configureTestingModule({
+      imports: [AgendaPage],
+      providers: [
+        provideRouter([]),
+        { provide: AGENDA_TODAY, useValue: () => '2026-11-05' },
+        { provide: AgendaService, useValue: { list, cancel, therapists: () => of(therapists) } },
+        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'a@c.com', fullName: 'Ana', role: 'TERAPEUTA' }) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(AgendaPage);
+    fixture.componentInstance['cancelAppointment'](appointmentOf({ id: 5 }));
+    TestBed.tick();
+    expect(cancel).toHaveBeenCalledWith(5);
+    expect(list).toHaveBeenCalledTimes(2);
+    fixture.componentInstance['cancelAppointment'](appointmentOf({ id: 5 }));
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')?.textContent).toContain(
+      'No pudimos cancelar el turno. Intentá de nuevo.',
+    );
   });
 
   it('does not request anything for an admin who deselects every therapist', () => {

@@ -1,0 +1,17 @@
+<div class="appointments-filter" role="group" aria-label="Período">
+  <button type="button" class="appointments-filter__btn" data-range="hoy" [attr.aria-pressed]="range() === 'hoy'" (click)="range.set('hoy')">Hoy</button>
+  <button type="button" class="appointments-filter__btn" data-range="semana" [attr.aria-pressed]="range() === 'semana'" (click)="range.set('semana')">Esta semana</button>
+</div>
+
+@for (group of groups(); track group.date) {
+  <section class="appointments-day">
+    <h2 class="appointments-day__title">{{ group.heading }}</h2>
+    <div class="appointments-day__grid">
+      @for (appointment of group.appointments; track appointment.id) {
+        <app-appointment-card [appointment]="appointment" (reschedule)="reschedule.emit($event)" (cancel)="cancel.emit($event)" />
+      }
+    </div>
+  </section>
+} @empty {
+  <p class="appointments-empty">No hay turnos en este período.</p>
+}
