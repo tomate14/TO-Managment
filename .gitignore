@@ -1,5 +1,7 @@
-# Environment (secrets)
+# Environment (secrets): .env and any copy (.env.hosted, .env.local...); only the template is versioned.
 .env
+.env.*
+!.env.example
 
 # Backend
 backend/target/

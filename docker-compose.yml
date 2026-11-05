@@ -97,5 +97,11 @@ services:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
 
 volumes:
+  # Named volume bound to a host folder (SUPABASE_DB_HOST_PATH), so the data lives outside Docker's disk.
   db-data:
     name: ${SUPABASE_DB_VOLUME_NAME:?SUPABASE_DB_VOLUME_NAME is required}
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${SUPABASE_DB_HOST_PATH:?SUPABASE_DB_HOST_PATH is required}

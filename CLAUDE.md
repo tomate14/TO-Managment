@@ -96,7 +96,7 @@ CLAUDE.md
 - Angular recibe `API_BASE_URL` en tiempo de build o de arranque del contenedor (nunca escrita a mano en el código).
 
 ### Volumen de la base de datos
-- Los datos de Postgres persisten en un **volumen Docker definido en el `.env`** (`SUPABASE_DB_VOLUME_NAME` y `SUPABASE_DB_DATA_PATH`).
+- Los datos de Postgres persisten en un **volumen Docker definido en el `.env`** (`SUPABASE_DB_VOLUME_NAME`, `SUPABASE_DB_HOST_PATH` y `SUPABASE_DB_DATA_PATH`). El volumen es nombrado y está enlazado (bind) a la carpeta del host `SUPABASE_DB_HOST_PATH` (en Windows, `C:/TOManagment`), que tiene que existir antes de levantar el stack.
 - Se monta en `/var/lib/postgresql/data` del servicio de base de datos y es un volumen compartido, declarado a nivel raíz del compose, para los servicios del stack que lo necesiten.
 - `docker compose down` **no** debe borrar datos. Nunca uses `docker compose down -v` sin pedir confirmación.
 
@@ -107,7 +107,8 @@ CLAUDE.md
 | `COMPOSE_PROJECT_NAME` | Nombre del proyecto en Docker |
 | `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Conexión a Postgres |
 | `SUPABASE_DB_VOLUME_NAME` | Nombre del volumen de datos |
-| `SUPABASE_DB_DATA_PATH` | Ruta de montaje del volumen dentro del contenedor de Postgres (el volumen es nombrado: en Windows un bind mount rompe los permisos de Postgres) |
+| `SUPABASE_DB_HOST_PATH` | Carpeta del host donde viven los archivos de la base (p. ej. `C:/TOManagment`); probado con Docker Desktop en Windows: Postgres arranca y conserva los datos |
+| `SUPABASE_DB_DATA_PATH` | Ruta de montaje del volumen dentro del contenedor de Postgres |
 | `SUPABASE_POSTGRES_IMAGE`, `SUPABASE_PG_META_IMAGE`, `SUPABASE_STUDIO_IMAGE` | Imágenes (con tag fijo) del stack de Supabase |
 | `POSTGRES_HOST_PORT` | Puerto de Postgres expuesto en el host |
 | `APP_DB_SCHEMA` | Esquema de la aplicación (lo crea Flyway) |
