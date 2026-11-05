@@ -42,3 +42,9 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Vercel: vercel.json is generated from the root .env (npm run vercel:config); .vercel holds the local project link.
+/vercel.json
+/.vercel
+.vercel
+.env*
