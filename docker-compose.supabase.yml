@@ -1,0 +1,15 @@
+# Run with: docker compose -f docker-compose.yml -f docker-compose.supabase.yml up -d --build backend frontend
+# Keep the existing local database volume; the application uses hosted Supabase.
+services:
+  db:
+    profiles: [local-db]
+  meta:
+    profiles: [local-db]
+  studio:
+    profiles: [local-db]
+  backend:
+    depends_on: !reset {}
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=${POSTGRES_SSLMODE:?POSTGRES_SSLMODE is required}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:?SPRING_FLYWAY_BASELINE_ON_MIGRATE is required}
+      SPRING_FLYWAY_BASELINE_VERSION: ${SPRING_FLYWAY_BASELINE_VERSION:?SPRING_FLYWAY_BASELINE_VERSION is required}
