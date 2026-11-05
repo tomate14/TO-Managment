@@ -9,6 +9,7 @@ import { AgendaTabs, AgendaView } from '../agenda-tabs/agenda-tabs';
 import { AGENDA_TODAY, addDays, shiftMonth, weekDays, weekStart, weekTitle } from '../agenda-dates';
 import { AgendaTherapist, Appointment } from '../agenda.models';
 import { AgendaService } from '../agenda.service';
+import { AppointmentForm } from '../appointment-form/appointment-form';
 import { AppointmentsList } from '../appointments-list/appointments-list';
 import { DayTimeline } from '../day-timeline/day-timeline';
 import { MiniMonth } from '../mini-month/mini-month';
@@ -32,7 +33,7 @@ function currentTime(): string {
 /** E7 agenda screen: header, view tabs and the visible week's appointments (calendar / cards plug in here). */
 @Component({
   selector: 'app-agenda-page',
-  imports: [AgendaTabs, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
+  imports: [AgendaTabs, AppointmentForm, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
   templateUrl: './agenda-page.html',
   styleUrl: './agenda-page.scss',
 })
@@ -69,6 +70,7 @@ export class AgendaPage {
   protected readonly error = signal<string | null>(null);
   protected readonly formOpen = signal<AgendaForm | null>(null);
 
+  protected readonly user = this.auth.currentUser;
   protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'ADMIN');
   protected readonly subtitle = computed(() => (this.isAdmin() ? 'Turnos de todo el equipo.' : 'Tus turnos.'));
 
@@ -171,6 +173,15 @@ export class AgendaPage {
       },
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? CANCEL_ERROR),
     });
+  }
+
+  protected closeForm(): void {
+    this.formOpen.set(null);
+  }
+
+  protected formSaved(): void {
+    this.closeForm();
+    this.reload();
   }
 
   protected newAppointment(): void {

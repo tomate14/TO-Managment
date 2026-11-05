@@ -1,0 +1,20 @@
+<header class="page-header">
+  <a class="page-header__back" routerLink="/agenda" aria-label="Volver a la agenda">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <h1 class="page-header__title">{{ title }}</h1>
+</header>
+
+@if (error(); as message) {
+  <p class="alert alert--error form-page__error" role="alert">{{ message }}</p>
+} @else if (ready() && currentUser(); as user) {
+  <app-appointment-form
+    [mode]="mode"
+    [appointment]="appointment()"
+    [therapists]="therapists()"
+    [currentUser]="user"
+    [today]="today"
+    (saved)="back()"
+    (cancelled)="back()"
+  />
+}

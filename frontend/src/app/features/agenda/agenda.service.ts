@@ -29,6 +29,10 @@ export class AgendaService {
     return this.http.get<Slot[]>('/api/appointments/availability', { params });
   }
 
+  get(id: number): Observable<Appointment> {
+    return this.http.get<Appointment>(`/api/appointments/${id}`);
+  }
+
   book(payload: AppointmentPayload): Observable<Appointment> {
     return this.http.post<Appointment>('/api/appointments', payload);
   }

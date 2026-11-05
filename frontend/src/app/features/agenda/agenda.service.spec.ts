@@ -31,6 +31,11 @@ describe('AgendaService', () => {
     http.expectOne('/api/appointments/availability?therapistId=1&date=2026-11-05&durationMinutes=45');
   });
 
+  it('gets one appointment', () => {
+    service.get(3).subscribe();
+    expect(http.expectOne('/api/appointments/3').request.method).toBe('GET');
+  });
+
   it('cancels an appointment', () => {
     service.cancel(3).subscribe();
     expect(http.expectOne('/api/appointments/3').request.method).toBe('DELETE');

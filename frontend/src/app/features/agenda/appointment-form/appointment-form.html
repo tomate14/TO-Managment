@@ -1,0 +1,103 @@
+<form class="booking" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="booking__body">
+    <div class="field">
+      @if (mode() === 'new') {
+        <label class="field__label" for="appointment-patient-search">Paciente</label>
+        <input
+          id="appointment-patient-search"
+          class="field__input"
+          type="search"
+          autocomplete="off"
+          placeholder="Buscá por nombre o DNI"
+          [formControl]="searchControl"
+        />
+        @if (results().length > 0) {
+          <ul class="booking__results" aria-label="Resultados de pacientes">
+            @for (patient of results(); track patient.id) {
+              <li><button type="button" class="booking__result" (click)="pickPatient(patient)">{{ resultLabel(patient) }}</button></li>
+            }
+          </ul>
+        } @else if (searched()) {
+          <p class="booking__hint">No encontramos pacientes con esa búsqueda.</p>
+        }
+      } @else {
+        <span class="field__label" id="appointment-patient-label">Paciente</span>
+        <p class="booking__locked" aria-labelledby="appointment-patient-label">
+          @if (pickedPatient(); as patient) {
+            {{ patientLabel(patient) }}
+          }
+        </p>
+      }
+    </div>
+
+    <div class="booking__row">
+      <div class="field">
+        <label class="field__label" for="appointment-diagnosis">Diagnóstico <span class="booking__optional">(opc.)</span></label>
+        <select id="appointment-diagnosis" class="field__input" formControlName="diagnosisId">
+          <option [ngValue]="null">Sin diagnóstico</option>
+          @for (diagnosis of diagnoses(); track diagnosis.id) {
+            <option [ngValue]="diagnosis.id">{{ diagnosis.description }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="appointment-therapist">Terapeuta</label>
+        <select id="appointment-therapist" class="field__input" formControlName="therapistId">
+          @for (therapist of therapistOptions(); track therapist.id) {
+            <option [ngValue]="therapist.id">{{ therapist.fullName }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="booking__row">
+      <div class="field">
+        <label class="field__label" for="appointment-date">Fecha</label>
+        <input id="appointment-date" class="field__input" type="date" formControlName="date" [min]="today()" />
+      </div>
+      <div class="field">
+        <label class="field__label" for="appointment-duration">Duración</label>
+        <select id="appointment-duration" class="field__input" formControlName="durationMinutes">
+          @for (duration of durations; track duration) {
+            <option [ngValue]="duration">{{ duration }} minutos</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <fieldset class="booking__slots">
+      <legend class="field__label">Horario disponible @if (therapistName(); as name) {<span class="booking__optional">· {{ name }}</span>}</legend>
+      <app-slot-grid [slots]="slots()" [selected]="values().startTime || null" (pick)="pickSlot($event)" />
+    </fieldset>
+
+    <div class="field">
+      <label class="field__label" for="appointment-notes">Notas <span class="booking__optional">(opcional)</span></label>
+      <textarea
+        id="appointment-notes"
+        class="field__input booking__notes"
+        rows="3"
+        [attr.maxlength]="notesMax"
+        placeholder="Ej. traer la férula"
+        formControlName="notes"
+      ></textarea>
+    </div>
+
+    @if (summary(); as text) {
+      <div class="booking__summary" role="status">
+        <span class="booking__summary-when">{{ text.when }}</span>
+        <span class="booking__summary-who">{{ text.who }}</span>
+      </div>
+    }
+
+    @if (error(); as message) {
+      <p class="alert alert--error" role="alert">{{ message }}</p>
+    }
+  </div>
+
+  <div class="booking__actions">
+    <button type="button" class="booking__cancel" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn-primary booking__submit" [disabled]="form.invalid || saving()">
+      {{ mode() === 'new' ? 'Reservar turno' : 'Guardar cambios' }}
+    </button>
+  </div>
+</form>

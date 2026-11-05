@@ -1,0 +1,17 @@
+<div class="slots">
+  @for (slot of slots(); track slot.startTime) {
+    <button
+      type="button"
+      class="slots__slot"
+      [class.slots__slot--selected]="selected() === time(slot)"
+      [disabled]="!slot.available"
+      [attr.aria-pressed]="selected() === time(slot)"
+      [attr.aria-label]="slot.available ? time(slot) : time(slot) + ', no disponible'"
+      (click)="pick.emit(time(slot))"
+    >{{ time(slot) }}</button>
+  }
+</div>
+<p class="slots__legend">
+  <span class="slots__key"><span class="slots__swatch"></span>Libre</span>
+  <span class="slots__key"><span class="slots__swatch slots__swatch--busy"></span>Ocupado</span>
+</p>

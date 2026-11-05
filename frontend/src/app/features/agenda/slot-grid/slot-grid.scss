@@ -1,0 +1,76 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+}
+
+.slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.slots__slot {
+  height: 44px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid rgba(29, 95, 168, 0.45);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    border-color: var(--color-neutral-bg);
+    background: var(--color-neutral-bg);
+    color: #6b7480;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+
+  &--selected {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+  }
+}
+
+.slots__legend {
+  display: flex;
+  gap: 14px;
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.slots__key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.slots__swatch {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+
+  &--busy {
+    border: 0;
+    background: var(--color-neutral-bg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .slots {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

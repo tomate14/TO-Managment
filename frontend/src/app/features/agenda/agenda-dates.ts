@@ -78,6 +78,20 @@ export function dayHeading(iso: string, todayIso: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** "Jueves 5 de noviembre". */
+export function longDate(iso: string): string {
+  const date = parse(iso);
+  const text = `${WEEKDAYS[date.getUTCDay()]} ${date.getUTCDate()} de ${MONTHS[date.getUTCMonth()]}`;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "12:00" + 45 → "12:45" (first 5 characters of `time` are used). */
+export function addMinutes(time: string, minutes: number): string {
+  const [hours, mins] = time.slice(0, 5).split(':').map(Number);
+  const total = hours * 60 + mins + minutes;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 /** "Noviembre 2026". */
 export function monthTitle(iso: string): string {
   const [year, month] = iso.split('-').map(Number);
