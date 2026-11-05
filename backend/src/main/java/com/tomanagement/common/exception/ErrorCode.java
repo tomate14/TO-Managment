@@ -62,6 +62,16 @@ public enum ErrorCode {
     ANSWER_QUESTION_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
             "Hay respuestas a preguntas que no corresponden: solo se responden las preguntas visibles de la plantilla."),
     ANSWER_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay respuestas con un valor que no es válido para su pregunta."),
+    APPOINTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El turno no existe."),
+    APPOINTMENT_OUTSIDE_HOURS(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Los turnos son de lunes a sábado, de 08:00 a 20:00, empezando en punto o y media."),
+    APPOINTMENT_IN_PAST(HttpStatus.UNPROCESSABLE_ENTITY, "No se pueden dar turnos en el pasado."),
+    APPOINTMENT_DURATION_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "La duración tiene que ser de 30, 45 o 60 minutos."),
+    APPOINTMENT_RANGE_TOO_LONG(HttpStatus.UNPROCESSABLE_ENTITY, "El rango de fechas no puede superar los 42 días."),
+    THERAPIST_BUSY(HttpStatus.CONFLICT, "El terapeuta ya tiene un turno en ese horario."),
+    PATIENT_BUSY(HttpStatus.CONFLICT, "El paciente ya tiene un turno en ese horario."),
+    DIAGNOSIS_NOT_OF_PATIENT(HttpStatus.UNPROCESSABLE_ENTITY, "El diagnóstico no es de ese paciente."),
+    THERAPIST_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese terapeuta está inactivo: elegí uno activo."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

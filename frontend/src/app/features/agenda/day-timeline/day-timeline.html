@@ -1,0 +1,28 @@
+<div class="day__heading">
+  <h2 class="day__title">{{ heading() }}</h2>
+  <span class="day__count">{{ countText() }}</span>
+</div>
+<div class="day__grid" [style.height.px]="gridHeight">
+  @for (hour of hours; track hour.label) {
+    <span class="day__hour" [style.top.px]="hour.top">{{ hour.label }}</span>
+  }
+  <div class="day__lines" aria-hidden="true"></div>
+  @for (block of blocks(); track block.appointment.id) {
+    <button
+      type="button"
+      class="agenda-block therapist-{{ block.appointment.therapist.color }}"
+      [attr.aria-label]="patientName(block.appointment) + ', ' + detail(block.appointment)"
+      [style.top.px]="block.top"
+      [style.height.px]="block.height"
+      [style.left]="'calc(56px + (100% - 56px) * ' + block.column / block.columns + ')'"
+      [style.width]="'calc((100% - 56px) / ' + block.columns + ')'"
+      (click)="select.emit(block.appointment)"
+    >
+      <span class="agenda-block__patient">{{ patientName(block.appointment) }}</span>
+      <span class="agenda-block__detail">{{ detail(block.appointment) }}</span>
+    </button>
+  }
+  @if (nowTop(); as top) {
+    <div class="day__now" aria-hidden="true" [style.top.px]="top"></div>
+  }
+</div>

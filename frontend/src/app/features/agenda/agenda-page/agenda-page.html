@@ -1,0 +1,108 @@
+<header class="agenda-header">
+  <div class="agenda-header__text">
+    <h1 class="agenda-header__title">Agenda</h1>
+    <p class="agenda-header__subtitle">{{ subtitle() }}</p>
+  </div>
+  <div class="agenda-header__actions">
+    <app-agenda-tabs [active]="view()" (change)="changeView($event)" />
+    <button type="button" class="agenda-header__new" (click)="newAppointment()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuevo turno
+    </button>
+  </div>
+</header>
+
+<div class="agenda-body">
+  <aside class="agenda-side">
+    @if (view() === 'calendario') {
+      <app-mini-month
+        class="agenda-side__month"
+        [month]="displayMonth()"
+        [selectedWeek]="days()"
+        [today]="today"
+        (pick)="anchorDate.set($event)"
+        (shift)="shiftMonth($event)"
+      />
+    }
+    @if (isAdmin() && therapists().length > 0) {
+      <app-therapist-filter
+        [therapists]="therapists()"
+        [selected]="selectedTherapistIds()"
+        [counts]="counts()"
+        (toggle)="toggleTherapist($event)"
+      />
+    }
+  </aside>
+
+  <section class="agenda-content">
+    @if (error(); as message) {
+      <p class="agenda-error" role="alert">{{ message }}</p>
+    }
+    @if (view() === 'calendario') {
+      <div class="agenda-panel" role="tabpanel" id="agenda-panel-calendario" aria-labelledby="agenda-tab-calendario">
+        <div class="calendar-toolbar">
+          <button type="button" class="calendar-toolbar__today" (click)="goToday()">Hoy</button>
+          <button type="button" class="calendar-toolbar__icon" aria-label="Semana anterior" (click)="shiftWeek(-1)">‹</button>
+          <button type="button" class="calendar-toolbar__icon" aria-label="Semana siguiente" (click)="shiftWeek(1)">›</button>
+          <h2 class="calendar-toolbar__title">{{ title() }}</h2>
+        </div>
+        <app-week-calendar
+          class="calendar-desktop"
+          [days]="days()"
+          [appointments]="appointments()"
+          [today]="today"
+          [now]="now()"
+          (select)="openAppointment($event)"
+        />
+        <div class="calendar-mobile">
+          <app-week-strip
+            [days]="days()"
+            [selected]="anchorDate()"
+            [today]="today"
+            [appointments]="appointments()"
+            (pick)="anchorDate.set($event)"
+            (shift)="shiftWeek($event)"
+          />
+          <app-day-timeline
+            [date]="anchorDate()"
+            [appointments]="appointments()"
+            [today]="today"
+            [now]="now()"
+            (select)="openAppointment($event)"
+          />
+        </div>
+      </div>
+    } @else {
+      <div class="agenda-panel" role="tabpanel" id="agenda-panel-turnos" aria-labelledby="agenda-tab-turnos">
+        <app-appointments-list
+          [appointments]="currentWeekAppointments()"
+          [today]="today"
+          (reschedule)="openAppointment($event)"
+          (cancel)="cancelAppointment($event)"
+        />
+      </div>
+    }
+  </section>
+</div>
+
+@for (open of [formOpen()]; track open) {
+  @if (open && user(); as currentUser) {
+    <div class="booking-overlay" (click)="closeForm()"></div>
+    <aside class="booking-panel" [attr.aria-label]="open.mode === 'new' ? 'Nuevo turno' : 'Reprogramar turno'">
+      <header class="booking-panel__header">
+        <h2 class="booking-panel__title">{{ open.mode === 'new' ? 'Nuevo turno' : 'Reprogramar turno' }}</h2>
+        <button type="button" class="booking-panel__close" aria-label="Cerrar" (click)="closeForm()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </header>
+      <app-appointment-form
+        [mode]="open.mode"
+        [appointment]="open.mode === 'reschedule' ? open.appointment : null"
+        [therapists]="therapists()"
+        [currentUser]="currentUser"
+        [today]="today"
+        (saved)="formSaved()"
+        (cancelled)="closeForm()"
+      />
+    </aside>
+  }
+}

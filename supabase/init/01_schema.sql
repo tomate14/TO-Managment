@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V8).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V9).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -158,3 +158,21 @@ CREATE TABLE IF NOT EXISTS answer (
     CONSTRAINT ck_answer_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
 );
 CREATE INDEX IF NOT EXISTS ix_answer_question ON answer (question_id);
+
+-- É7: turnos. Las restricciones de exclusión impiden solapamientos por terapeuta y por paciente.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+CREATE TABLE IF NOT EXISTS appointment (
+    id           BIGSERIAL    PRIMARY KEY,
+    therapist_id BIGINT       NOT NULL REFERENCES app_user (id),
+    patient_id   BIGINT       NOT NULL REFERENCES patient (id),
+    diagnosis_id BIGINT       REFERENCES diagnosis (id),
+    start_at     TIMESTAMP    NOT NULL,
+    end_at       TIMESTAMP    NOT NULL,
+    notes        VARCHAR(500),
+    created_at   TIMESTAMPTZ  NOT NULL,
+    CONSTRAINT ck_appointment_range CHECK (end_at > start_at),
+    CONSTRAINT ex_appointment_therapist_overlap EXCLUDE USING gist (therapist_id WITH =, tsrange(start_at, end_at) WITH &&),
+    CONSTRAINT ex_appointment_patient_overlap EXCLUDE USING gist (patient_id WITH =, tsrange(start_at, end_at) WITH &&)
+);
+CREATE INDEX IF NOT EXISTS ix_appointment_start ON appointment (start_at);

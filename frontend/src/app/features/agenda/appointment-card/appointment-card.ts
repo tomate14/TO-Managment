@@ -1,0 +1,28 @@
+import { Component, computed, input, output, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { fullName } from '../../patients/patient-format';
+import { Appointment } from '../agenda.models';
+
+/** One assigned appointment; the cancel confirmation is shown inline inside the card. */
+@Component({
+  selector: 'app-appointment-card',
+  imports: [RouterLink],
+  templateUrl: './appointment-card.html',
+  styleUrl: './appointment-card.scss',
+})
+export class AppointmentCard {
+  readonly appointment = input.required<Appointment>();
+  readonly reschedule = output<Appointment>();
+  readonly cancel = output<Appointment>();
+
+  protected readonly confirming = signal(false);
+  protected readonly patientName = computed(() => fullName(this.appointment().patient));
+  protected readonly start = computed(() => this.appointment().startTime.slice(0, 5));
+  protected readonly end = computed(() => this.appointment().endTime.slice(0, 5));
+  protected readonly therapistClass = computed(() => `therapist-${this.appointment().therapist.color}`);
+
+  protected confirmCancel(): void {
+    this.confirming.set(false);
+    this.cancel.emit(this.appointment());
+  }
+}

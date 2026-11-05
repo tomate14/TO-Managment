@@ -1,0 +1,11 @@
+<fieldset class="therapist-filter">
+  <legend class="therapist-filter__legend">Terapeutas</legend>
+  @for (therapist of therapists(); track therapist.id) {
+    <label class="therapist-filter__item">
+      <input type="checkbox" [checked]="selected().has(therapist.id)" (change)="toggle.emit(therapist.id)" />
+      <span class="therapist-filter__swatch therapist-{{ therapist.color }}" aria-hidden="true"></span>
+      <span class="therapist-filter__name">{{ therapist.fullName }}</span>
+      <span class="therapist-filter__count">{{ counts().get(therapist.id) ?? 0 }}</span>
+    </label>
+  }
+</fieldset>

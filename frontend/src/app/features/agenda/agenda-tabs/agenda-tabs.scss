@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+}
+
+.agenda-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  background: #f0f4f8;
+  border-radius: 14px;
+}
+
+.agenda-tabs__tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[aria-selected='true'] {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: 0 1px 3px rgba(18, 26, 36, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .agenda-tabs {
+    background: #e9eef4;
+  }
+
+  .agenda-tabs__tab {
+    height: 40px;
+    padding: 0 18px;
+  }
+}

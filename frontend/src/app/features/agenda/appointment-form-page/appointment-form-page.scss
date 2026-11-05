@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.page-header__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.form-page__error {
+  margin: 16px;
+}

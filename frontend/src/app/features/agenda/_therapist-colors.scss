@@ -1,0 +1,27 @@
+@use 'sass:list';
+// Therapist palette (docs/mockups/h7.1-agenda/README.md): background / text / dot.
+$palette: (
+  1: (#dce8f7, #0e3a6e, #1d5fa8),
+  2: (#d3eeea, #0b4f4c, #0f7b78),
+  3: (#fbe7cf, #6b3a06, #b45309),
+  4: (#e8e0f6, #45297a, #6d4ab0),
+);
+
+/// Block colors: `.therapist-N` modifier sets background and text.
+@mixin block-colors {
+  @each $index, $colors in $palette {
+    &.therapist-#{$index} {
+      background: list.nth($colors, 1);
+      color: list.nth($colors, 2);
+    }
+  }
+}
+
+/// Dot colors: `.therapist-N` modifier sets the background to the mark color.
+@mixin dot-colors {
+  @each $index, $colors in $palette {
+    &.therapist-#{$index} {
+      background: list.nth($colors, 3);
+    }
+  }
+}

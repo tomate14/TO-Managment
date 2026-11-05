@@ -1,0 +1,30 @@
+<section class="mini" [attr.aria-label]="title()">
+  <div class="mini__top">
+    <span class="mini__title">{{ title() }}</span>
+    <span class="mini__nav">
+      <button type="button" class="mini__icon" aria-label="Mes anterior" (click)="shift.emit(-1)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+      </button>
+      <button type="button" class="mini__icon" aria-label="Mes siguiente" (click)="shift.emit(1)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </span>
+  </div>
+  <div class="mini__grid">
+    @for (letter of letters; track $index) {
+      <span class="mini__letter" aria-hidden="true">{{ letter }}</span>
+    }
+    @for (cell of cells(); track cell.date) {
+      <span class="mini__cell" [class.mini__cell--week]="cell.inWeek">
+        <button
+          type="button"
+          class="mini__day"
+          [class.mini__day--outside]="cell.outside"
+          [class.mini__day--today]="cell.isToday"
+          [attr.aria-label]="cell.date"
+          (click)="pick.emit(cell.date)"
+        >{{ cell.dayNumber }}</button>
+      </span>
+    }
+  </div>
+</section>

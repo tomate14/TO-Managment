@@ -1,0 +1,60 @@
+@use '../therapist-colors' as colors;
+
+:host {
+  display: block;
+}
+
+.therapist-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+}
+
+.therapist-filter__legend {
+  float: left;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.therapist-filter__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  clear: both;
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-primary);
+  }
+}
+
+.therapist-filter__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+
+  @include colors.dot-colors;
+}
+
+.therapist-filter__name {
+  flex: 1;
+}
+
+.therapist-filter__count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
