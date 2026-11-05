@@ -32,17 +32,17 @@ describe('Shell', () => {
     return Array.from(nav.querySelectorAll('a')).map((a) => a.textContent?.trim());
   }
 
-  it('side nav shows Pacientes, Plantillas and, for admins, Usuarios; tab bar adds Más', () => {
+  it('side nav shows Pacientes, Agenda, Plantillas and, for admins, Usuarios; tab bar adds Más', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     const navs = el.querySelectorAll('nav[aria-label="Navegación principal"]');
     expect(navs.length).toBe(2);
     expect(navLabels(el.querySelector('app-side-nav nav')!))
-      .toEqual(['Pacientes', 'Plantillas', 'Usuarios', 'Catálogos', 'Cambiar contraseña']);
+      .toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Usuarios', 'Catálogos', 'Cambiar contraseña']);
     expect(el.querySelector('app-side-nav a[href="/cambiar-contrasena"]')).toBeTruthy();
     expect(el.querySelector('app-side-nav')?.textContent).toContain('Administración');
-    expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Plantillas', 'Más']);
+    expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Más']);
     expect(el.querySelector('app-tab-bar a[href="/mas"]')).toBeTruthy();
     navs.forEach((nav) => expect(nav.querySelector('a[href="/pacientes"]')).toBeTruthy());
   });
@@ -54,7 +54,7 @@ describe('Shell', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Plantillas', 'Cambiar contraseña']);
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Cambiar contraseña']);
     expect(el.querySelector('app-side-nav')?.textContent).not.toContain('Administración');
   });
 

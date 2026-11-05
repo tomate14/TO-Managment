@@ -1,0 +1,26 @@
+<div class="agenda-tabs" role="tablist" aria-label="Vista de la agenda" (keydown)="onKeydown($event)">
+  <button
+    type="button"
+    role="tab"
+    class="agenda-tabs__tab"
+    id="agenda-tab-calendario"
+    aria-controls="agenda-panel-calendario"
+    [attr.aria-selected]="active() === 'calendario'"
+    [attr.tabindex]="active() === 'calendario' ? 0 : -1"
+    (click)="select('calendario')"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>Calendario
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="agenda-tabs__tab"
+    id="agenda-tab-turnos"
+    aria-controls="agenda-panel-turnos"
+    [attr.aria-selected]="active() === 'turnos'"
+    [attr.tabindex]="active() === 'turnos' ? 0 : -1"
+    (click)="select('turnos')"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"></rect><rect x="4" y="13" width="16" height="7" rx="2"></rect></svg>Turnos asignados
+  </button>
+</div>

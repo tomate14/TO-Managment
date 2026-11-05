@@ -1,0 +1,56 @@
+import { vi } from 'vitest';
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { AuthService } from '../../../core/auth/auth.service';
+import { AGENDA_TODAY } from '../agenda-dates';
+import { AgendaTherapist } from '../agenda.models';
+import { AgendaService } from '../agenda.service';
+import { AgendaPage } from './agenda-page';
+
+describe('AgendaPage', () => {
+  const therapists: AgendaTherapist[] = [
+    { id: 1, fullName: 'Ana Pérez', color: 1, active: true },
+    { id: 2, fullName: 'Luz Díaz', color: 2, active: true },
+  ];
+  let list: ReturnType<typeof vi.fn>;
+
+  function setup(role: 'ADMIN' | 'TERAPEUTA') {
+    list = vi.fn().mockReturnValue(of([]));
+    TestBed.configureTestingModule({
+      imports: [AgendaPage],
+      providers: [
+        provideRouter([]),
+        { provide: AGENDA_TODAY, useValue: () => '2026-11-05' },
+        { provide: AgendaService, useValue: { list, therapists: () => of(therapists) } },
+        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'a@c.com', fullName: 'Ana', role }) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(AgendaPage);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows the team subtitle and filter only to admins', () => {
+    const el = setup('ADMIN');
+    expect(el.textContent).toContain('Turnos de todo el equipo.');
+    expect(el.querySelector('.therapist-filter')).toBeTruthy();
+  });
+
+  it('shows therapists their own subtitle and no filter', () => {
+    const el = setup('TERAPEUTA');
+    expect(el.textContent).toContain('Tus turnos.');
+    expect(el.querySelector('.therapist-filter')).toBeNull();
+  });
+
+  it('loads the visible week', () => {
+    setup('TERAPEUTA');
+    expect(list).toHaveBeenCalledWith('2026-11-02', '2026-11-08', expect.any(Array));
+  });
+
+  it('defaults to the calendar tab', () => {
+    const el = setup('ADMIN');
+    expect(el.querySelector('[role="tabpanel"]')?.getAttribute('id')).toBe('agenda-panel-calendario');
+  });
+});

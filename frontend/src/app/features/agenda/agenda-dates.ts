@@ -1,4 +1,9 @@
+import { InjectionToken } from '@angular/core';
+import { todayIso } from '../patients/patient-format';
 import { Appointment } from './agenda.models';
+
+/** Source of "today" (YYYY-MM-DD); specs provide a fixed date. */
+export const AGENDA_TODAY = new InjectionToken<() => string>('AGENDA_TODAY', { factory: () => todayIso });
 
 // Spanish names are explicit arrays (not Intl) so the output never depends on the ICU data of the runtime.
 const MONTHS = [
