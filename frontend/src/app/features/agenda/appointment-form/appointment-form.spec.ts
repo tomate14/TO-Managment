@@ -123,6 +123,23 @@ describe('AppointmentForm', () => {
     expect(reschedule).toHaveBeenCalledWith(5, expect.objectContaining({ startTime: '12:00', therapistId: 2 }));
   });
 
+  it('shows an alert when availability fails', () => {
+    const { fixture, el } = setup();
+    availability.mockReturnValue(throwError(() => new Error('x')));
+    fixture.componentInstance['pickPatient'](patient);
+    fixture.detectChanges();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('No pudimos cargar los horarios. Intentá de nuevo.');
+  });
+
+  it('shows a hint when the day has no slots', () => {
+    const { fixture, el } = setup();
+    availability.mockReturnValue(of([]));
+    fixture.componentInstance['pickPatient'](patient);
+    fixture.detectChanges();
+    expect(el.textContent).toContain('No hay horarios disponibles para este día.');
+    expect(el.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it('lets an admin choose among active therapists only', () => {
     const { el } = setup({ user: { id: 1, email: 'a@c.com', fullName: 'Ana', role: 'ADMIN' } });
     const names = Array.from(el.querySelectorAll('#appointment-therapist option')).map((option) => option.textContent?.trim());

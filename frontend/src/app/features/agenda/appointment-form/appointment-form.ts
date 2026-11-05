@@ -19,6 +19,7 @@ const SEARCH_SIZE = 8;
 const DEFAULT_DURATION = 45;
 const NOTES_MAX = 500;
 const SAVE_ERROR = 'No pudimos guardar el turno. Intentá de nuevo.';
+const SLOTS_ERROR = 'No pudimos cargar los horarios. Intentá de nuevo.';
 const BUSY_CODES = ['THERAPIST_BUSY', 'PATIENT_BUSY'];
 
 interface FormValues {
@@ -73,6 +74,7 @@ export class AppointmentForm implements OnInit {
   protected readonly results = signal<Patient[]>([]);
   protected readonly searched = signal(false);
   protected readonly pickedPatient = signal<Pick<Patient, 'id' | 'firstName' | 'lastName' | 'dni'> | null>(null);
+  protected readonly slotsError = signal<string | null>(null);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   private readonly slotsTick = signal(0);
@@ -127,6 +129,7 @@ export class AppointmentForm implements OnInit {
     )
       .pipe(
         switchMap(({ therapistId, patientId, date, durationMinutes }) => {
+          this.slotsError.set(null);
           if (therapistId === null || date === '') {
             return of<Slot[]>([]);
           }
@@ -139,11 +142,23 @@ export class AppointmentForm implements OnInit {
               durationMinutes,
               ...(excluded === undefined ? {} : { excludeAppointmentId: excluded }),
             })
-            .pipe(catchError(() => of<Slot[]>([])));
+            .pipe(
+              catchError(() => {
+                this.slotsError.set(SLOTS_ERROR);
+                return of(null);
+              }),
+            );
         }),
         takeUntilDestroyed(),
       )
-      .subscribe((slots) => this.applySlots(slots));
+      .subscribe((slots) => {
+        if (slots === null) {
+          // Failed request: show no slots but keep the user's chosen time untouched.
+          this.slots.set([]);
+        } else {
+          this.applySlots(slots);
+        }
+      });
 
     this.searchControl.valueChanges
       .pipe(

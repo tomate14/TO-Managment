@@ -67,7 +67,13 @@
 
     <fieldset class="booking__slots">
       <legend class="field__label">Horario disponible @if (therapistName(); as name) {<span class="booking__optional">· {{ name }}</span>}</legend>
-      <app-slot-grid [slots]="slots()" [selected]="values().startTime || null" (pick)="pickSlot($event)" />
+      @if (slotsError(); as message) {
+        <p class="alert alert--error" role="alert">{{ message }}</p>
+      } @else if (slots().length === 0) {
+        <p class="booking__hint">No hay horarios disponibles para este día.</p>
+      } @else {
+        <app-slot-grid [slots]="slots()" [selected]="values().startTime || null" (pick)="pickSlot($event)" />
+      }
     </fieldset>
 
     <div class="field">
