@@ -1,4 +1,17 @@
-<form class="booking" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+@if (view() === 'register') {
+  <section class="register" aria-labelledby="register-heading">
+    <h2 id="register-heading" class="register__title">Nuevo paciente</h2>
+    <app-patient-form
+      [initialDni]="missingDni() ?? ''"
+      cancelLabel="Volver al turno"
+      (saved)="onPatientRegistered($event)"
+      (cancelled)="backToBooking()"
+    />
+  </section>
+}
+
+<!-- Hidden, not destroyed, while registering: the booking controls keep what the user already chose. -->
+<form class="booking" [hidden]="view() === 'register'" [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <div class="booking__body">
     <div class="field">
       @if (mode() === 'new') {
@@ -18,7 +31,14 @@
             }
           </ul>
         } @else if (searched()) {
-          <p class="booking__hint">No encontramos pacientes con esa búsqueda.</p>
+          @if (missingDni(); as dni) {
+            <div class="booking__missing">
+              <p class="booking__hint">No encontramos el DNI {{ formatDni(dni) }}.</p>
+              <button type="button" class="booking__register" (click)="startRegistration()">Dar de alta</button>
+            </div>
+          } @else {
+            <p class="booking__hint">No encontramos pacientes con esa búsqueda.</p>
+          }
         }
       } @else {
         <span class="field__label" id="appointment-patient-label">Paciente</span>
