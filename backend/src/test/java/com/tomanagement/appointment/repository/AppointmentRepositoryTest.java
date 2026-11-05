@@ -56,8 +56,7 @@ class AppointmentRepositoryTest {
 
     @BeforeEach
     void seed() {
-        testTables.truncate(TestTable.APPOINTMENT);
-        patientRepository.deleteAll();
+        testTables.truncate(TestTable.APPOINTMENT, TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT);
         userRepository.deleteAll();
         therapist = userRepository.save(User.builder()
                 .email("ana@consultorio.com")
@@ -73,7 +72,7 @@ class AppointmentRepositoryTest {
 
     @AfterEach
     void cleanUp() {
-        testTables.truncate(TestTable.APPOINTMENT);
+        testTables.truncate(TestTable.APPOINTMENT, TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT);
     }
 
     @Test
