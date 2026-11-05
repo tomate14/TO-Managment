@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, of, switchMap } from 'rxjs';
+import { EMPTY, catchError, of, switchMap } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { AgendaTabs, AgendaView } from '../agenda-tabs/agenda-tabs';
@@ -34,6 +34,8 @@ export class AgendaPage {
   protected readonly anchorDate = signal(inject(AGENDA_TODAY)());
   protected readonly therapists = signal<AgendaTherapist[]>([]);
   protected readonly selectedTherapistIds = signal<Set<number>>(new Set());
+  /** Admins only: the week is not requested until the therapist list (and its default selection) has arrived. */
+  private readonly therapistsLoaded = signal(false);
   protected readonly appointments = signal<Appointment[]>([]);
   protected readonly error = signal<string | null>(null);
   protected readonly formOpen = signal<AgendaForm | null>(null);
@@ -47,10 +49,18 @@ export class AgendaPage {
         anchor: this.anchorDate(),
         ids: [...this.selectedTherapistIds()],
         tick: this.reloadTick(),
+        ready: !this.isAdmin() || this.therapistsLoaded(),
       })),
     )
       .pipe(
-        switchMap(({ anchor, ids }) => {
+        switchMap(({ anchor, ids, ready }) => {
+          if (!ready) {
+            return EMPTY;
+          }
+          // An empty list means "no filter" for the service, so an admin with nothing selected sees nothing.
+          if (this.isAdmin() && ids.length === 0) {
+            return of<Appointment[]>([]);
+          }
           const start = weekStart(anchor);
           return this.agendaService.list(start, addDays(start, 6), ids).pipe(
             catchError(() => {
@@ -73,8 +83,12 @@ export class AgendaPage {
         next: (therapists) => {
           this.therapists.set(therapists);
           this.selectedTherapistIds.set(new Set(therapists.map((therapist) => therapist.id)));
+          this.therapistsLoaded.set(true);
         },
-        error: () => this.therapists.set([]),
+        error: () => {
+          this.therapists.set([]);
+          this.therapistsLoaded.set(true);
+        },
       });
     }
   }

@@ -53,4 +53,15 @@ describe('AgendaPage', () => {
     const el = setup('ADMIN');
     expect(el.querySelector('[role="tabpanel"]')?.getAttribute('id')).toBe('agenda-panel-calendario');
   });
+
+  it('does not request anything for an admin who deselects every therapist', () => {
+    const el = setup('ADMIN');
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(list).toHaveBeenCalledWith('2026-11-02', '2026-11-08', [1, 2]);
+    const boxes = Array.from(el.querySelectorAll<HTMLInputElement>('.therapist-filter input'));
+    boxes.forEach((box) => box.click());
+    TestBed.tick();
+    expect(list).toHaveBeenCalledTimes(1);
+    expect(list).not.toHaveBeenCalledWith(expect.any(String), expect.any(String), []);
+  });
 });
