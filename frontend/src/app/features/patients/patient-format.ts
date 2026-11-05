@@ -6,6 +6,11 @@ export function formatDni(dni: string): string {
   return dni.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+/** A DNI is 6 to 9 digits (same rule as the backend); expects the output of `normalizeDni`. */
+export function isValidDni(digits: string): boolean {
+  return /^\d{6,9}$/.test(digits);
+}
+
 /** Keeps only digits, as the backend stores the DNI. */
 export function normalizeDni(raw: string): string {
   return raw.replace(/[\s.-]/g, '');

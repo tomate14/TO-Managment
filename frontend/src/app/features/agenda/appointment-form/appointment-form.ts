@@ -1,12 +1,13 @@
 import { Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { Subject, catchError, debounceTime, filter, map, merge, of, switchMap, tap } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { UserSummary } from '../../../core/auth/auth.models';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
 import { DiagnosesService } from '../../diagnoses/diagnoses.service';
-import { formatDni, fullName, listName } from '../../patients/patient-format';
+import { PatientForm } from '../../patients/patient-form/patient-form';
+import { formatDni, fullName, isValidDni, listName, normalizeDni } from '../../patients/patient-format';
 import { Patient } from '../../patients/patients.models';
 import { PatientsService } from '../../patients/patients.service';
 import { addMinutes, longDate } from '../agenda-dates';
@@ -14,10 +15,11 @@ import { AgendaTherapist, Appointment, AppointmentPayload, DURATIONS, Slot } fro
 import { AgendaService } from '../agenda.service';
 import { SlotGrid } from '../slot-grid/slot-grid';
 
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 1000;
 const SEARCH_SIZE = 8;
 const DEFAULT_DURATION = 45;
 const NOTES_MAX = 500;
+const PATIENT_REQUIRED_ERROR = 'Elegí un paciente o ingresá su DNI.';
 const SAVE_ERROR = 'No pudimos guardar el turno. Intentá de nuevo.';
 const SLOTS_ERROR = 'No pudimos cargar los horarios. Intentá de nuevo.';
 const BUSY_CODES = ['THERAPIST_BUSY', 'PATIENT_BUSY'];
@@ -32,10 +34,22 @@ interface FormValues {
   notes: string;
 }
 
+interface AvailabilityQuery {
+  therapistId: number | null;
+  date: string;
+  durationMinutes: number;
+  tick: number;
+}
+
+/** Availability depends only on therapist, date, duration and the retry tick, never on object identity. */
+function sameAvailabilityQuery(a: AvailabilityQuery, b: AvailabilityQuery): boolean {
+  return a.therapistId === b.therapistId && a.date === b.date && a.durationMinutes === b.durationMinutes && a.tick === b.tick;
+}
+
 /** Shared by the desktop side panel and the mobile pages: books a new appointment or reschedules one. */
 @Component({
   selector: 'app-appointment-form',
-  imports: [ReactiveFormsModule, SlotGrid],
+  imports: [ReactiveFormsModule, SlotGrid, PatientForm],
   templateUrl: './appointment-form.html',
   styleUrl: './appointment-form.scss',
 })
@@ -54,11 +68,13 @@ export class AppointmentForm implements OnInit {
   readonly saved = output<Appointment>();
   readonly cancelled = output<void>();
 
+  protected readonly formatDni = formatDni;
   protected readonly durations = DURATIONS;
   protected readonly notesMax = NOTES_MAX;
 
   readonly form = new FormGroup({
-    patientId: new FormControl<number | null>(null, Validators.required),
+    // New bookings resolve the patient on submit (picked, or typed DNI), so this control is not required.
+    patientId: new FormControl<number | null>(null),
     diagnosisId: new FormControl<number | null>(null),
     therapistId: new FormControl<number | null>(null, Validators.required),
     date: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -73,6 +89,11 @@ export class AppointmentForm implements OnInit {
   protected readonly diagnoses = signal<Diagnosis[]>([]);
   protected readonly results = signal<Patient[]>([]);
   protected readonly searched = signal(false);
+  /** "booking" shows the appointment fields; "register" swaps them for the quick patient registration. */
+  protected readonly view = signal<'booking' | 'register'>('booking');
+  /** DNI prefilled in the registration form (the one typed in the patient search). */
+  protected readonly registrationDni = signal('');
+  protected readonly patientError = signal<string | null>(null);
   protected readonly pickedPatient = signal<Pick<Patient, 'id' | 'firstName' | 'lastName' | 'dni'> | null>(null);
   protected readonly slotsError = signal<string | null>(null);
   protected readonly saving = signal(false);
@@ -105,7 +126,9 @@ export class AppointmentForm implements OnInit {
     };
   });
 
-  private readonly searchTerms = new Subject<string>();
+  /** Emits the current search text when Enter is pressed, bypassing the debounce. */
+  private lastSearched: string | null = null;
+  private readonly searchNow = new Subject<string>();
 
   constructor() {
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.values.set(this.form.getRawValue()));
@@ -123,12 +146,12 @@ export class AppointmentForm implements OnInit {
 
     toObservable(
       computed(() => {
-        const { therapistId, patientId, date, durationMinutes } = this.values();
-        return { therapistId, patientId, date, durationMinutes, tick: this.slotsTick() };
-      }),
+        const { therapistId, date, durationMinutes } = this.values();
+        return { therapistId, date, durationMinutes, tick: this.slotsTick() };
+      }, { equal: sameAvailabilityQuery }),
     )
       .pipe(
-        switchMap(({ therapistId, patientId, date, durationMinutes }) => {
+        switchMap(({ therapistId, date, durationMinutes }) => {
           this.slotsError.set(null);
           if (therapistId === null || date === '') {
             return of<Slot[]>([]);
@@ -137,7 +160,6 @@ export class AppointmentForm implements OnInit {
           return this.agendaService
             .availability({
               therapistId,
-              ...(patientId === null ? {} : { patientId }),
               date,
               durationMinutes,
               ...(excluded === undefined ? {} : { excludeAppointmentId: excluded }),
@@ -164,13 +186,22 @@ export class AppointmentForm implements OnInit {
       .pipe(
         tap((text) => {
           if (text !== this.pickedLabel) {
+            if (this.pickedLabel !== '') {
+              this.lastSearched = null;
+            }
             this.pickedLabel = '';
             this.pickedPatient.set(null);
             this.form.controls.patientId.setValue(null);
             this.form.controls.diagnosisId.setValue(null);
           }
+          this.patientError.set(null);
         }),
         debounceTime(SEARCH_DEBOUNCE_MS),
+        // Enter searches right away; the same text is never searched twice in a row.
+        (typed) => merge(typed, this.searchNow),
+        // Skip only a repeat of the text in flight or already shown; failures and picks reset it.
+        filter((text) => text !== this.lastSearched),
+        tap((text) => (this.lastSearched = text)),
         switchMap((text) => {
           if (text.trim() === '' || text === this.pickedLabel) {
             this.searched.set(false);
@@ -179,7 +210,10 @@ export class AppointmentForm implements OnInit {
           return this.patientsService.search(text, 0, SEARCH_SIZE).pipe(
             tap(() => this.searched.set(true)),
             map((page) => page.content),
-            catchError(() => of<Patient[]>([])),
+            catchError(() => {
+              this.lastSearched = null;
+              return of<Patient[]>([]);
+            }),
           );
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -219,11 +253,29 @@ export class AppointmentForm implements OnInit {
 
   protected pickPatient(patient: Patient): void {
     this.pickedLabel = this.patientLabel(patient);
+    this.lastSearched = null;
     this.searchControl.setValue(this.pickedLabel, { emitEvent: false });
     this.pickedPatient.set(patient);
     this.results.set([]);
     this.searched.set(false);
     this.form.patchValue({ patientId: patient.id, diagnosisId: null });
+  }
+
+  /** Enter in the search box searches immediately and never submits the booking form. */
+  protected searchOnEnter(event: Event): void {
+    event.preventDefault();
+    this.searchNow.next(this.searchControl.value);
+  }
+
+  protected backToBooking(): void {
+    this.view.set('booking');
+  }
+
+  /** A freshly registered patient is selected as if picked from the results, and the appointment is booked right away. */
+  protected onPatientRegistered(patient: Patient): void {
+    this.pickPatient(patient);
+    this.view.set('booking');
+    this.send(patient.id);
   }
 
   protected pickSlot(time: string): void {
@@ -235,6 +287,48 @@ export class AppointmentForm implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.mode() === 'reschedule') {
+      this.send(null);
+      return;
+    }
+    const picked = this.pickedPatient();
+    if (picked !== null) {
+      this.send(picked.id);
+      return;
+    }
+    const dni = normalizeDni(this.searchControl.value);
+    if (!isValidDni(dni)) {
+      this.patientError.set(PATIENT_REQUIRED_ERROR);
+      return;
+    }
+    this.resolveDni(dni);
+  }
+
+  /** Looks the typed DNI up: an exact match is booked; otherwise the registration form opens with the DNI prefilled. */
+  private resolveDni(dni: string): void {
+    this.saving.set(true);
+    this.error.set(null);
+    this.patientsService.search(dni, 0, SEARCH_SIZE).subscribe({
+      next: (page) => {
+        const match = page.content.find((candidate) => normalizeDni(candidate.dni) === dni);
+        if (match !== undefined) {
+          this.pickPatient(match);
+          this.send(match.id);
+          return;
+        }
+        this.saving.set(false);
+        this.registrationDni.set(dni);
+        this.view.set('register');
+      },
+      error: () => {
+        this.saving.set(false);
+        this.error.set(SAVE_ERROR);
+      },
+    });
+  }
+
+  /** Books (new mode, with the resolved patient id) or reschedules (patient locked) with the current form values. */
+  private send(patientId: number | null): void {
     const value = this.form.getRawValue();
     const payload: AppointmentPayload = {
       therapistId: value.therapistId!,
@@ -248,7 +342,7 @@ export class AppointmentForm implements OnInit {
     const request =
       this.mode() === 'reschedule' && appointment !== null
         ? this.agendaService.reschedule(appointment.id, payload)
-        : this.agendaService.book({ ...payload, patientId: value.patientId! });
+        : this.agendaService.book({ ...payload, patientId: patientId! });
     this.saving.set(true);
     this.error.set(null);
     request.subscribe({

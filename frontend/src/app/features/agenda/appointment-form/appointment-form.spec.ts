@@ -29,14 +29,19 @@ describe('AppointmentForm', () => {
   let book: ReturnType<typeof vi.fn>;
   let reschedule: ReturnType<typeof vi.fn>;
 
+  let search: ReturnType<typeof vi.fn>;
+  let create: ReturnType<typeof vi.fn>;
+
   function setup(options: { mode?: 'new' | 'reschedule'; appointment?: Appointment; user?: UserSummary } = {}) {
+    search = vi.fn().mockReturnValue(of({ content: [patient] }));
+    create = vi.fn().mockReturnValue(of(patient));
     availability = vi.fn().mockReturnValue(of(slots));
     book = vi.fn().mockReturnValue(of(appointmentOf({ id: 99 })));
     reschedule = vi.fn().mockReturnValue(of(appointmentOf({ id: 5 })));
     TestBed.configureTestingModule({
       providers: [
         { provide: AgendaService, useValue: { availability, book, reschedule } },
-        { provide: PatientsService, useValue: { search: vi.fn().mockReturnValue(of({ content: [patient] })) } },
+        { provide: PatientsService, useValue: { search, create } },
         { provide: DiagnosesService, useValue: { listForPatient: vi.fn().mockReturnValue(of([])) } },
       ],
     });
@@ -64,7 +69,7 @@ describe('AppointmentForm', () => {
     const { fixture, el } = setup();
     fixture.componentInstance['pickPatient'](patient);
     fixture.detectChanges();
-    expect(availability).toHaveBeenCalledWith({ therapistId: 2, patientId: 7, date: '2026-11-05', durationMinutes: 45 });
+    expect(availability).toHaveBeenCalledWith({ therapistId: 2, date: '2026-11-05', durationMinutes: 45 });
     expect((el.querySelector('button[aria-label="09:00, no disponible"]') as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -138,6 +143,263 @@ describe('AppointmentForm', () => {
     fixture.detectChanges();
     expect(el.textContent).toContain('No hay horarios disponibles para este día.');
     expect(el.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  describe('availability requests', () => {
+    const typeSearch = (fixture: { detectChanges(): void }, el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('is not requested again when typing in the patient search or the notes', () => {
+      const { fixture, el } = setup();
+      const calls = availability.mock.calls.length;
+      typeSearch(fixture, el, 'Luc');
+      typeSearch(fixture, el, 'Lucía');
+      const notes = el.querySelector<HTMLTextAreaElement>('#appointment-notes')!;
+      notes.value = 'Traer la férula';
+      notes.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(availability.mock.calls.length).toBe(calls);
+    });
+
+    it('is requested again, without the patient, when the duration changes', () => {
+      const { fixture, el } = setup();
+      const calls = availability.mock.calls.length;
+      const duration = el.querySelector<HTMLSelectElement>('#appointment-duration')!;
+      duration.selectedIndex = duration.selectedIndex === 0 ? 1 : 0;
+      duration.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+      expect(availability.mock.calls.length).toBe(calls + 1);
+      expect(availability.mock.lastCall![0]).not.toHaveProperty('patientId');
+    });
+
+    it('is requested again when the date changes', () => {
+      const { fixture, el } = setup();
+      const calls = availability.mock.calls.length;
+      const date = el.querySelector<HTMLInputElement>('#appointment-date')!;
+      date.value = '2026-11-06';
+      date.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(availability.mock.calls.length).toBe(calls + 1);
+      expect(availability).toHaveBeenLastCalledWith({ therapistId: 2, date: '2026-11-06', durationMinutes: 45 });
+    });
+  });
+
+  describe('resolving the patient on submit', () => {
+    const typeSearch = (fixture: { detectChanges(): void }, el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      vi.advanceTimersByTime(1000);
+      fixture.detectChanges();
+    };
+    const fillPatientForm = (el: HTMLElement) => {
+      const values: Record<string, string> = {
+        '#patient-first-name': 'Lucía',
+        '#patient-last-name': 'Fernández',
+        '#patient-birth-date': '1984-03-21',
+        '#patient-phone': '249 412-3456',
+        '#patient-occupation': 'Docente',
+        '#patient-insurance': 'OSDE',
+        '#patient-insurance-number': '61 234567 8 01',
+      };
+      for (const [selector, value] of Object.entries(values)) {
+        const input = el.querySelector<HTMLInputElement>(selector)!;
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+      }
+    };
+    const buttonByText = (el: HTMLElement, text: string) =>
+      Array.from(el.querySelectorAll('button')).find((button) => button.textContent?.trim() === text);
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('no longer offers to register from the search results', () => {
+      const { fixture, el } = setup();
+      search.mockReturnValue(of({ content: [] }));
+      typeSearch(fixture, el, '30123456');
+      expect(el.textContent).toContain('No encontramos pacientes con esa búsqueda.');
+      expect(buttonByText(el, 'Dar de alta')).toBeUndefined();
+    });
+
+    it('books with the picked patient', () => {
+      const { fixture, el } = setup();
+      fixture.componentInstance['pickPatient'](patient);
+      fixture.detectChanges();
+      click(fixture, el, 'button[aria-label="12:00"]');
+      click(fixture, el, 'button[type="submit"]');
+      expect(book).toHaveBeenCalledWith(expect.objectContaining({ patientId: 7 }));
+    });
+
+    it('resolves a typed existing DNI and books with its id', () => {
+      const { fixture, el } = setup();
+      typeSearch(fixture, el, '30.123.456');
+      search.mockClear();
+      click(fixture, el, 'button[aria-label="12:00"]');
+      click(fixture, el, 'button[type="submit"]');
+      expect(search).toHaveBeenCalledWith('30123456', 0, expect.any(Number));
+      expect(book).toHaveBeenCalledWith(expect.objectContaining({ patientId: 7, startTime: '12:00' }));
+    });
+
+    it('opens the registration with the DNI prefilled for an unknown DNI, then books after saving', () => {
+      const { fixture, el } = setup();
+      const notes = el.querySelector<HTMLTextAreaElement>('#appointment-notes')!;
+      notes.value = 'Traer la férula';
+      notes.dispatchEvent(new Event('input'));
+      const duration = el.querySelector<HTMLSelectElement>('#appointment-duration')!;
+      duration.selectedIndex = 1;
+      duration.dispatchEvent(new Event('change'));
+      const chosenDuration = fixture.componentInstance.form.controls.durationMinutes.value;
+      fixture.detectChanges();
+      typeSearch(fixture, el, '30123456');
+      search.mockReturnValue(of({ content: [] }));
+      click(fixture, el, 'button[aria-label="12:00"]');
+      click(fixture, el, 'button[type="submit"]');
+
+      expect(book).not.toHaveBeenCalled();
+      expect(el.querySelector('.register__title')?.textContent).toContain('Nuevo paciente');
+      expect(el.querySelector<HTMLInputElement>('#patient-dni')?.value).toBe('30123456');
+      expect(buttonByText(el, 'Volver al turno')).toBeDefined();
+
+      fillPatientForm(el);
+      el.querySelector('app-patient-form form')!.dispatchEvent(new Event('submit'));
+      fixture.detectChanges();
+
+      expect(create).toHaveBeenCalledWith(expect.objectContaining({ dni: '30123456' }));
+      expect(book).toHaveBeenCalledWith({
+        therapistId: 2,
+        patientId: 7,
+        diagnosisId: null,
+        date: '2026-11-05',
+        startTime: '12:00',
+        durationMinutes: chosenDuration,
+        notes: 'Traer la férula',
+      });
+    });
+
+    it('returns to the booking without changes when the registration is cancelled', () => {
+      const { fixture, el } = setup();
+      typeSearch(fixture, el, '30123456');
+      search.mockReturnValue(of({ content: [] }));
+      click(fixture, el, 'button[aria-label="12:00"]');
+      click(fixture, el, 'button[type="submit"]');
+      buttonByText(el, 'Volver al turno')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('app-patient-form')).toBeNull();
+      expect(el.querySelector<HTMLInputElement>('#appointment-patient-search')?.value).toBe('30123456');
+      expect(create).not.toHaveBeenCalled();
+      expect(book).not.toHaveBeenCalled();
+    });
+
+    it('asks for a patient or DNI and does not book when there is neither', () => {
+      const { fixture, el } = setup();
+      click(fixture, el, 'button[aria-label="12:00"]');
+      click(fixture, el, 'button[type="submit"]');
+      expect(el.querySelector('#appointment-patient-error')?.textContent).toContain('Elegí un paciente o ingresá su DNI.');
+      expect(book).not.toHaveBeenCalled();
+      expect(search).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('patient search timing', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    const pressEnter = (el: HTMLElement) => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true });
+      el.querySelector<HTMLInputElement>('#appointment-patient-search')!.dispatchEvent(event);
+      return event;
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('does not search before 1000 ms without keystrokes, and searches after', () => {
+      const { el } = setup();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      type(el, 'Lucí');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('Lucí', 0, expect.any(Number));
+    });
+
+    it('searches immediately on Enter without submitting the booking', () => {
+      const { fixture, el } = setup();
+      type(el, 'Lucía');
+      const event = pressEnter(el);
+      fixture.detectChanges();
+      expect(event.defaultPrevented).toBe(true);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('Lucía', 0, expect.any(Number));
+      expect(book).not.toHaveBeenCalled();
+      expect(el.querySelector('#appointment-patient-error')).toBeNull();
+    });
+
+    it('does not search again when the debounce fires after Enter with the same text', () => {
+      const { el } = setup();
+      type(el, 'Lucía');
+      pressEnter(el);
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('searches again when a different text is typed after Enter', () => {
+      const { el } = setup();
+      type(el, 'Lucía');
+      pressEnter(el);
+      type(el, 'Lucía F');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(2);
+      expect(search).toHaveBeenLastCalledWith('Lucía F', 0, expect.any(Number));
+    });
+  });
+
+  describe('patient search repeats', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#appointment-patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('searches the same text again after a patient was picked', () => {
+      const { fixture, el } = setup();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+      fixture.componentInstance['pickPatient'](patient);
+      fixture.detectChanges();
+      type(el, 'Luc');
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries on Enter after a failed search', () => {
+      const { el } = setup();
+      search.mockReturnValue(throwError(() => new Error('x')));
+      type(el, 'Luc');
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(1);
+      el.querySelector('#appointment-patient-search')!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }),
+      );
+      expect(search).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('lets an admin choose among active therapists only', () => {
