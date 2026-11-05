@@ -23,6 +23,7 @@
           autocomplete="off"
           placeholder="Buscá por nombre o DNI"
           [formControl]="searchControl"
+          (keydown.enter)="searchOnEnter($event)"
         />
         @if (results().length > 0) {
           <ul class="booking__results" aria-label="Resultados de pacientes">

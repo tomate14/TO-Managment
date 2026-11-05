@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, map, merge, of, switchMap, tap } from 'rxjs';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { UserSummary } from '../../../core/auth/auth.models';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
@@ -15,7 +15,7 @@ import { AgendaTherapist, Appointment, AppointmentPayload, DURATIONS, Slot } fro
 import { AgendaService } from '../agenda.service';
 import { SlotGrid } from '../slot-grid/slot-grid';
 
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 1000;
 const SEARCH_SIZE = 8;
 const DEFAULT_DURATION = 45;
 const NOTES_MAX = 500;
@@ -126,7 +126,8 @@ export class AppointmentForm implements OnInit {
     };
   });
 
-  private readonly searchTerms = new Subject<string>();
+  /** Emits the current search text when Enter is pressed, bypassing the debounce. */
+  private readonly searchNow = new Subject<string>();
 
   constructor() {
     this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.values.set(this.form.getRawValue()));
@@ -192,6 +193,9 @@ export class AppointmentForm implements OnInit {
           this.patientError.set(null);
         }),
         debounceTime(SEARCH_DEBOUNCE_MS),
+        // Enter searches right away; the same text is never searched twice in a row.
+        (typed) => merge(typed, this.searchNow),
+        distinctUntilChanged(),
         switchMap((text) => {
           if (text.trim() === '' || text === this.pickedLabel) {
             this.searched.set(false);
@@ -245,6 +249,12 @@ export class AppointmentForm implements OnInit {
     this.results.set([]);
     this.searched.set(false);
     this.form.patchValue({ patientId: patient.id, diagnosisId: null });
+  }
+
+  /** Enter in the search box searches immediately and never submits the booking form. */
+  protected searchOnEnter(event: Event): void {
+    event.preventDefault();
+    this.searchNow.next(this.searchControl.value);
   }
 
   protected backToBooking(): void {
