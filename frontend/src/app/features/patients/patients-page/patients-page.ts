@@ -2,7 +2,7 @@ import { Component, DestroyRef, computed, effect, inject, signal, untracked } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, merge } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { userInitials } from '../../../layout/user-initials';
@@ -10,7 +10,7 @@ import { dominanceLabel, formatDni, listName, patientInitials } from '../patient
 import { Patient } from '../patients.models';
 import { PatientsService } from '../patients.service';
 
-const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_DEBOUNCE_MS = 1000;
 const LOAD_ERROR = 'No pudimos cargar los pacientes. Intentá de nuevo en unos minutos.';
 
 /**
@@ -49,10 +49,13 @@ export class PatientsPage {
   protected readonly userInitials = userInitials;
 
   private requestId = 0;
+  /** Emits the current search text when Enter is pressed, bypassing the debounce. */
+  private readonly searchNow = new Subject<string>();
 
   constructor() {
-    this.query.valueChanges
-      .pipe(debounceTime(SEARCH_DEBOUNCE_MS), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+    // The debounced text and Enter feed one stream; the same text is never requested twice in a row.
+    merge(this.query.valueChanges.pipe(debounceTime(SEARCH_DEBOUNCE_MS)), this.searchNow)
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((text) => {
         this.searchedText.set(text.trim());
         this.load(0, false);
@@ -62,6 +65,11 @@ export class PatientsPage {
       this.isDesktop();
       untracked(() => this.load(0, false));
     });
+  }
+
+  protected searchOnEnter(event: Event): void {
+    event.preventDefault();
+    this.searchNow.next(this.query.value);
   }
 
   protected loadMore(): void {

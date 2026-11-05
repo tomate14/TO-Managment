@@ -78,13 +78,61 @@ describe('PatientsPage', () => {
     const input = el.querySelector<HTMLInputElement>('#patient-search')!;
     input.value = 'fernán';
     input.dispatchEvent(new Event('input'));
-    vi.advanceTimersByTime(300);
+    vi.advanceTimersByTime(1000);
     fixture.detectChanges();
     vi.useRealTimers();
 
     expect(search).toHaveBeenLastCalledWith('fernán', 0);
     expect(el.textContent).toContain('1 resultados');
     expect(el.querySelectorAll('.patient-row').length).toBe(1);
+  });
+
+  describe('search timing', () => {
+    const type = (el: HTMLElement, text: string) => {
+      const input = el.querySelector<HTMLInputElement>('#patient-search')!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+    };
+    const pressEnter = (el: HTMLElement) => {
+      const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true });
+      el.querySelector<HTMLInputElement>('#patient-search')!.dispatchEvent(event);
+      return event;
+    };
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('does not request before 1000 ms without keystrokes, and requests after', () => {
+      const { el } = setup(false);
+      search.mockClear();
+      type(el, 'fer');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      type(el, 'fern');
+      vi.advanceTimersByTime(999);
+      expect(search).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('fern', 0);
+    });
+
+    it('requests immediately on Enter and prevents the default', () => {
+      const { el } = setup(false);
+      search.mockClear();
+      type(el, 'fernán');
+      const event = pressEnter(el);
+      expect(event.defaultPrevented).toBe(true);
+      expect(search).toHaveBeenCalledTimes(1);
+      expect(search).toHaveBeenCalledWith('fernán', 0);
+    });
+
+    it('does not request again when the debounce fires after Enter with the same text', () => {
+      const { el } = setup(false);
+      search.mockClear();
+      type(el, 'fernán');
+      pressEnter(el);
+      vi.advanceTimersByTime(1000);
+      expect(search).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('explains when a search finds nobody', async () => {
@@ -94,7 +142,7 @@ describe('PatientsPage', () => {
     const input = el.querySelector<HTMLInputElement>('#patient-search')!;
     input.value = 'zzz';
     input.dispatchEvent(new Event('input'));
-    vi.advanceTimersByTime(300);
+    vi.advanceTimersByTime(1000);
     fixture.detectChanges();
     vi.useRealTimers();
 
