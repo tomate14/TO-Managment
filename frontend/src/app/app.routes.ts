@@ -61,6 +61,28 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'agenda',
+        children: [
+          {
+            path: '',
+            title: `Agenda · ${APP_NAME}`,
+            loadComponent: () => import('./features/agenda/agenda-page/agenda-page').then((m) => m.AgendaPage),
+          },
+          {
+            path: 'nuevo',
+            title: `Nuevo turno · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/agenda/appointment-form-page/appointment-form-page').then((m) => m.AppointmentFormPage),
+          },
+          {
+            path: ':id/reprogramar',
+            title: `Reprogramar turno · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/agenda/appointment-form-page/appointment-form-page').then((m) => m.AppointmentFormPage),
+          },
+        ],
+      },
+      {
         path: 'plantillas',
         children: [
           {

@@ -1,0 +1,155 @@
+@use '../therapist-colors' as colors;
+
+:host {
+  display: block;
+}
+
+.week {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.week__scroll {
+  overflow-x: auto;
+}
+
+.week__inner {
+  min-width: 760px;
+}
+
+.week__head,
+.week__body {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(0, 1fr));
+}
+
+.week__head {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.week__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0 8px;
+  border-left: 1px solid #edf1f5;
+}
+
+.week__weekday {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.week__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.week__day--today {
+  .week__weekday {
+    color: var(--color-primary);
+  }
+
+  .week__number {
+    background: var(--color-primary);
+    color: #fff;
+  }
+}
+
+.week__hours {
+  position: relative;
+}
+
+.week__hour {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.week__column {
+  position: relative;
+  border-left: 1px solid #edf1f5;
+  background-image: repeating-linear-gradient(to bottom, #e6ecf2 0, #e6ecf2 1px, transparent 1px, transparent 52px);
+}
+
+.week__column--today {
+  background-color: #f7faff;
+}
+
+.agenda-block {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  overflow: hidden;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  @include colors.block-colors;
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.agenda-block__patient,
+.agenda-block__range {
+  overflow: hidden;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.agenda-block__patient {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agenda-block__range {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.week__now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #b42318;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #b42318;
+  }
+}

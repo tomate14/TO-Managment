@@ -1,0 +1,106 @@
+@use '../therapist-colors' as colors;
+
+:host {
+  display: block;
+}
+
+.day__heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+
+.day__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.day__count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.day__grid {
+  position: relative;
+  margin: 10px 8px 0 0;
+}
+
+.day__hour {
+  position: absolute;
+  left: 0;
+  width: 48px;
+  transform: translateY(-50%);
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.day__lines {
+  position: absolute;
+  inset: 0 0 0 56px;
+  background-image: repeating-linear-gradient(to bottom, #e2e8ef 0, #e2e8ef 1px, transparent 1px, transparent 64px);
+}
+
+.agenda-block {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  @include colors.block-colors;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.agenda-block__patient,
+.agenda-block__detail {
+  overflow: hidden;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.agenda-block__patient {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agenda-block__detail {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.day__now {
+  position: absolute;
+  left: 50px;
+  right: 0;
+  height: 2px;
+  background: #b42318;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #b42318;
+  }
+}

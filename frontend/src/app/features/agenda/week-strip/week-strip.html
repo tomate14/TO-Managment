@@ -1,0 +1,32 @@
+<div class="strip__top">
+  <span class="strip__month">{{ title() }}</span>
+  <span class="strip__nav">
+    <button type="button" class="strip__icon" aria-label="Semana anterior" (click)="shift.emit(-1)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </button>
+    <button type="button" class="strip__icon" aria-label="Semana siguiente" (click)="shift.emit(1)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+    </button>
+  </span>
+</div>
+<div class="strip__days">
+  @for (day of items(); track day.date) {
+    <button
+      type="button"
+      class="strip__day"
+      [class.strip__day--selected]="day.selected"
+      [class.strip__day--today]="day.isToday"
+      [attr.aria-pressed]="day.selected"
+      [attr.aria-label]="day.date"
+      (click)="pick.emit(day.date)"
+    >
+      <span class="strip__letter">{{ day.letter }}</span>
+      <span class="strip__number">{{ day.dayNumber }}</span>
+      <span class="strip__dots">
+        @for (color of day.colors; track color) {
+          <span class="strip__dot therapist-{{ color }}"></span>
+        }
+      </span>
+    </button>
+  }
+</div>
