@@ -12,28 +12,65 @@
 </header>
 
 <div class="agenda-body">
-  @if (isAdmin() && therapists().length > 0) {
-    <fieldset class="therapist-filter">
-      <legend class="therapist-filter__legend">Terapeutas</legend>
-      @for (therapist of therapists(); track therapist.id) {
-        <label class="therapist-filter__item">
-          <input
-            type="checkbox"
-            [checked]="selectedTherapistIds().has(therapist.id)"
-            (change)="toggleTherapist(therapist.id)"
-          />
-          <span>{{ therapist.fullName }}</span>
-        </label>
-      }
-    </fieldset>
-  }
+  <aside class="agenda-side">
+    @if (view() === 'calendario') {
+      <app-mini-month
+        class="agenda-side__month"
+        [month]="displayMonth()"
+        [selectedWeek]="days()"
+        [today]="today"
+        (pick)="anchorDate.set($event)"
+        (shift)="shiftMonth($event)"
+      />
+    }
+    @if (isAdmin() && therapists().length > 0) {
+      <app-therapist-filter
+        [therapists]="therapists()"
+        [selected]="selectedTherapistIds()"
+        [counts]="counts()"
+        (toggle)="toggleTherapist($event)"
+      />
+    }
+  </aside>
 
   <section class="agenda-content">
     @if (error(); as message) {
       <p class="agenda-error" role="alert">{{ message }}</p>
     }
     @if (view() === 'calendario') {
-      <div class="agenda-panel" role="tabpanel" id="agenda-panel-calendario" aria-labelledby="agenda-tab-calendario"></div>
+      <div class="agenda-panel" role="tabpanel" id="agenda-panel-calendario" aria-labelledby="agenda-tab-calendario">
+        <div class="calendar-toolbar">
+          <button type="button" class="calendar-toolbar__today" (click)="goToday()">Hoy</button>
+          <button type="button" class="calendar-toolbar__icon" aria-label="Semana anterior" (click)="shiftWeek(-1)">‹</button>
+          <button type="button" class="calendar-toolbar__icon" aria-label="Semana siguiente" (click)="shiftWeek(1)">›</button>
+          <h2 class="calendar-toolbar__title">{{ title() }}</h2>
+        </div>
+        <app-week-calendar
+          class="calendar-desktop"
+          [days]="days()"
+          [appointments]="appointments()"
+          [today]="today"
+          [now]="now()"
+          (select)="openAppointment($event)"
+        />
+        <div class="calendar-mobile">
+          <app-week-strip
+            [days]="days()"
+            [selected]="anchorDate()"
+            [today]="today"
+            [appointments]="appointments()"
+            (pick)="anchorDate.set($event)"
+            (shift)="shiftWeek($event)"
+          />
+          <app-day-timeline
+            [date]="anchorDate()"
+            [appointments]="appointments()"
+            [today]="today"
+            [now]="now()"
+            (select)="openAppointment($event)"
+          />
+        </div>
+      </div>
     } @else {
       <div class="agenda-panel" role="tabpanel" id="agenda-panel-turnos" aria-labelledby="agenda-tab-turnos"></div>
     }

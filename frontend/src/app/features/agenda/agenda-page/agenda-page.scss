@@ -69,35 +69,60 @@
   padding: 16px;
 }
 
-.therapist-filter {
-  margin: 0;
-  padding: 14px 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
+.agenda-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.therapist-filter__legend {
-  padding: 0 4px;
+.agenda-side__month,
+.calendar-desktop,
+.calendar-toolbar__icon,
+.calendar-toolbar__title {
+  display: none;
+}
+
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calendar-toolbar__today,
+.calendar-toolbar__icon {
+  height: 40px;
+  border-radius: 12px;
+  color: var(--color-text);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calendar-toolbar__today {
+  padding: 0 16px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
   font-size: 14px;
+}
+
+.calendar-toolbar__icon {
+  width: 40px;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+}
+
+.calendar-toolbar__title {
+  margin: 0 0 0 4px;
+  font-size: 20px;
   font-weight: 800;
 }
 
-.therapist-filter__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-
-  input {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: var(--color-primary);
-  }
+.calendar-mobile {
+  margin: 0 -16px;
+  background: var(--color-bg, #f5f8fb);
 }
 
 .agenda-content {
@@ -145,8 +170,29 @@
     padding: 0 32px 32px;
   }
 
-  .therapist-filter {
+  .agenda-side {
     flex: 0 0 248px;
+  }
+
+  .agenda-side__month {
+    display: block;
+  }
+
+  .calendar-desktop {
+    display: block;
+  }
+
+  .calendar-toolbar {
+    justify-content: flex-start;
+  }
+
+  .calendar-toolbar__icon,
+  .calendar-toolbar__title {
+    display: block;
+  }
+
+  .calendar-mobile {
+    display: none;
   }
 
   .agenda-content {

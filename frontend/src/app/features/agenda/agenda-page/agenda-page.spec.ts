@@ -54,6 +54,18 @@ describe('AgendaPage', () => {
     expect(el.querySelector('[role="tabpanel"]')?.getAttribute('id')).toBe('agenda-panel-calendario');
   });
 
+  it('moves the visible week with the arrows and returns with "Hoy"', () => {
+    const el = setup('TERAPEUTA');
+    const click = (selector: string) => {
+      el.querySelector<HTMLElement>(selector)!.click();
+      TestBed.tick();
+    };
+    click('.calendar-toolbar [aria-label="Semana siguiente"]');
+    expect(list).toHaveBeenLastCalledWith('2026-11-09', '2026-11-15', expect.any(Array));
+    click('.calendar-toolbar__today');
+    expect(list).toHaveBeenLastCalledWith('2026-11-02', '2026-11-08', expect.any(Array));
+  });
+
   it('does not request anything for an admin who deselects every therapist', () => {
     const el = setup('ADMIN');
     expect(list).toHaveBeenCalledTimes(1);

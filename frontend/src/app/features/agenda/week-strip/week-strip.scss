@@ -1,0 +1,107 @@
+@use '../therapist-colors' as colors;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 12px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.strip__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.strip__month {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.strip__nav {
+  display: flex;
+  gap: 2px;
+}
+
+.strip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.strip__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.strip__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 66px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.strip__icon:focus-visible,
+.strip__day:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.strip__letter {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.strip__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.strip__day--today .strip__letter {
+  color: var(--color-primary);
+}
+
+.strip__day--selected .strip__number {
+  background: #0e2944;
+  color: #fff;
+}
+
+.strip__dots {
+  display: flex;
+  gap: 2px;
+  height: 5px;
+}
+
+.strip__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+
+  @include colors.dot-colors;
+}

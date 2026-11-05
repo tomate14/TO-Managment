@@ -78,6 +78,19 @@ export function dayHeading(iso: string, todayIso: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** "Noviembre 2026". */
+export function monthTitle(iso: string): string {
+  const [year, month] = iso.split('-').map(Number);
+  const name = MONTHS[month - 1];
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${year}`;
+}
+
+/** The 1st of the month `delta` months away from the month of `iso`. */
+export function shiftMonth(iso: string, delta: number): string {
+  const [year, month] = iso.split('-').map(Number);
+  return format(new Date(Date.UTC(year, month - 1 + delta, 1)));
+}
+
 /** Groups by date, days ascending, appointments by start time. */
 export function groupByDay(appointments: Appointment[]): { date: string; appointments: Appointment[] }[] {
   const byDate = new Map<string, Appointment[]>();

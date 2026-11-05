@@ -1,0 +1,44 @@
+<div class="week">
+  <div class="week__scroll">
+    <div class="week__inner">
+      <div class="week__head">
+        <span></span>
+        @for (column of columns(); track column.date) {
+          <div class="week__day" [class.week__day--today]="column.isToday">
+            <span class="week__weekday">{{ column.weekday }}</span>
+            <span class="week__number">{{ column.dayNumber }}</span>
+          </div>
+        }
+      </div>
+      <div class="week__body" [style.height.px]="gridHeight">
+        <div class="week__hours">
+          @for (hour of hours; track hour.label) {
+            <span class="week__hour" [style.top.px]="hour.top">{{ hour.label }}</span>
+          }
+        </div>
+        @for (column of columns(); track column.date) {
+          <div class="week__column" [class.week__column--today]="column.isToday">
+            @for (block of column.blocks; track block.appointment.id) {
+              <button
+                type="button"
+                class="agenda-block therapist-{{ block.appointment.therapist.color }}"
+                [attr.aria-label]="label(block.appointment)"
+                [style.top.px]="block.top"
+                [style.height.px]="block.height"
+                [style.left.%]="(block.column / block.columns) * 100"
+                [style.width.%]="100 / block.columns"
+                (click)="select.emit(block.appointment)"
+              >
+                <span class="agenda-block__patient">{{ patientName(block.appointment) }}</span>
+                <span class="agenda-block__range">{{ range(block.appointment) }}</span>
+              </button>
+            }
+            @if (column.nowTop !== null) {
+              <div class="week__now" aria-hidden="true" [style.top.px]="column.nowTop"></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
