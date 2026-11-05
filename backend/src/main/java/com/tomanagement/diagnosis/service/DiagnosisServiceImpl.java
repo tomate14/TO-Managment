@@ -3,6 +3,7 @@ package com.tomanagement.diagnosis.service;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.common.exception.ResourceNotFoundException;
@@ -24,14 +25,16 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private final PatientRepository patientRepository;
     private final TreatmentFactory treatmentFactory;
     private final DiagnosisMapper mapper;
+    private final FollowUpCounter followUpCounter;
     private final Clock clock;
 
     public DiagnosisServiceImpl(DiagnosisRepository diagnosisRepository, PatientRepository patientRepository,
-            TreatmentFactory treatmentFactory, DiagnosisMapper mapper, Clock clock) {
+            TreatmentFactory treatmentFactory, DiagnosisMapper mapper, FollowUpCounter followUpCounter, Clock clock) {
         this.diagnosisRepository = diagnosisRepository;
         this.patientRepository = patientRepository;
         this.treatmentFactory = treatmentFactory;
         this.mapper = mapper;
+        this.followUpCounter = followUpCounter;
         this.clock = clock;
     }
 
@@ -39,8 +42,10 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     @Transactional(readOnly = true)
     public List<DiagnosisResponse> listForPatient(Long patientId) {
         findPatient(patientId);
-        return diagnosisRepository.findByPatient_IdOrderByCreatedDateDescIdDesc(patientId).stream()
-                .map(mapper::toResponse)
+        List<Diagnosis> diagnoses = diagnosisRepository.findByPatient_IdOrderByCreatedDateDescIdDesc(patientId);
+        Map<Long, Long> counts = followUpCounter.countByDiagnosis(diagnoses.stream().map(Diagnosis::getId).toList());
+        return diagnoses.stream()
+                .map(diagnosis -> mapper.toResponse(diagnosis, counts.getOrDefault(diagnosis.getId(), 0L)))
                 .toList();
     }
 
@@ -50,14 +55,15 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Patient patient = findPatient(patientId);
         Diagnosis diagnosis = new Diagnosis(patient, request.description(), LocalDate.now(clock),
                 treatmentFactory.create(request.treatment()));
-        return mapper.toResponse(diagnosisRepository.saveAndFlush(diagnosis));
+        return mapper.toResponse(diagnosisRepository.saveAndFlush(diagnosis), 0L);
     }
 
     @Override
     @Transactional(readOnly = true)
     public DiagnosisResponse get(Long diagnosisId) {
         return diagnosisRepository.findById(diagnosisId)
-                .map(mapper::toResponse)
+                .map(diagnosis -> mapper.toResponse(diagnosis,
+                        followUpCounter.countByDiagnosis(List.of(diagnosisId)).getOrDefault(diagnosisId, 0L)))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.DIAGNOSIS_NOT_FOUND));
     }
 

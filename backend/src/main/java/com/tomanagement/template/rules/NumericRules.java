@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
 import com.tomanagement.template.entity.Question;
 
@@ -38,5 +39,16 @@ public class NumericRules implements AnswerTypeRules {
         } catch (NumberFormatException notANumber) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+        if (!raw.carriesOnly(AnswerType.NUMERIC)) {
+            return Optional.empty();
+        }
+        BigDecimal value = raw.numericValue();
+        boolean aboveMinimum = question.getMinValue() == null || value.compareTo(question.getMinValue()) >= 0;
+        boolean belowMaximum = question.getMaxValue() == null || value.compareTo(question.getMaxValue()) <= 0;
+        return aboveMinimum && belowMaximum ? Optional.of(AnswerValue.ofNumber(value)) : Optional.empty();
     }
 }

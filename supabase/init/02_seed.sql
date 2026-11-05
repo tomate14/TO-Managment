@@ -20,4 +20,4 @@ INSERT INTO scar_type (name) VALUES
 ON CONFLICT DO NOTHING;
 -- (É3 no define datos iniciales: las plantillas las crean las terapeutas.)
 -- (É4 no define datos iniciales: los pacientes son datos reales.)
--- (É5 no define datos iniciales.)
+-- (É5 y É6 no definen datos iniciales.)

@@ -25,6 +25,7 @@ export interface Diagnosis {
   /** ISO date assigned by the system. */
   createdDate: string;
   treatment: Treatment;
+  followUpCount: number;
 }
 
 export interface CreateDiagnosisPayload {

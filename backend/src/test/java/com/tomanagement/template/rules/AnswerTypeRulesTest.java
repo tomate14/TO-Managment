@@ -85,6 +85,42 @@ class AnswerTypeRulesTest {
         assertThat(ConditionOperator.EQUALS.supports(AnswerType.TEXT)).isTrue();
     }
 
+    @Test
+    void readsNumericAnswersInsideTheQuestionRange() {
+        Question hours = new Question(new EvaluationTemplate("Plantilla", new BodySegment("Muñeca")), 1);
+        hours.define(new QuestionDefinition("Horas", AnswerType.NUMERIC, BigDecimal.ZERO, new BigDecimal("24"), List.of(),
+                null, null));
+        AnswerTypeRules numeric = factory.forType(AnswerType.NUMERIC);
+
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("8"), null, null, null), hours)).isPresent();
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("25"), null, null, null), hours)).isEmpty();
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("8"), true, null, null), hours)).isEmpty();
+        assertThat(numeric.read(new RawAnswer(null, null, null, "8"), hours)).isEmpty();
+    }
+
+    @Test
+    void readsOptionsWithTheirOwnLabelAndRejectsUnknownOnes() {
+        Question grip = question(AnswerType.OPTION, List.of("Cilíndrico", "Esférico"));
+        AnswerTypeRules option = factory.forType(AnswerType.OPTION);
+
+        assertThat(option.read(new RawAnswer(null, null, " cilíndrico ", null), grip))
+                .hasValueSatisfying(value -> assertThat(value.text()).hasValue("Cilíndrico"));
+        assertThat(option.read(new RawAnswer(null, null, "Pinza fina", null), grip)).isEmpty();
+    }
+
+    @Test
+    void readsYesNoAndNonBlankText() {
+        assertThat(factory.forType(AnswerType.YES_NO).read(new RawAnswer(null, false, null, null),
+                question(AnswerType.YES_NO, List.of()))).hasValueSatisfying(value -> assertThat(value.yesNo()).hasValue(false));
+        AnswerTypeRules text = factory.forType(AnswerType.TEXT);
+        Question notes = question(AnswerType.TEXT, List.of());
+        assertThat(text.read(new RawAnswer(null, null, null, "  Mejora  "), notes))
+                .hasValueSatisfying(value -> assertThat(value.text()).hasValue("Mejora"));
+        assertThat(text.read(new RawAnswer(null, null, null, "   "), notes)).isEmpty();
+        assertThat(text.read(new RawAnswer(null, null, null,
+                "x".repeat(QuestionLimit.ANSWER_TEXT_MAX_LENGTH.getValue() + 1)), notes)).isEmpty();
+    }
+
     private static Question question(AnswerType type, List<String> options) {
         Question question = new Question(new EvaluationTemplate("Plantilla", new BodySegment("Muñeca")), 1);
         question.define(new QuestionDefinition("Pregunta", type, null, null, options, null, null));

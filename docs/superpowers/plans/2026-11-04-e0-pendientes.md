@@ -48,11 +48,15 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 ## Pendientes heredados de H1.4
 - Revalidar el JWT contra la base (usuario activo y rol actual) en cada request. Hoy, desactivar a alguien o cambiarle el rol recién tiene efecto cuando vence su token. Ajustar `SecurityIntegrationTest`, que emite tokens de usuarios que no existen en la base.
 
-## Pendientes heredados de É3 (para É6)
+## Pendientes heredados de É3 (para É6) — resueltos en É6
 - Reemplazar `NoRecordedAnswersLookup` por una implementación de `QuestionAnswerLookup` que consulte la tabla de respuestas. Hasta entonces ninguna pregunta queda bloqueada.
 - Usar `ActivationConditionFactory` / `AnswerValue` para aceptar solo respuestas a preguntas activas, y replicar la misma lógica en el formulario del seguimiento.
 - Definir qué pasa con las respuestas de las hijas cuando cambia la respuesta del padre. Propuesta: conservarlas mientras la pantalla esté abierta y descartar las ocultas al guardar.
 
-## Pendientes heredados de É5 (para É6)
+## Pendientes heredados de É5 (para É6) — resueltos en É6
 - Sumar el conteo de seguimientos a las tarjetas de diagnóstico ("Creado el … · N seguimientos") y el botón "Nuevo seguimiento" en el detalle.
 - Usar `Treatment.requiresScarType()` para exigir u omitir el tipo de cicatriz del seguimiento.
+
+## Pendientes de É6
+- Los rangos clínicos (`ClinicalRange`: edema 0–50, dolor 0–10, ROM 0–360, fuerza 0–100) son una propuesta: confirmarlos con la terapeuta.
+- No hay edición ni borrado de seguimientos (no están en el spec ni en los mockups).

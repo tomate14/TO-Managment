@@ -11,6 +11,7 @@ describe('DiagnosisCard', () => {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
       surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true,
     },
+    followUpCount: 3,
   };
   const conservative: Diagnosis = {
     id: 4, patient, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
@@ -18,6 +19,7 @@ describe('DiagnosisCard', () => {
       type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
       immobilizationDate: '2026-08-02', requiresScarType: false,
     },
+    followUpCount: 1,
   };
 
   function render(diagnosis: Diagnosis): HTMLElement {
@@ -34,7 +36,7 @@ describe('DiagnosisCard', () => {
     expect(el.querySelector('.treatment-badge--surgical')?.textContent).toContain('Quirúrgico');
     expect(el.textContent).toContain('14/10/2026');
     expect(el.textContent).toContain('Osteosíntesis con placa');
-    expect(el.textContent).toContain('Creado el 12/10/2026');
+    expect(el.textContent).toContain('Creado el 12/10/2026 · 3 seguimientos');
     expect(el.querySelector('a')?.getAttribute('href')).toBe('/pacientes/7/diagnosticos/3');
   });
 

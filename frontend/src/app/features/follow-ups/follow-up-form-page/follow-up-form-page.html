@@ -1,0 +1,86 @@
+<header class="page-header follow-up-form__header">
+  <a class="page-header__back page-header__back--mobile-only" [routerLink]="['/pacientes', patientId, 'diagnosticos', diagnosisId]"
+     aria-label="Volver al diagnóstico">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <div class="follow-up-form__titles">
+    @if (diagnosis(); as d) {
+      <nav class="follow-up-form__breadcrumb" aria-label="Ubicación">
+        <a routerLink="/pacientes">Pacientes</a> /
+        <a [routerLink]="['/pacientes', patientId]">{{ patientName() }}</a> /
+        <a [routerLink]="['/pacientes', patientId, 'diagnosticos', diagnosisId]">{{ d.description }}</a>
+      </nav>
+    }
+    <h1 class="page-header__title">Nuevo seguimiento</h1>
+    @if (subtitle()) {
+      <span class="follow-up-form__subtitle">{{ subtitle() }}</span>
+    }
+  </div>
+  <div class="follow-up-form__header-actions">
+    <a class="btn-secondary" [routerLink]="['/pacientes', patientId, 'diagnosticos', diagnosisId]">Cancelar</a>
+    <button type="submit" form="follow-up-form" class="btn-primary follow-up-form__submit" [disabled]="saving()"
+            [attr.aria-busy]="saving()">Guardar seguimiento</button>
+  </div>
+</header>
+
+@if (loadError(); as message) {
+  <div class="page-body"><div class="alert alert--error" role="alert"><div>{{ message }}</div></div></div>
+} @else {
+  <form id="follow-up-form" class="follow-up-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (error(); as message) {
+      <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+    }
+
+    <section class="follow-up-form__card follow-up-form__general">
+      <div class="field">
+        <label class="field__label" for="follow-up-date">Fecha del seguimiento</label>
+        <input id="follow-up-date" class="field__input" type="date" formControlName="date"
+               [class.field__input--invalid]="submitted() && headerProblems().date"
+               [attr.aria-invalid]="submitted() && !!headerProblems().date">
+        @if (submitted() && headerProblems().date; as message) { <p class="field__error">{{ message }}</p> }
+      </div>
+      @if (requiresScarType()) {
+        <div class="field">
+          <label class="field__label" for="scar-type">Tipo de cicatriz</label>
+          <select id="scar-type" class="field__input" formControlName="scarTypeId" aria-describedby="scar-type-hint"
+                  [class.field__input--invalid]="submitted() && headerProblems().scarTypeId"
+                  [attr.aria-invalid]="submitted() && !!headerProblems().scarTypeId">
+            <option [ngValue]="null" disabled>Elegí un tipo de cicatriz</option>
+            @for (scarType of scarTypes(); track scarType.id) {
+              <option [ngValue]="scarType.id">{{ scarType.name }}</option>
+            }
+          </select>
+          @if (submitted() && headerProblems().scarTypeId; as message) { <p class="field__error">{{ message }}</p> }
+        </div>
+        <p id="scar-type-hint" class="field__hint follow-up-form__scar-hint">Obligatorio porque el tratamiento es quirúrgico.</p>
+      }
+    </section>
+
+    <div class="follow-up-form__section-head">
+      <h2 class="follow-up-form__section-title">Evaluaciones por segmento</h2>
+      <span class="follow-up-form__section-note">Mínimo 1</span>
+    </div>
+
+    @for (group of evaluations.controls; track group; let index = $index) {
+      <app-segment-evaluation-editor
+        [group]="group" [index]="index" [segments]="segmentsAt(index)"
+        [problems]="problemsAt(index)" [showProblems]="submitted()" [serverErrors]="serverErrors().get(index) ?? {}"
+        [canRemove]="evaluations.length > 1"
+        (remove)="removeSegment(index)" (templateChange)="setTemplate(group, $event)" />
+    }
+
+    @if (canAddSegment()) {
+      <button type="button" class="follow-up-form__add" (click)="addSegment()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Agregar otro segmento
+      </button>
+    }
+
+    <div class="follow-up-form__actions">
+      <a class="btn-secondary" [routerLink]="['/pacientes', patientId, 'diagnosticos', diagnosisId]">Cancelar</a>
+      <button type="submit" class="btn-primary follow-up-form__submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+        Guardar seguimiento
+      </button>
+    </div>
+  </form>
+}

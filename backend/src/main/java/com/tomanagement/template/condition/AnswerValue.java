@@ -52,6 +52,20 @@ public final class AnswerValue {
     }
 
     /**
+     * @return the value, only for YES_NO answers
+     */
+    public Optional<Boolean> yesNo() {
+        return Optional.ofNullable(yesNo);
+    }
+
+    /**
+     * @return the label or text, only for OPTION and TEXT answers
+     */
+    public Optional<String> text() {
+        return Optional.ofNullable(text);
+    }
+
+    /**
      * Compares with a condition's canonical expected value: numbers by value, yes/no by "true"/"false", options and
      * text ignoring case and surrounding spaces.
      */

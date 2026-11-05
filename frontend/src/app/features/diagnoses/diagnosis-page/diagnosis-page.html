@@ -20,13 +20,13 @@
         <span class="treatment-badge" [class.treatment-badge--surgical]="d.treatment.type === 'SURGICAL'">{{ label() }}</span>
       </div>
       <dl class="diagnosis-summary__data">
-        <div class="diagnosis-summary__row"><dt>Creado</dt><dd>{{ formatDate(d.createdDate) }}</dd></div>
+        <div class="diagnosis-summary__item"><dt>Creado</dt><dd>{{ formatDate(d.createdDate) }}</dd></div>
         @if (d.treatment.type === 'SURGICAL') {
-          <div class="diagnosis-summary__row"><dt>Cirugía</dt><dd>{{ formatDate(d.treatment.surgeryDate!) }}</dd></div>
-          <div class="diagnosis-summary__row"><dt>Retiro de puntos</dt><dd>{{ formatDate(d.treatment.stitchesRemovalDate!) }}</dd></div>
-          <div class="diagnosis-summary__row"><dt>Tipo de cirugía</dt><dd>{{ d.treatment.surgeryType?.name }}</dd></div>
+          <div class="diagnosis-summary__item"><dt>Cirugía</dt><dd>{{ formatDate(d.treatment.surgeryDate!) }}</dd></div>
+          <div class="diagnosis-summary__item"><dt>Retiro de puntos</dt><dd>{{ formatDate(d.treatment.stitchesRemovalDate!) }}</dd></div>
+          <div class="diagnosis-summary__item"><dt>Tipo de cirugía</dt><dd>{{ d.treatment.surgeryType?.name }}</dd></div>
         } @else {
-          <div class="diagnosis-summary__row"><dt>Inmovilización</dt><dd>{{ formatDate(d.treatment.immobilizationDate!) }}</dd></div>
+          <div class="diagnosis-summary__item"><dt>Inmovilización</dt><dd>{{ formatDate(d.treatment.immobilizationDate!) }}</dd></div>
         }
       </dl>
     </section>
@@ -36,7 +36,21 @@
         <h2 id="follow-ups-heading" class="follow-ups__title">Seguimientos</h2>
         <span class="follow-ups__note">Más recientes primero</span>
       </div>
-      <p class="follow-ups__empty">Todavía no hay seguimientos.</p>
+      <a class="btn-primary follow-ups__new" [routerLink]="['/pacientes', patientId, 'diagnosticos', d.id, 'seguimientos', 'nuevo']">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Nuevo seguimiento
+      </a>
+      @if (followUpsError(); as message) {
+        <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+      } @else if (followUps(); as list) {
+        @for (followUp of list; track followUp.id) {
+          <app-follow-up-card [followUp]="followUp" />
+        } @empty {
+          <p class="follow-ups__empty">Todavía no hay seguimientos.</p>
+        }
+      } @else {
+        <p class="follow-ups__empty" role="status">Cargando seguimientos…</p>
+      }
     </section>
   } @else {
     <p class="follow-ups__empty" role="status">Cargando diagnóstico…</p>

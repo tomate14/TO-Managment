@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { QuestionPayload, TemplateDetail, TemplatePayload, TemplateSummary } from './templates.models';
 
@@ -11,6 +11,11 @@ export class TemplatesService {
 
   list(): Observable<TemplateSummary[]> {
     return this.http.get<TemplateSummary[]>(TEMPLATES_URL);
+  }
+
+  /** Templates of one segment (active and inactive). */
+  listForSegment(segmentId: number): Observable<TemplateSummary[]> {
+    return this.http.get<TemplateSummary[]>(TEMPLATES_URL, { params: new HttpParams().set('segmentId', segmentId) });
   }
 
   get(id: number): Observable<TemplateDetail> {

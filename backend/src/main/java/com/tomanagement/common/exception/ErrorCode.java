@@ -52,6 +52,16 @@ public enum ErrorCode {
     STITCHES_BEFORE_SURGERY(HttpStatus.UNPROCESSABLE_ENTITY, "El retiro de puntos no puede ser anterior a la cirugía."),
     IMMOBILIZATION_DATE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Sin cirugía, ingresá la fecha de inmovilización."),
     SURGERY_TYPE_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese tipo de cirugía está inactivo: elegí uno activo."),
+    FOLLOW_UP_OUT_OF_RANGE(HttpStatus.UNPROCESSABLE_ENTITY, "Hay valores fuera del rango permitido."),
+    SCAR_TYPE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "El tratamiento es quirúrgico: elegí el tipo de cicatriz."),
+    SCAR_TYPE_NOT_ALLOWED(HttpStatus.UNPROCESSABLE_ENTITY, "El tratamiento es conservador: no lleva tipo de cicatriz."),
+    SCAR_TYPE_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese tipo de cicatriz está inactivo: elegí uno activo."),
+    SEGMENT_REPEATED(HttpStatus.UNPROCESSABLE_ENTITY, "Cada segmento se evalúa una sola vez por seguimiento."),
+    TEMPLATE_NOT_AVAILABLE(HttpStatus.UNPROCESSABLE_ENTITY,
+            "La plantilla tiene que estar activa y ser del segmento evaluado."),
+    ANSWER_QUESTION_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Hay respuestas a preguntas que no corresponden: solo se responden las preguntas visibles de la plantilla."),
+    ANSWER_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay respuestas con un valor que no es válido para su pregunta."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

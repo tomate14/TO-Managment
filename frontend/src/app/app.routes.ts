@@ -52,6 +52,12 @@ export const routes: Routes = [
             title: `Diagnóstico · ${APP_NAME}`,
             loadComponent: () => import('./features/diagnoses/diagnosis-page/diagnosis-page').then((m) => m.DiagnosisPage),
           },
+          {
+            path: ':id/diagnosticos/:diagnosisId/seguimientos/nuevo',
+            title: `Nuevo seguimiento · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/follow-ups/follow-up-form-page/follow-up-form-page').then((m) => m.FollowUpFormPage),
+          },
         ],
       },
       {

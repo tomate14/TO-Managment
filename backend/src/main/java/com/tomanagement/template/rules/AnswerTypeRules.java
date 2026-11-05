@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
 import com.tomanagement.template.entity.Question;
 
@@ -37,4 +38,12 @@ public interface AnswerTypeRules {
      * @return the canonical form of a child condition's expected value, or empty when it is not a valid answer
      */
     Optional<String> canonicalExpectedValue(String rawValue, Question parent);
+
+    /**
+     * Reads an answer to a question of this type (H6.3): it must carry only the value of this type, and that value
+     * must be valid for the question (range, options, length).
+     *
+     * @return the typed answer, or empty when the value is not a valid answer
+     */
+    Optional<AnswerValue> read(RawAnswer raw, Question question);
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
 import com.tomanagement.template.entity.Question;
 
@@ -47,5 +48,16 @@ public class OptionRules implements AnswerTypeRules {
     public Optional<String> canonicalExpectedValue(String rawValue, Question parent) {
         String value = rawValue.trim();
         return parent.getOptionLabels().stream().filter(label -> label.equalsIgnoreCase(value)).findFirst();
+    }
+
+    /**
+     * The answer is stored with the option's own label (its canonical spelling).
+     */
+    @Override
+    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+        if (!raw.carriesOnly(AnswerType.OPTION)) {
+            return Optional.empty();
+        }
+        return canonicalExpectedValue(raw.optionValue(), question).map(AnswerValue::ofOption);
     }
 }

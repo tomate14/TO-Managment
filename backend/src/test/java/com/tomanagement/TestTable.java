@@ -9,6 +9,7 @@ public enum TestTable {
     SCAR_TYPE("scar_type"),
     EVALUATION_TEMPLATE("evaluation_template"),
     PATIENT("patient"),
+    FOLLOW_UP("follow_up"),
     DIAGNOSIS("diagnosis"),
     TREATMENT("treatment");
 

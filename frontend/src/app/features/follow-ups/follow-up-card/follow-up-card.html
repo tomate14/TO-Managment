@@ -1,0 +1,48 @@
+<article class="follow-up" [attr.aria-label]="'Seguimiento del ' + formatDate(followUp().date)">
+  <header class="follow-up__head">
+    <span class="follow-up__chip" aria-hidden="true">
+      <span class="follow-up__chip-day">{{ chip().day }}</span>
+      <span class="follow-up__chip-month">{{ chip().month }}</span>
+    </span>
+    <span class="follow-up__titles">
+      <span class="follow-up__date">{{ formatDate(followUp().date) }}</span>
+      @if (followUp().scarType; as scarType) {
+        <span class="follow-up__scar">Cicatriz: {{ scarType.name }}</span>
+      }
+    </span>
+  </header>
+
+  @for (evaluation of followUp().evaluations; track evaluation.id) {
+    <section class="segment" [attr.aria-label]="evaluation.segment.name">
+      <h3 class="segment__name">{{ evaluation.segment.name }}</h3>
+      <dl class="segment__metrics">
+        <div class="segment__metric"><dt>Edema</dt><dd>{{ metric(evaluation.edema) }}</dd></div>
+        <div class="segment__metric"><dt>Dolor</dt><dd>{{ evaluation.pain }}</dd></div>
+        <div class="segment__metric"><dt>ROM</dt><dd>{{ metric(evaluation.rom) }}</dd></div>
+        <div class="segment__metric"><dt>Fuerza</dt><dd>{{ metric(evaluation.strength) }}</dd></div>
+      </dl>
+
+      @if (evaluation.template; as template) {
+        @if (evaluation.answers.length > 0) {
+          <button type="button" class="segment__toggle" [attr.aria-expanded]="isExpanded(evaluation)"
+                  [attr.aria-controls]="'answers-' + evaluation.id" (click)="toggle(evaluation)">
+            <span>{{ template.name }} · {{ answerCountLabel(evaluation.answers.length) }}</span>
+            <svg class="segment__chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          @if (isExpanded(evaluation)) {
+            <dl class="segment__answers" [id]="'answers-' + evaluation.id">
+              @for (answer of evaluation.answers; track answer.questionId) {
+                <div class="segment__answer" [style.padding-left.px]="answer.depth * 22">
+                  <dt>{{ answer.questionText }}</dt>
+                  <dd>{{ formatAnswer(answer) }}</dd>
+                </div>
+              }
+            </dl>
+          }
+        } @else {
+          <p class="segment__no-answers">{{ template.name }} · Sin respuestas</p>
+        }
+      }
+    </section>
+  }
+</article>

@@ -7,7 +7,8 @@ public record DiagnosisResponse(
         PatientRef patient,
         String description,
         LocalDate createdDate,
-        TreatmentResponse treatment) {
+        TreatmentResponse treatment,
+        long followUpCount) {
 
     @Override
     public String toString() {

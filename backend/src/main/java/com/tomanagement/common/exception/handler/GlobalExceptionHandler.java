@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
         } else {
             LOGGER.warn("Application error: {}", exception.getErrorCode());
         }
-        return respond(exception.getErrorCode(), List.of());
+        return respond(exception.getErrorCode(), exception.getFieldErrors());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
