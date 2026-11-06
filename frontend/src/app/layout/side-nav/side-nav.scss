@@ -62,6 +62,30 @@
   font-weight: 500;
 }
 
+/* Active establishment under the logo (mockup desktop-dentro-establecimiento). */
+.side-nav__establishment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.side-nav__establishment-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.side-nav__establishment-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .side-nav__links {
   display: flex;
   flex-direction: column;

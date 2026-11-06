@@ -9,15 +9,28 @@
       <div class="more__account-text">
         <span class="more__account-name">{{ currentUser.fullName }}</span>
         <span class="more__account-email">{{ currentUser.email }}</span>
+        @if (currentUser.establishment; as establishment) {
+          <span class="more__account-email">{{ establishment.name }}</span>
+        }
       </div>
       <span class="more__role">{{ roleLabels[currentUser.role] }}</span>
     </section>
   }
 
-  @if (user()?.role === 'ADMIN') {
+  @if (showAdmin()) {
     <section class="more__group" aria-labelledby="more-admin-heading">
       <h2 id="more-admin-heading" class="more__group-title">Administración</h2>
       <div class="more__card">
+        <a class="more__row more__row--divided" routerLink="/establecimiento">
+          <span class="more__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>
+          </span>
+          <span class="more__row-text">
+            <span class="more__row-label">Establecimiento</span>
+            <span class="more__row-hint">Nombre y datos</span>
+          </span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="more__chevron"><path d="M9 5l7 7-7 7"></path></svg>
+        </a>
         <a class="more__row more__row--divided" routerLink="/usuarios">
           <span class="more__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>

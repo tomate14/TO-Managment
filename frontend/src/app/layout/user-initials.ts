@@ -11,12 +11,14 @@ export function userInitials(fullName: string): string {
 }
 
 export const ROLE_LABELS: Record<Role, string> = {
+  SUPERADMIN: 'Superadmin',
   ADMIN: 'Administrador/a',
   TERAPEUTA: 'Terapeuta',
 };
 
 /** Compact role names for badges. */
 export const ROLE_SHORT_LABELS: Record<Role, string> = {
+  SUPERADMIN: 'Superadmin',
   ADMIN: 'Admin',
   TERAPEUTA: 'Terapeuta',
 };

@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { UserSummary } from '../../core/auth/auth.models';
 
 describe('MorePage', () => {
-  const user: UserSummary = { id: 1, email: 'mariana@consultorio.com', fullName: 'Mariana Gómez', role: 'ADMIN' };
+  const user: UserSummary = { id: 1, email: 'mariana@consultorio.com', fullName: 'Mariana Gómez', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte' } };
   let logout: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {

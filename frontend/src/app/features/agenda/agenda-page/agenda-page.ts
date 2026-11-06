@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, Observable, catchError, map, switchMap } from 'rxjs';
 import { apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
+import { isAdminInEstablishment } from '../../../core/auth/auth.models';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { AgendaTabs, AgendaView } from '../agenda-tabs/agenda-tabs';
 import { AGENDA_TODAY, addDays, shiftMonth, weekDays, weekStart, weekTitle } from '../agenda-dates';
@@ -79,7 +80,7 @@ export class AgendaPage {
   protected readonly formOpen = signal<AgendaForm | null>(null);
 
   protected readonly user = this.auth.currentUser;
-  protected readonly isAdmin = computed(() => this.auth.currentUser()?.role === 'ADMIN');
+  protected readonly isAdmin = computed(() => isAdminInEstablishment(this.auth.currentUser()));
   protected readonly subtitle = computed(() => (this.isAdmin() ? 'Turnos de todo el equipo.' : 'Tus turnos.'));
 
   constructor() {
@@ -95,7 +96,7 @@ export class AgendaPage {
       (appointments) => this.loadedCurrentWeek.set(appointments),
     );
 
-    if (this.auth.currentUser()?.role === 'ADMIN') {
+    if (this.isAdmin()) {
       this.agendaService.therapists().subscribe({
         next: (therapists) => {
           this.therapists.set(therapists);

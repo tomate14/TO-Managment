@@ -1,0 +1,8 @@
+<div class="banner" role="status">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>
+  <span class="banner__text">Estás en <b>{{ establishment()?.name }}</b><span class="banner__desktop"> como superadmin, con permisos de admin.</span></span>
+  <button type="button" class="banner__exit" (click)="leave()">
+    <span class="banner__exit-mobile">Salir</span>
+    <span class="banner__exit-desktop">Salir del establecimiento</span>
+  </button>
+</div>

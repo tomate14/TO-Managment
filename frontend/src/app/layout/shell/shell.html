@@ -1,3 +1,8 @@
 <app-side-nav class="shell__side-nav" />
-<main class="shell__main"><router-outlet /></main>
+<div class="shell__content">
+  @if (superadminInside()) {
+    <app-establishment-banner class="shell__banner" />
+  }
+  <main class="shell__main"><router-outlet /></main>
+</div>
 <app-tab-bar class="shell__tab-bar" />

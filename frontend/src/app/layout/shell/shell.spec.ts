@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { UserSummary } from '../../core/auth/auth.models';
 
 describe('Shell', () => {
-  const user: UserSummary = { id: 1, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN' };
+  const user: UserSummary = { id: 1, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte' } };
   let refresh: ReturnType<typeof vi.fn>;
   let logout: ReturnType<typeof vi.fn>;
 
@@ -39,7 +39,7 @@ describe('Shell', () => {
     const navs = el.querySelectorAll('nav[aria-label="Navegación principal"]');
     expect(navs.length).toBe(2);
     expect(navLabels(el.querySelector('app-side-nav nav')!))
-      .toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Usuarios', 'Catálogos', 'Cambiar contraseña']);
+      .toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Establecimiento', 'Usuarios', 'Catálogos', 'Cambiar contraseña']);
     expect(el.querySelector('app-side-nav a[href="/cambiar-contrasena"]')).toBeTruthy();
     expect(el.querySelector('app-side-nav')?.textContent).toContain('Administración');
     expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Más']);
@@ -80,5 +80,46 @@ describe('Shell', () => {
     const fixture = TestBed.createComponent(Shell);
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('main router-outlet')).toBeTruthy();
+  });
+
+  const superadmin: UserSummary = { id: 9, email: 'root@c.com', fullName: 'Maximiliano Roselli', role: 'SUPERADMIN', establishment: null };
+
+  function renderAs(current: UserSummary): HTMLElement {
+    TestBed.overrideProvider(AuthService, {
+      useValue: {
+        currentUser: signal(current),
+        establishment: signal(current.establishment),
+        refreshCurrentUser: refresh,
+        logout,
+        enterEstablishment: vi.fn(),
+      },
+    });
+    const fixture = TestBed.createComponent(Shell);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('superadmin outside sees only Establecimientos in the menu', () => {
+    const el = renderAs(superadmin);
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual(['Establecimientos', 'Cambiar contraseña']);
+    expect(navLabels(el.querySelector('app-tab-bar nav')!)).toEqual(['Establecimientos', 'Más']);
+    expect(el.querySelector('app-establishment-banner')).toBeNull();
+    expect(el.querySelector('app-side-nav')?.textContent).not.toContain('Administración');
+    expect(el.querySelector('app-side-nav')?.textContent).toContain('Superadmin');
+  });
+
+  it('superadmin inside sees the banner, the establishment under the logo and the admin section', () => {
+    const el = renderAs({ ...superadmin, establishment: { id: 3, name: 'Norte' } });
+    expect(el.querySelector('app-establishment-banner')?.textContent).toContain('Estás en Norte');
+    expect(el.querySelector('.side-nav__establishment')?.textContent).toContain('Norte');
+    expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual([
+      'Pacientes', 'Agenda', 'Plantillas', 'Establecimiento', 'Usuarios', 'Catálogos', 'Cambiar contraseña',
+    ]);
+  });
+
+  it('shows the establishment name to the establishment admin without a banner', () => {
+    const el = renderAs(user);
+    expect(el.querySelector('.side-nav__establishment')?.textContent).toContain('Consultorio Norte');
+    expect(el.querySelector('app-establishment-banner')).toBeNull();
   });
 });

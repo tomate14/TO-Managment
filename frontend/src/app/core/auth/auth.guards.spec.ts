@@ -2,7 +2,8 @@ import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ActivatedRouteSnapshot, provideRouter, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './auth.guards';
+import { adminGuard, authGuard, establishmentGuard, guestGuard, superadminGuard } from './auth.guards';
+import { UserSummary } from './auth.models';
 import { AuthService } from './auth.service';
 
 function run(guard: typeof authGuard) {
@@ -72,5 +73,52 @@ describe('auth guards', () => {
   it('guestGuard lets an anonymous user see the login', () => {
     vi.spyOn(auth, 'hasValidSession').mockReturnValue(false);
     expect(run(guestGuard)).toBe(true);
+  });
+
+  describe('multi-tenant guards', () => {
+    const norte = { id: 3, name: 'Norte' };
+
+    function withUser(user: Partial<UserSummary>) {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([]),
+          { provide: AuthService, useValue: { currentUser: () => ({ id: 1, email: 'a@c.com', fullName: 'A', establishment: null, ...user }) } },
+        ],
+      });
+    }
+
+    function url(result: unknown): string {
+      return TestBed.inject(Router).serializeUrl(result as UrlTree);
+    }
+
+    it('sends a superadmin without establishment to /establecimientos', () => {
+      withUser({ role: 'SUPERADMIN' });
+      expect(url(run(establishmentGuard))).toBe('/establecimientos');
+    });
+
+    it('establishmentGuard lets a session with establishment through', () => {
+      withUser({ role: 'ADMIN', establishment: norte });
+      expect(run(establishmentGuard)).toBe(true);
+    });
+
+    it('lets the superadmin inside an establishment use admin screens', () => {
+      withUser({ role: 'SUPERADMIN', establishment: norte });
+      expect(run(adminGuard)).toBe(true);
+    });
+
+    it('adminGuard sends a superadmin outside an establishment to /pacientes', () => {
+      withUser({ role: 'SUPERADMIN' });
+      expect(url(run(adminGuard))).toBe('/pacientes');
+    });
+
+    it('superadminGuard accepts only a superadmin outside an establishment', () => {
+      withUser({ role: 'SUPERADMIN' });
+      expect(run(superadminGuard)).toBe(true);
+      withUser({ role: 'SUPERADMIN', establishment: norte });
+      expect(url(run(superadminGuard))).toBe('/pacientes');
+      withUser({ role: 'ADMIN', establishment: norte });
+      expect(url(run(superadminGuard))).toBe('/pacientes');
+    });
   });
 });
