@@ -32,7 +32,7 @@ public class InitialAdminServiceImpl implements InitialAdminService {
     @Override
     @Transactional
     public InitialAdminOutcome ensureInitialAdmin() {
-        if (userRepository.existsByRole(Role.ADMIN)) {
+        if (userRepository.existsByRole(Role.SUPERADMIN)) {
             return InitialAdminOutcome.ALREADY_PRESENT;
         }
         String email = EmailNormalizer.normalize(properties.email());
@@ -43,7 +43,8 @@ public class InitialAdminServiceImpl implements InitialAdminService {
                 .email(email)
                 .passwordHash(passwordEncoder.encode(properties.password()))
                 .fullName(properties.name().trim())
-                .role(Role.ADMIN)
+                .role(Role.SUPERADMIN)
+                .establishmentId(null)
                 .active(true)
                 .createdAt(Instant.now(clock))
                 .build());

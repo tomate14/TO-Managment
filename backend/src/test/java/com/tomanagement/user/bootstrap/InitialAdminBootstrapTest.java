@@ -55,20 +55,21 @@ class InitialAdminBootstrapTest {
     }
 
     @Test
-    void createsTheAdminFromTheEnvironmentWhenThereIsNone() {
+    void createsTheSuperadminFromTheEnvironmentWhenThereIsNone() {
         runBootstrap();
 
-        assertThat(userRepository.findAll()).singleElement().satisfies(admin -> {
-            assertThat(admin.getEmail()).isEqualTo(CONFIGURED_EMAIL);
-            assertThat(admin.getFullName()).isEqualTo("Admin Inicial");
-            assertThat(admin.getRole()).isEqualTo(Role.ADMIN);
-            assertThat(admin.isActive()).isTrue();
-            assertThat(passwordEncoder.matches("admin-inicial-test", admin.getPasswordHash())).isTrue();
+        assertThat(userRepository.findAll()).singleElement().satisfies(superadmin -> {
+            assertThat(superadmin.getEmail()).isEqualTo(CONFIGURED_EMAIL);
+            assertThat(superadmin.getFullName()).isEqualTo("Admin Inicial");
+            assertThat(superadmin.getRole()).isEqualTo(Role.SUPERADMIN);
+            assertThat(superadmin.getEstablishmentId()).isNull();
+            assertThat(superadmin.isActive()).isTrue();
+            assertThat(passwordEncoder.matches("admin-inicial-test", superadmin.getPasswordHash())).isTrue();
         });
     }
 
     @Test
-    void runningAgainDoesNotCreateASecondAdmin() {
+    void runningAgainDoesNotCreateASecondSuperadmin() {
         runBootstrap();
         runBootstrap();
 
@@ -76,18 +77,28 @@ class InitialAdminBootstrapTest {
     }
 
     @Test
-    void doesNothingWhenAnotherAdminAlreadyExists() {
-        userRepository.save(user("otra.admin@consultorio.com", Role.ADMIN));
+    void doesNothingWhenAnotherSuperadminAlreadyExists() {
+        userRepository.save(user("otro.root@plataforma.com", Role.SUPERADMIN, null));
 
         runBootstrap();
 
         assertThat(userRepository.findAll()).extracting(User::getEmail)
-                .containsExactly("otra.admin@consultorio.com");
+                .containsExactly("otro.root@plataforma.com");
+    }
+
+    @Test
+    void anEstablishmentAdminDoesNotCountAsSuperadmin() {
+        userRepository.save(user("otra.admin@consultorio.com", Role.ADMIN, establishmentId));
+
+        runBootstrap();
+
+        assertThat(userRepository.findAll()).extracting(User::getRole)
+                .containsExactlyInAnyOrder(Role.ADMIN, Role.SUPERADMIN);
     }
 
     @Test
     void keepsTheExistingUserWhenTheConfiguredEmailIsTakenByATherapist() {
-        userRepository.save(user(CONFIGURED_EMAIL, Role.TERAPEUTA));
+        userRepository.save(user(CONFIGURED_EMAIL, Role.TERAPEUTA, establishmentId));
 
         runBootstrap();
 
@@ -99,14 +110,14 @@ class InitialAdminBootstrapTest {
         bootstrap.run(new DefaultApplicationArguments());
     }
 
-    private User user(String email, Role role) {
+    private User user(String email, Role role, Long establishment) {
         return User.builder()
                 .email(email)
                 .passwordHash("$2a$10$abcdefghijklmnopqrstuuJ8zJ2mOBs3m5yYyX0qQ2w8oVXl1K1aG")
                 .fullName("Otra Persona")
                 .role(role)
                 .active(true)
-                .establishmentId(establishmentId)
+                .establishmentId(establishment)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build();
     }
