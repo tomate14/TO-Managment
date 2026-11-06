@@ -33,6 +33,15 @@ export const routes: Routes = [
           import('./features/establishments/establishments-page/establishments-page').then((m) => m.EstablishmentsPage),
       },
       {
+        path: 'establecimientos/nuevo',
+        canActivate: [superadminGuard],
+        title: `Nuevo establecimiento · ${APP_NAME}`,
+        loadComponent: () =>
+          import('./features/establishments/establishment-form-page/establishment-form-page').then(
+            (m) => m.EstablishmentFormPage,
+          ),
+      },
+      {
         path: 'establecimiento',
         canActivate: [adminGuard],
         title: `Establecimiento · ${APP_NAME}`,
