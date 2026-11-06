@@ -50,7 +50,7 @@ public class CurrentEstablishmentServiceImpl implements CurrentEstablishmentServ
         try {
             establishmentRepository.flush();
         } catch (DataIntegrityViolationException raceOnUniqueName) {
-            throw new DuplicateResourceException(ErrorCode.ESTABLISHMENT_NAME_TAKEN);
+            throw EstablishmentViolationMapper.map(raceOnUniqueName);
         }
         return toResponse(establishment);
     }

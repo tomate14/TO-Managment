@@ -19,7 +19,6 @@ import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EstablishmentServiceImpl implements EstablishmentService {
-
-    private static final String EMAIL_CONSTRAINT = "ux_app_user_email_lower";
 
     private final EstablishmentRepository establishmentRepository;
     private final UserRepository userRepository;
@@ -61,8 +58,9 @@ public class EstablishmentServiceImpl implements EstablishmentService {
         if (userRepository.findByEmail(adminData.email()).isPresent()) {
             throw new DuplicateResourceException(ErrorCode.USER_EMAIL_TAKEN);
         }
+        Establishment establishment;
         try {
-            Establishment establishment = establishmentRepository
+            establishment = establishmentRepository
                     .saveAndFlush(new Establishment(request.name(), Instant.now(clock)));
             catalogSeeder.seed(establishment.getId());
             userRepository.saveAndFlush(User.builder()
@@ -74,10 +72,10 @@ public class EstablishmentServiceImpl implements EstablishmentService {
                     .establishmentId(establishment.getId())
                     .createdAt(Instant.now(clock))
                     .build());
-            return summarize(establishment);
         } catch (DataIntegrityViolationException race) {
-            throw duplicateFor(race);
+            throw EstablishmentViolationMapper.map(race);
         }
+        return summarize(establishment);
     }
 
     @Override
@@ -91,7 +89,7 @@ public class EstablishmentServiceImpl implements EstablishmentService {
         try {
             establishmentRepository.flush();
         } catch (DataIntegrityViolationException race) {
-            throw duplicateFor(race);
+            throw EstablishmentViolationMapper.map(race);
         }
         return summarize(establishment);
     }
@@ -117,15 +115,5 @@ public class EstablishmentServiceImpl implements EstablishmentService {
         long activeUsers = userRepository.countByEstablishmentIdAndActiveTrue(establishment.getId());
         return new EstablishmentSummaryResponse(establishment.getId(), establishment.getName(),
                 establishment.isActive(), activeUsers, admins);
-    }
-
-    /** Maps a unique-index violation to the error of the constraint that failed (email, otherwise the name). */
-    private DuplicateResourceException duplicateFor(DataIntegrityViolationException violation) {
-        Throwable cause = violation.getCause();
-        if (cause instanceof ConstraintViolationException constraint
-                && EMAIL_CONSTRAINT.equals(constraint.getConstraintName())) {
-            return new DuplicateResourceException(ErrorCode.USER_EMAIL_TAKEN);
-        }
-        return new DuplicateResourceException(ErrorCode.ESTABLISHMENT_NAME_TAKEN);
     }
 }
