@@ -12,7 +12,8 @@ import com.tomanagement.user.entity.Role;
  */
 public interface AppointmentVisibilityPolicy {
 
-    Role role();
+    /** Roles this strategy serves; every role a user can have inside an establishment maps to one strategy. */
+    Set<Role> roles();
 
     /** Therapist ids the user may see; empty Optional = no restriction (all). */
     Optional<Set<Long>> visibleTherapists(AuthenticatedUser user, Set<Long> requested);

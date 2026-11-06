@@ -1,5 +1,6 @@
 package com.tomanagement.auth.controller;
 
+import com.tomanagement.auth.dto.ChangeEstablishmentRequest;
 import com.tomanagement.auth.dto.ChangePasswordRequest;
 import com.tomanagement.auth.dto.LoginRequest;
 import com.tomanagement.auth.dto.LoginResponse;
@@ -36,7 +37,13 @@ public class AuthController {
 
     @GetMapping("/me")
     public UserSummary me(@AuthenticationPrincipal AuthenticatedUser user) {
-        return authService.currentUser(user.id());
+        return authService.currentUser(user);
+    }
+
+    @PostMapping("/establishment")
+    public LoginResponse changeEstablishment(@AuthenticationPrincipal AuthenticatedUser user,
+            @RequestBody ChangeEstablishmentRequest request) {
+        return authService.changeEstablishment(user, request.establishmentId());
     }
 
     @PutMapping("/password")

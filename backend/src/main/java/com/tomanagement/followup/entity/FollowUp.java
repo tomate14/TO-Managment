@@ -12,6 +12,7 @@ import com.tomanagement.diagnosis.entity.Diagnosis;
 import com.tomanagement.template.entity.EvaluationTemplate;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.TenantId;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -37,6 +38,10 @@ public class FollowUp {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @Column(name = "establishment_id", nullable = false, updatable = false)
+    private Long establishmentId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "diagnosis_id", nullable = false, updatable = false)

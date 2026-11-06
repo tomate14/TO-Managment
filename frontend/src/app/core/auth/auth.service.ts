@@ -2,12 +2,13 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, map, tap } from 'rxjs';
-import { LoginResponse, SESSION_EXPIRED_QUERY, SessionEndReason, UserSummary } from './auth.models';
+import { EstablishmentRef, LoginResponse, SESSION_EXPIRED_QUERY, SessionEndReason, UserSummary, isAdminInEstablishment } from './auth.models';
 import { SessionStore, StoredSession } from './session-store';
 import { isJwtExpired } from './jwt-expiry';
 
 export const LOGIN_URL = '/api/auth/login';
 const ME_URL = '/api/auth/me';
+const ESTABLISHMENT_URL = '/api/auth/establishment';
 const PASSWORD_URL = '/api/auth/password';
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +19,9 @@ export class AuthService {
   private readonly session = signal<StoredSession | null>(this.store.load());
 
   readonly currentUser = computed<UserSummary | null>(() => this.session()?.user ?? null);
+  readonly isSuperadmin = computed(() => this.currentUser()?.role === 'SUPERADMIN');
+  readonly establishment = computed<EstablishmentRef | null>(() => this.currentUser()?.establishment ?? null);
+  readonly isAdminInEstablishment = computed(() => isAdminInEstablishment(this.currentUser()));
 
   token(): string | null {
     return this.session()?.token ?? null;
@@ -37,6 +41,14 @@ export class AuthService {
     return this.http.post<LoginResponse>(LOGIN_URL, { email, password }).pipe(
       tap((response) => this.setSession({ token: response.token, user: response.user })),
       map((response) => response.user),
+    );
+  }
+
+  /** Superadmin only: enters an establishment (or leaves it with null); the new token replaces the session. */
+  enterEstablishment(establishmentId: number | null): Observable<void> {
+    return this.http.post<LoginResponse>(ESTABLISHMENT_URL, { establishmentId }).pipe(
+      tap((response) => this.setSession({ token: response.token, user: response.user })),
+      map(() => undefined),
     );
   }
 

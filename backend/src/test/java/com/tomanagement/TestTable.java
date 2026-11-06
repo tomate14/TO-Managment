@@ -12,7 +12,9 @@ public enum TestTable {
     PATIENT("patient"),
     FOLLOW_UP("follow_up"),
     DIAGNOSIS("diagnosis"),
-    TREATMENT("treatment");
+    TREATMENT("treatment"),
+    ESTABLISHMENT("establishment"),
+    APP_USER("app_user");
 
     private final String tableName;
 

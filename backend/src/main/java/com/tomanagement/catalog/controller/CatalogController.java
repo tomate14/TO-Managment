@@ -43,21 +43,21 @@ public class CatalogController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')")
     public CatalogItemResponse create(@PathVariable("slug") String slug,
             @Valid @RequestBody CatalogItemRequest request) {
         return registry.forSlug(slug).create(request.name());
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')")
     public CatalogItemResponse rename(@PathVariable("slug") String slug, @PathVariable("id") Long id,
             @Valid @RequestBody CatalogItemRequest request) {
         return registry.forSlug(slug).rename(id, request.name());
     }
 
     @PatchMapping("/{id}/active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')")
     public CatalogItemResponse changeActive(@PathVariable("slug") String slug, @PathVariable("id") Long id,
             @Valid @RequestBody ChangeCatalogItemActiveRequest request) {
         return registry.forSlug(slug).changeActive(id, request.active());

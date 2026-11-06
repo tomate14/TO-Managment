@@ -7,7 +7,7 @@ import { SESSION_EXPIRED_QUERY } from '../../../core/auth/auth.models';
 import { apiErrorCode } from '../../../core/api/api-error';
 import { LoginHero } from '../login-hero/login-hero';
 
-type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'connection';
+type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'connection';
 
 interface Banner {
   title: string;
@@ -18,6 +18,7 @@ const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
   credentials: { title: 'Email o contraseña incorrectos', message: 'Revisá los datos e intentá de nuevo.' },
   incomplete: { title: 'Completá tu email y contraseña', message: 'Necesitamos los dos datos para ingresar.' },
   emailFormat: { title: 'Revisá el formato del email', message: 'Tiene que ser como nombre@consultorio.com.' },
+  inactive: { title: 'Tu establecimiento está inactivo', message: 'Pedile al administrador de la plataforma que lo reactive.' },
   connection: { title: 'No pudimos conectar con el servidor', message: 'Intentá de nuevo en unos minutos.' },
 };
 
@@ -119,6 +120,9 @@ export class LoginPage {
     }
     if (err instanceof HttpErrorResponse && err.status === 400 && apiErrorCode(err) === 'VALIDATION_ERROR') {
       return 'emailFormat';
+    }
+    if (apiErrorCode(err) === 'ESTABLISHMENT_INACTIVE') {
+      return 'inactive';
     }
     return 'connection';
   }

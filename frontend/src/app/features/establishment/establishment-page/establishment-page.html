@@ -1,0 +1,57 @@
+<header class="page-header">
+  <a class="page-header__back" routerLink="/mas" aria-label="Volver">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <h1 class="page-header__title">Establecimiento</h1>
+</header>
+
+<div class="est__body">
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert">
+      <div>{{ message }}</div>
+      @if (!establishment()) {
+        <button type="button" class="est__retry" (click)="load()">Reintentar</button>
+      }
+    </div>
+  }
+
+  @if (establishment(); as current) {
+    <form class="est__card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="field__label" for="establishment-name">Nombre del establecimiento</label>
+        <input id="establishment-name" class="field__input" formControlName="name" autocomplete="off"
+               [class.field__input--invalid]="nameError()"
+               [attr.aria-invalid]="!!nameError()"
+               [attr.aria-describedby]="nameError() ? 'establishment-name-error' : 'establishment-name-hint'">
+        @if (nameError(); as message) {
+          <p id="establishment-name-error" class="field__error">{{ message }}</p>
+        } @else {
+          <p id="establishment-name-hint" class="field__hint">Lo ven todos los usuarios del establecimiento en el menú.</p>
+        }
+      </div>
+      @if (saved()) {
+        <p class="est__saved" role="status">Cambios guardados.</p>
+      }
+      <button type="submit" class="btn-primary est__submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+        Guardar cambios
+      </button>
+    </form>
+
+    <section class="est__card est__card--rows" aria-label="Datos del establecimiento">
+      <div class="est__row">
+        <span class="est__row-label">Usuarios</span>
+        <span class="est__row-value">{{ current.activeUsers }} activos</span>
+      </div>
+      <div class="est__row">
+        <span class="est__row-label">Creado</span>
+        <span class="est__row-value">{{ formatDate(current.createdDate) }}</span>
+      </div>
+    </section>
+
+    <p class="est__info">
+      Los pacientes, catálogos, plantillas y la agenda de este establecimiento solo los ven sus usuarios.
+    </p>
+  } @else if (loading()) {
+    <p class="est__loading" role="status">Cargando…</p>
+  }
+</div>

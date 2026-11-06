@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 public class TherapistVisibilityPolicy implements AppointmentVisibilityPolicy {
 
     @Override
-    public Role role() {
-        return Role.TERAPEUTA;
+    public Set<Role> roles() {
+        return Set.of(Role.TERAPEUTA);
     }
 
     @Override

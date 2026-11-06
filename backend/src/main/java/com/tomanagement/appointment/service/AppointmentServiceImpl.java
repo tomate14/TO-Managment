@@ -33,6 +33,7 @@ import com.tomanagement.diagnosis.entity.Diagnosis;
 import com.tomanagement.diagnosis.repository.DiagnosisRepository;
 import com.tomanagement.patient.entity.Patient;
 import com.tomanagement.patient.repository.PatientRepository;
+import com.tomanagement.tenant.CurrentEstablishmentProvider;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
 
@@ -52,12 +53,13 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentValidationChain validationChain;
     private final AppointmentVisibilityPolicyFactory policyFactory;
     private final AppointmentMapper mapper;
+    private final CurrentEstablishmentProvider currentEstablishment;
     private final Clock clock;
 
     public AppointmentServiceImpl(AppointmentRepository appointmentRepository, UserRepository userRepository,
             PatientRepository patientRepository, DiagnosisRepository diagnosisRepository,
             AppointmentValidationChain validationChain, AppointmentVisibilityPolicyFactory policyFactory,
-            AppointmentMapper mapper, Clock clock) {
+            AppointmentMapper mapper, CurrentEstablishmentProvider currentEstablishment, Clock clock) {
         this.appointmentRepository = appointmentRepository;
         this.userRepository = userRepository;
         this.patientRepository = patientRepository;
@@ -65,6 +67,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         this.validationChain = validationChain;
         this.policyFactory = policyFactory;
         this.mapper = mapper;
+        this.currentEstablishment = currentEstablishment;
         this.clock = clock;
     }
 
@@ -147,8 +150,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new BusinessRuleException(ErrorCode.APPOINTMENT_DURATION_INVALID));
     }
 
+    /** Users are not tenant-filtered by Hibernate: a therapist of another establishment must look nonexistent. */
     private User findTherapist(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findByIdAndEstablishmentId(id, currentEstablishment.requireEstablishmentId())
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.USER_NOT_FOUND));
     }
 
     private Diagnosis findDiagnosis(Long id) {

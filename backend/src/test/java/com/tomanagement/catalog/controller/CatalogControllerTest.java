@@ -12,9 +12,9 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.catalog.entity.BodySegment;
 import com.tomanagement.catalog.entity.ScarType;
 import com.tomanagement.catalog.entity.SurgeryType;
@@ -39,12 +39,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, TestTables.class})
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class CatalogControllerTest {
 
     private static final String SEGMENTS = "/api/catalogs/body-segments";
-    private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, "admin@c.com", "Admin", Role.ADMIN);
-    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA);
 
     @Autowired
     private MockMvc mockMvc;
@@ -62,28 +60,37 @@ class CatalogControllerTest {
     private TestTables testTables;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     private BodySegment wrist;
 
+    private AuthenticatedUser admin;
+
+    private AuthenticatedUser therapist;
+
     @BeforeEach
     void seedCatalogs() {
-        testTables.truncate(TestTable.BODY_SEGMENT, TestTable.SURGERY_TYPE, TestTable.SCAR_TYPE);
-        wrist = bodySegmentRepository.save(new BodySegment("Muñeca"));
-        BodySegment fingers = new BodySegment("Dedos");
-        fingers.changeActive(false);
-        bodySegmentRepository.save(fingers);
-        bodySegmentRepository.save(new BodySegment("Codo"));
-        surgeryTypeRepository.save(new SurgeryType("Tenorrafia"));
-        scarTypeRepository.save(new ScarType("Queloide"));
+        testTables.truncate(TestTable.BODY_SEGMENT, TestTable.SURGERY_TYPE, TestTable.SCAR_TYPE, TestTable.ESTABLISHMENT);
+        Long establishmentId = tenancy.create("Consultorio").getId();
+        admin = new AuthenticatedUser(1L, "admin@c.com", "Admin", Role.ADMIN, establishmentId);
+        therapist = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, establishmentId);
+        tenancy.runAs(establishmentId, () -> {
+            wrist = bodySegmentRepository.save(new BodySegment("Muñeca"));
+            BodySegment fingers = new BodySegment("Dedos");
+            fingers.changeActive(false);
+            bodySegmentRepository.save(fingers);
+            bodySegmentRepository.save(new BodySegment("Codo"));
+            surgeryTypeRepository.save(new SurgeryType("Tenorrafia"));
+            scarTypeRepository.save(new ScarType("Queloide"));
+        });
     }
 
     @Test
     void anySignedInUserListsACatalogOrderedByName() throws Exception {
-        mockMvc.perform(as(THERAPIST, get(SEGMENTS)))
+        mockMvc.perform(as(therapist, get(SEGMENTS)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].name").value("Codo"))
@@ -93,29 +100,29 @@ class CatalogControllerTest {
 
     @Test
     void activeOnlyHidesInactiveItems() throws Exception {
-        mockMvc.perform(as(THERAPIST, get(SEGMENTS).param("activeOnly", "true")))
+        mockMvc.perform(as(therapist, get(SEGMENTS).param("activeOnly", "true")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
     void eachSlugServesItsOwnCatalog() throws Exception {
-        mockMvc.perform(as(ADMIN, get("/api/catalogs/surgery-types")))
+        mockMvc.perform(as(admin, get("/api/catalogs/surgery-types")))
                 .andExpect(jsonPath("$[0].name").value("Tenorrafia"));
-        mockMvc.perform(as(ADMIN, get("/api/catalogs/scar-types")))
+        mockMvc.perform(as(admin, get("/api/catalogs/scar-types")))
                 .andExpect(jsonPath("$[0].name").value("Queloide"));
     }
 
     @Test
     void unknownCatalogIsNotFound() throws Exception {
-        mockMvc.perform(as(ADMIN, get("/api/catalogs/medicamentos")))
+        mockMvc.perform(as(admin, get("/api/catalogs/medicamentos")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(ErrorCode.CATALOG_NOT_FOUND.name()));
     }
 
     @Test
     void adminCreatesAnItem() throws Exception {
-        mockMvc.perform(as(ADMIN, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(admin, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "  Antebrazo "))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Antebrazo"))
@@ -124,7 +131,7 @@ class CatalogControllerTest {
 
     @Test
     void duplicateNameIgnoringCaseIsRejected() throws Exception {
-        mockMvc.perform(as(ADMIN, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(admin, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "muñeca"))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(ErrorCode.CATALOG_ITEM_DUPLICATE.name()));
@@ -132,7 +139,7 @@ class CatalogControllerTest {
 
     @Test
     void blankNameIsInvalid() throws Exception {
-        mockMvc.perform(as(ADMIN, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(admin, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "   "))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()));
@@ -140,7 +147,7 @@ class CatalogControllerTest {
 
     @Test
     void adminRenamesAnItemEvenChangingOnlyItsCase() throws Exception {
-        mockMvc.perform(as(ADMIN, put(SEGMENTS + "/" + wrist.getId())).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(admin, put(SEGMENTS + "/" + wrist.getId())).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "MUÑECA"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("MUÑECA"));
@@ -148,7 +155,7 @@ class CatalogControllerTest {
 
     @Test
     void adminDeactivatesAnItem() throws Exception {
-        mockMvc.perform(as(ADMIN, patch(SEGMENTS + "/" + wrist.getId() + "/active"))
+        mockMvc.perform(as(admin, patch(SEGMENTS + "/" + wrist.getId() + "/active"))
                         .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("active", false))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
@@ -156,7 +163,7 @@ class CatalogControllerTest {
 
     @Test
     void therapistsCannotChangeCatalogs() throws Exception {
-        mockMvc.perform(as(THERAPIST, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(therapist, post(SEGMENTS)).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "Antebrazo"))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.name()));
@@ -164,7 +171,7 @@ class CatalogControllerTest {
 
     @Test
     void unknownItemIsNotFound() throws Exception {
-        mockMvc.perform(as(ADMIN, put(SEGMENTS + "/999999")).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(as(admin, put(SEGMENTS + "/999999")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("name", "Algo"))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(ErrorCode.CATALOG_ITEM_NOT_FOUND.name()));
@@ -176,7 +183,7 @@ class CatalogControllerTest {
     }
 
     private MockHttpServletRequestBuilder as(AuthenticatedUser user, MockHttpServletRequestBuilder request) {
-        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.issue(user).value());
+        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tenancy.tokenFor(user));
     }
 
     private String json(Map<String, ?> body) throws Exception {

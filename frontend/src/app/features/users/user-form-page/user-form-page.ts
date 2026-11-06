@@ -9,8 +9,10 @@ import { UsersService } from '../users.service';
 
 type FieldName = 'fullName' | 'email' | 'password';
 
+type AssignableRole = Exclude<Role, 'SUPERADMIN'>;
+
 interface RoleOption {
-  value: Role;
+  value: AssignableRole;
   label: string;
   hint: string;
 }

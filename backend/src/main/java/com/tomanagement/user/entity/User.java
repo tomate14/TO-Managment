@@ -42,6 +42,10 @@ public class User {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    /** Null only for SUPERADMIN, who belongs to no establishment. */
+    @Column(name = "establishment_id")
+    private Long establishmentId;
+
     protected User() {
         // Required by JPA.
     }
@@ -53,6 +57,7 @@ public class User {
         this.role = Objects.requireNonNull(builder.role, "role is required");
         this.active = builder.active;
         this.createdAt = Objects.requireNonNull(builder.createdAt, "createdAt is required");
+        this.establishmentId = builder.establishmentId;
     }
 
     public static Builder builder() {
@@ -87,6 +92,10 @@ public class User {
         return createdAt;
     }
 
+    public Long getEstablishmentId() {
+        return establishmentId;
+    }
+
     /**
      * Edits the profile fields an admin can change; the email is immutable.
      */
@@ -114,6 +123,7 @@ public class User {
         private Role role;
         private boolean active = true;
         private Instant createdAt;
+        private Long establishmentId;
 
         private Builder() {
         }
@@ -145,6 +155,11 @@ public class User {
 
         public Builder createdAt(Instant createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder establishmentId(Long establishmentId) {
+            this.establishmentId = establishmentId;
             return this;
         }
 

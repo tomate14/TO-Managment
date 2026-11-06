@@ -41,7 +41,7 @@ class AvailabilityServiceImplTest {
     private static final Clock CLOCK =
             Clock.fixed(LocalDateTime.parse("2026-11-05T11:40").atZone(ZONE).toInstant(), ZONE);
     private static final AuthenticatedUser ADMIN =
-            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN);
+            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN, null);
 
     private final AppointmentRepository repository = mock(AppointmentRepository.class);
     private AvailabilityServiceImpl service;

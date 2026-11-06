@@ -6,6 +6,8 @@ import java.util.Objects;
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.Question;
 
+import org.hibernate.annotations.TenantId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,6 +29,10 @@ public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @Column(name = "establishment_id", nullable = false, updatable = false)
+    private Long establishmentId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "segment_evaluation_id", nullable = false, updatable = false)

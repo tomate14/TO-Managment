@@ -25,11 +25,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * User management, admins only.
+ * User management of the session's establishment: its admins, or the superadmin after entering it.
  */
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')")
 public class UserController {
 
     private final UserManagementService userManagementService;
