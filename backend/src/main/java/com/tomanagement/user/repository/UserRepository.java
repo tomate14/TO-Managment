@@ -24,4 +24,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByRole(Role role);
 
     List<User> findAllByOrderByFullNameAsc();
+
+    List<User> findAllByEstablishmentIdOrderByFullNameAsc(Long establishmentId);
+
+    long countByEstablishmentIdAndActiveTrue(Long establishmentId);
+
+    List<User> findByEstablishmentIdAndRoleOrderByFullNameAsc(Long establishmentId, Role role);
 }
