@@ -43,7 +43,7 @@ export const routes: Routes = [
       },
       {
         path: 'establecimiento',
-        canActivate: [adminGuard],
+        canActivate: [establishmentGuard, adminGuard],
         title: `Establecimiento · ${APP_NAME}`,
         loadComponent: () =>
           import('./features/establishment/establishment-page/establishment-page').then((m) => m.EstablishmentPage),

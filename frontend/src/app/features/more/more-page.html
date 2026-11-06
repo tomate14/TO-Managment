@@ -3,15 +3,22 @@
 </header>
 
 <div class="more__body">
+  @if (user()?.establishment; as establishment) {
+    <section class="more__establishment" aria-label="Establecimiento">
+      <span class="more__establishment-avatar" aria-hidden="true">{{ initials(establishment.name) }}</span>
+      <span class="more__establishment-text">
+        <span class="more__establishment-label">Establecimiento</span>
+        <span class="more__establishment-name">{{ establishment.name }}</span>
+      </span>
+    </section>
+  }
+
   @if (user(); as currentUser) {
     <section class="more__account" aria-label="Tu cuenta">
       <div class="more__avatar" aria-hidden="true">{{ initials(currentUser.fullName) }}</div>
       <div class="more__account-text">
         <span class="more__account-name">{{ currentUser.fullName }}</span>
         <span class="more__account-email">{{ currentUser.email }}</span>
-        @if (currentUser.establishment; as establishment) {
-          <span class="more__account-email">{{ establishment.name }}</span>
-        }
       </div>
       <span class="more__role">{{ roleLabels[currentUser.role] }}</span>
     </section>
