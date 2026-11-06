@@ -67,7 +67,7 @@ Los establecimientos que crea el superadmin nacen aprobados (`approved_at = now(
 
 ## 6. Frontend
 
-- **Login:** debajo del botón, el link a `/registro`. `classify()` suma el tipo `'pending'` con los textos de H9.2 y el tipo `'tooMany'` para 429.
+- **Login:** debajo del botón, el link a `/registro`. `classify()` suma el tipo `'pending'` con los textos de H9.2. El 429 lo maneja solo la pantalla de registro, porque el login no tiene límite de intentos.
 - **`/registro`** (ruta pública, lazy):
   - Formulario reactivo: nombre (máx. 120), email (válido, máx. 254), contraseña (8–72) y confirmación (tiene que coincidir).
   - `USER_EMAIL_TAKEN` se muestra en el campo email: "Ya hay una cuenta con este email."
