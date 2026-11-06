@@ -1,0 +1,155 @@
+<header class="page-header est-header">
+  <h1 class="page-header__title">Establecimientos</h1>
+  <button type="button" class="page-header__action est-header__new" (click)="openNew()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    <span class="est-header__new-short">Nuevo</span>
+    <span class="est-header__new-long">Nuevo establecimiento</span>
+  </button>
+</header>
+
+<div class="page-body est-body">
+  <p class="est-intro">
+    <span class="est-intro__mobile">Como superadmin creás establecimientos y podés entrar a cualquiera para dar soporte.</span>
+    <span class="est-intro__desktop">Creá establecimientos y entrá a cualquiera para dar soporte.</span>
+  </p>
+
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  <ng-template #nameCell let-item>
+    @if (editingId() === item.id) {
+      <form class="est-edit" (submit)="$event.preventDefault(); saveEdit(item)" novalidate>
+        <label class="visually-hidden" [attr.for]="'est-edit-' + item.id">Nombre de {{ item.name }}</label>
+        <input [id]="'est-edit-' + item.id" class="field__input est-edit__input" [formControl]="editName"
+               autocomplete="off" [attr.maxlength]="maxName"
+               [class.field__input--invalid]="editError()" [attr.aria-invalid]="!!editError()"
+               [attr.aria-describedby]="editError() ? 'est-edit-error' : null">
+        <div class="est-edit__actions">
+          <button type="button" class="est-edit__cancel" (click)="cancelEdit()">Cancelar</button>
+          <button type="submit" class="est-edit__save" [disabled]="isPending(item)">Guardar</button>
+        </div>
+        @if (editError(); as message) {
+          <p id="est-edit-error" class="field__error">{{ message }}</p>
+        }
+      </form>
+    } @else {
+      <span class="est-name" [class.est-name--inactive]="!item.active">{{ item.name }}</span>
+    }
+  </ng-template>
+
+  <ng-template #editButton let-item>
+    @if (editingId() !== item.id) {
+      <button type="button" class="est-icon-button" [attr.aria-label]="'Renombrar ' + item.name" (click)="startEdit(item)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>
+      </button>
+    }
+  </ng-template>
+
+  <ng-template #activeSwitch let-item>
+    <button type="button" class="switch" role="switch" [attr.aria-checked]="item.active"
+            [attr.aria-label]="(item.active ? 'Desactivar ' : 'Activar ') + item.name"
+            [disabled]="isPending(item)" (click)="toggle(item)">
+      <span class="switch__thumb"></span>
+    </button>
+  </ng-template>
+
+  @if (establishments(); as list) {
+    @if (list.length === 0) {
+      <p class="est-empty">Todavía no hay establecimientos. Creá el primero con “Nuevo”.</p>
+    } @else if (isDesktop()) {
+      <table class="est-table">
+        <thead>
+          <tr>
+            <th scope="col">Establecimiento</th>
+            <th scope="col">Admin</th>
+            <th scope="col">Usuarios</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="est-table__right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of list; track item.id) {
+            <tr class="est-row">
+              <td>
+                <ng-container [ngTemplateOutlet]="nameCell" [ngTemplateOutletContext]="{ $implicit: item }" />
+              </td>
+              <td>
+                @if (admin(item); as adminUser) {
+                  {{ adminUser.fullName }}<br><span class="est-muted">{{ adminUser.email }}</span>
+                } @else {
+                  <span class="est-muted">Sin admin</span>
+                }
+              </td>
+              <td>{{ item.activeUsers }}</td>
+              <td>
+                <span class="badge" [class.badge--active]="item.active" [class.badge--inactive]="!item.active">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+              </td>
+              <td class="est-table__right">
+                <span class="est-actions">
+                  <ng-container [ngTemplateOutlet]="editButton" [ngTemplateOutletContext]="{ $implicit: item }" />
+                  <ng-container [ngTemplateOutlet]="activeSwitch" [ngTemplateOutletContext]="{ $implicit: item }" />
+                  <button type="button" class="est-enter" [disabled]="!item.active || isPending(item)"
+                          [attr.aria-label]="'Entrar a ' + item.name" (click)="enter(item)">Entrar</button>
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <ul class="est-list">
+        @for (item of list; track item.id) {
+          <li class="est-card">
+            <div class="est-card__main">
+              <span class="est-card__avatar" [class.est-card__avatar--inactive]="!item.active" aria-hidden="true">{{ initials(item.name) }}</span>
+              <span class="est-card__text">
+                <ng-container [ngTemplateOutlet]="nameCell" [ngTemplateOutletContext]="{ $implicit: item }" />
+                @if (editingId() !== item.id) {
+                  <span class="est-muted">
+                    @if (admin(item); as adminUser) {
+                      Admin: {{ adminUser.fullName }} · {{ adminUser.email }}
+                    } @else {
+                      Sin admin
+                    }
+                  </span>
+                }
+              </span>
+              <ng-container [ngTemplateOutlet]="editButton" [ngTemplateOutletContext]="{ $implicit: item }" />
+            </div>
+            <div class="est-card__footer">
+              <span class="est-card__badges">
+                <span class="badge" [class.badge--active]="item.active" [class.badge--inactive]="!item.active">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+                <span class="badge badge--users">{{ usersLabel(item.activeUsers) }}</span>
+              </span>
+              <span class="est-card__controls">
+                <ng-container [ngTemplateOutlet]="activeSwitch" [ngTemplateOutletContext]="{ $implicit: item }" />
+                @if (item.active) {
+                  <button type="button" class="est-enter" [disabled]="isPending(item)"
+                          [attr.aria-label]="'Entrar a ' + item.name" (click)="enter(item)">Entrar</button>
+                } @else {
+                  <span class="est-muted est-card__note">Sus usuarios no pueden ingresar</span>
+                }
+              </span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  } @else if (!error()) {
+    <p class="est-loading" role="status">Cargando establecimientos…</p>
+  }
+</div>
+
+@if (panelOpen() && isDesktop()) {
+  <div class="est-overlay" (click)="closePanel()" aria-hidden="true"></div>
+  <aside class="est-panel" role="dialog" aria-modal="true" aria-labelledby="est-panel-title">
+    <div class="est-panel__header">
+      <h2 id="est-panel-title" class="est-panel__title">Nuevo establecimiento</h2>
+      <button type="button" class="est-icon-button" aria-label="Cerrar" (click)="closePanel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    <app-establishment-form (created)="onCreated($event)" (cancelled)="closePanel()" />
+  </aside>
+}

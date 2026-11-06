@@ -42,8 +42,8 @@ class InitialAdminServiceImplTest {
     }
 
     @Test
-    void createsTheAdminWhenThereIsNone() {
-        when(userRepository.existsByRole(Role.ADMIN)).thenReturn(false);
+    void createsTheSuperadminWhenThereIsNone() {
+        when(userRepository.existsByRole(Role.SUPERADMIN)).thenReturn(false);
         when(userRepository.findByEmail("admin@consultorio.com")).thenReturn(Optional.empty());
 
         assertThat(service.ensureInitialAdmin()).isEqualTo(InitialAdminOutcome.CREATED);
@@ -54,15 +54,16 @@ class InitialAdminServiceImplTest {
             assertThat(user.getEmail()).isEqualTo("admin@consultorio.com");
             assertThat(user.getPasswordHash()).isEqualTo("bcrypt-hash");
             assertThat(user.getFullName()).isEqualTo("Mariana Gómez");
-            assertThat(user.getRole()).isEqualTo(Role.ADMIN);
+            assertThat(user.getRole()).isEqualTo(Role.SUPERADMIN);
+            assertThat(user.getEstablishmentId()).isNull();
             assertThat(user.isActive()).isTrue();
             assertThat(user.getCreatedAt()).isEqualTo(NOW);
         });
     }
 
     @Test
-    void doesNothingWhenAnAdminAlreadyExists() {
-        when(userRepository.existsByRole(Role.ADMIN)).thenReturn(true);
+    void doesNothingWhenASuperadminAlreadyExists() {
+        when(userRepository.existsByRole(Role.SUPERADMIN)).thenReturn(true);
 
         assertThat(service.ensureInitialAdmin()).isEqualTo(InitialAdminOutcome.ALREADY_PRESENT);
 
@@ -72,7 +73,7 @@ class InitialAdminServiceImplTest {
 
     @Test
     void doesNotCreateTheAdminWhenTheEmailBelongsToAnotherUser() {
-        when(userRepository.existsByRole(Role.ADMIN)).thenReturn(false);
+        when(userRepository.existsByRole(Role.SUPERADMIN)).thenReturn(false);
         when(userRepository.findByEmail("admin@consultorio.com")).thenReturn(Optional.of(mock(User.class)));
 
         assertThat(service.ensureInitialAdmin()).isEqualTo(InitialAdminOutcome.EMAIL_IN_USE);

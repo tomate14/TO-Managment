@@ -1,0 +1,35 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Superadmin dentro de un establecimiento (desktop)</title><link rel="stylesheet" href="mock.css"></head>
+<body><div class="d">
+<nav class="nav">
+ <div class="brand"><div class="logo">TO</div><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:15px;font-weight:700">Terapia Ocupacional</span><span style="font-size:12px;color:rgba(255,255,255,.72)">Gestión clínica</span></div></div>
+ <div class="est"><small>Establecimiento</small><span>Consultorio Norte</span></div>
+ <div style="display:flex;flex-direction:column;gap:4px">
+  <a class="on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/></svg>Pacientes</a>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Agenda</a>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 11h6M9 15h6"/></svg>Plantillas</a>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:4px">
+  <p class="sect">Administración</p>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>Establecimiento</a>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Usuarios</a>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Catálogos</a>
+ </div>
+ <div class="bottom">
+  <div style="display:flex;align-items:center;gap:12px;padding:8px 12px"><div style="width:36px;height:36px;border-radius:50%;background:#8FC2F2;color:#0E2944;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">MR</div><div style="display:flex;flex-direction:column"><span style="font-size:14px;font-weight:700">Maximiliano Roselli</span><span style="font-size:12px;color:rgba(255,255,255,.72)">Superadmin</span></div></div>
+  <a><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></svg>Cerrar sesión</a>
+ </div>
+</nav>
+<div style="flex:1;display:flex;flex-direction:column">
+ <div class="banner" style="padding:12px 40px;font-size:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg><span>Estás en <b>Consultorio Norte</b> como superadmin, con permisos de admin.</span><span class="exit">Salir del establecimiento</span></div>
+ <section class="dmain">
+  <div class="dtitle"><h1>Pacientes</h1><span class="btn lg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nuevo paciente</span></div>
+  <span class="search" style="max-width:520px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar por nombre o DNI</span>
+  <table>
+   <tr><th>Paciente</th><th>DNI</th><th>Edad</th><th>Obra social</th></tr>
+   <tr><td class="t">Fernández, Lucía</td><td>30.123.456</td><td>42</td><td>OSDE</td></tr>
+   <tr><td class="t">Medina, Diego</td><td>27.881.004</td><td>51</td><td>Swiss Medical</td></tr>
+   <tr><td class="t">Sosa, María Inés</td><td>33.410.229</td><td>38</td><td>IOMA</td></tr>
+  </table>
+ </section>
+</div>
+</div></body></html>

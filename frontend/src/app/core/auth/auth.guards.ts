@@ -1,7 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import { SESSION_EXPIRED_QUERY } from './auth.models';
+import { SESSION_EXPIRED_QUERY, isAdminInEstablishment } from './auth.models';
+
+const HOME_URL = '/pacientes';
+const ESTABLISHMENTS_URL = '/establecimientos';
 
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -16,13 +19,31 @@ export const authGuard: CanActivateFn = () => {
   return router.createUrlTree(['/login']);
 };
 
-/** Admin-only sections; other roles go back to the home section. Runs after authGuard (parent route). */
+/** Admin-only sections (ADMIN, or SUPERADMIN inside an establishment); others go back home. Runs after authGuard. */
 export const adminGuard: CanActivateFn = () => {
-  const isAdmin = inject(AuthService).currentUser()?.role === 'ADMIN';
-  return isAdmin ? true : inject(Router).createUrlTree(['/pacientes']);
+  const allowed = isAdminInEstablishment(inject(AuthService).currentUser());
+  return allowed ? true : inject(Router).createUrlTree([HOME_URL]);
+};
+
+/** Superadmin outside any establishment (the establishments list); everyone else goes home. */
+export const superadminGuard: CanActivateFn = () => {
+  const user = inject(AuthService).currentUser();
+  return user?.role === 'SUPERADMIN' && !user.establishment ? true : inject(Router).createUrlTree([HOME_URL]);
+};
+
+/**
+ * Data screens need an establishment in the session; a superadmin without one picks it first.
+ * Other roles always carry one (the backend enforces it), so they are not redirected (avoids a /pacientes loop).
+ */
+export const establishmentGuard: CanActivateFn = () => {
+  const user = inject(AuthService).currentUser();
+  if (user?.establishment || user?.role !== 'SUPERADMIN') {
+    return true;
+  }
+  return inject(Router).createUrlTree([ESTABLISHMENTS_URL]);
 };
 
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
-  return auth.hasValidSession() ? inject(Router).createUrlTree(['/pacientes']) : true;
+  return auth.hasValidSession() ? inject(Router).createUrlTree([HOME_URL]) : true;
 };

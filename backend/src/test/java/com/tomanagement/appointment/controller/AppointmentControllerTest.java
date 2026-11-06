@@ -18,10 +18,10 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.appointment.repository.AppointmentRepository;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.diagnosis.entity.ConservativeTreatment;
 import com.tomanagement.diagnosis.entity.Diagnosis;
@@ -56,7 +56,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, TestTables.class})
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class AppointmentControllerTest {
 
     private static final MediaType JSON = MediaType.APPLICATION_JSON;
@@ -90,11 +90,12 @@ class AppointmentControllerTest {
     private AppointmentRepository appointmentRepository;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private Long establishmentId;
     private User admin;
     private User carla;
     private User paula;
@@ -108,18 +109,20 @@ class AppointmentControllerTest {
     @BeforeEach
     void seed() {
         testTables.truncate(TestTable.APPOINTMENT, TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT,
-                TestTable.PATIENT);
-        userRepository.deleteAll();
+                TestTable.PATIENT, TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
         admin = user("admin@consultorio.com", "Admin", Role.ADMIN);
         carla = user("carla@consultorio.com", "Carla Ríos", Role.TERAPEUTA);
         paula = user("paula@consultorio.com", "Paula Gómez", Role.TERAPEUTA);
         adminActor = actor(admin);
         carlaActor = actor(carla);
         paulaActor = actor(paula);
-        lucia = patient("30123456", "Lucía", "Fernández");
-        diego = patient("28999888", "Diego", "Suárez");
-        luciasDiagnosis = diagnosisRepository.save(new Diagnosis(lucia, "Esguince", LocalDate.of(2026, 10, 12),
-                new ConservativeTreatment(LocalDate.of(2026, 10, 1))));
+        tenancy.runAs(establishmentId, () -> {
+            lucia = patient("30123456", "Lucía", "Fernández");
+            diego = patient("28999888", "Diego", "Suárez");
+            luciasDiagnosis = diagnosisRepository.save(new Diagnosis(lucia, "Esguince", LocalDate.of(2026, 10, 12),
+                    new ConservativeTreatment(LocalDate.of(2026, 10, 1))));
+        });
     }
 
     @Test
@@ -178,7 +181,7 @@ class AppointmentControllerTest {
     void cancelDeletes() throws Exception {
         long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
         performAs(carlaActor, delete("/api/appointments/" + id)).andExpect(status().isNoContent());
-        assertThat(appointmentRepository.existsById(id)).isFalse();
+        assertThat(tenancy.callAs(establishmentId, () -> appointmentRepository.existsById(id))).isFalse();
     }
 
     @Test
@@ -246,7 +249,7 @@ class AppointmentControllerTest {
     }
 
     private ResultActions performAs(AuthenticatedUser actor, MockHttpServletRequestBuilder request) throws Exception {
-        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.issue(actor).value()));
+        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tenancy.tokenFor(actor)));
     }
 
     private String json(Map<String, ?> body) throws Exception {
@@ -260,12 +263,13 @@ class AppointmentControllerTest {
                 .fullName(fullName)
                 .role(role)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build());
     }
 
-    private static AuthenticatedUser actor(User user) {
-        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
+    private AuthenticatedUser actor(User user) {
+        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole(), establishmentId);
     }
 
     private Patient patient(String dni, String firstName, String lastName) {

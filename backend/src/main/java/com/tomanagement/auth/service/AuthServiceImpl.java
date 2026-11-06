@@ -10,10 +10,16 @@ import com.tomanagement.auth.dto.UserSummary;
 import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.auth.security.IssuedToken;
 import com.tomanagement.auth.security.TokenProvider;
+import com.tomanagement.common.exception.AccessDeniedApplicationException;
 import com.tomanagement.common.exception.AuthenticationFailedException;
 import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.common.exception.ResourceNotFoundException;
+import com.tomanagement.establishment.dto.EstablishmentRef;
+import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.user.entity.EmailNormalizer;
+import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
 
@@ -25,14 +31,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final EstablishmentRepository establishmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     /** Hash compared when the email is unknown, so response time does not reveal which accounts exist. */
     private final String unknownUserHash;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            TokenProvider tokenProvider) {
+    public AuthServiceImpl(UserRepository userRepository, EstablishmentRepository establishmentRepository,
+            PasswordEncoder passwordEncoder, TokenProvider tokenProvider) {
         this.userRepository = userRepository;
+        this.establishmentRepository = establishmentRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.unknownUserHash = passwordEncoder.encode(UUID.randomUUID().toString());
@@ -49,29 +57,73 @@ public class AuthServiceImpl implements AuthService {
                 .filter(found -> passwordMatches && found.isActive())
                 .orElseThrow(AuthenticationFailedException::new);
 
-        IssuedToken token = tokenProvider.issue(
-                new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole()));
-        return new LoginResponse(token.value(), token.expiresAt(), UserSummary.from(user));
+        Establishment establishment = null;
+        if (user.getEstablishmentId() != null) {
+            establishment = establishmentRepository.findById(user.getEstablishmentId())
+                    .orElseThrow(AuthenticationFailedException::new);
+            if (!establishment.isActive()) {
+                throw new AccessDeniedApplicationException(ErrorCode.ESTABLISHMENT_INACTIVE);
+            }
+        }
+        return session(user, establishment);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserSummary currentUser(Long userId) {
-        return userRepository.findById(userId)
-                .filter(User::isActive)
-                .map(UserSummary::from)
-                .orElseThrow(() -> new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED));
+    public UserSummary currentUser(AuthenticatedUser actor) {
+        User user = activeUser(actor.id());
+        return UserSummary.of(user, referenceOf(actor.establishmentId()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LoginResponse changeEstablishment(AuthenticatedUser actor, Long establishmentId) {
+        if (actor.role() != Role.SUPERADMIN) {
+            throw new AccessDeniedApplicationException();
+        }
+        User user = activeUser(actor.id());
+        if (user.getRole() != Role.SUPERADMIN) {
+            throw new AccessDeniedApplicationException();
+        }
+        Establishment target = null;
+        if (establishmentId != null) {
+            target = establishmentRepository.findById(establishmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ESTABLISHMENT_NOT_FOUND));
+            if (!target.isActive()) {
+                throw new AccessDeniedApplicationException(ErrorCode.ESTABLISHMENT_INACTIVE);
+            }
+        }
+        return session(user, target);
     }
 
     @Override
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        User user = userRepository.findById(userId)
-                .filter(User::isActive)
-                .orElseThrow(() -> new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED));
+        User user = activeUser(userId);
         if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
             throw new BusinessRuleException(ErrorCode.CURRENT_PASSWORD_INCORRECT);
         }
         user.changePasswordHash(passwordEncoder.encode(request.newPassword()));
+    }
+
+    private User activeUser(Long userId) {
+        return userRepository.findById(userId)
+                .filter(User::isActive)
+                .orElseThrow(() -> new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED));
+    }
+
+    private LoginResponse session(User user, Establishment establishment) {
+        Long establishmentId = establishment == null ? null : establishment.getId();
+        IssuedToken token = tokenProvider.issue(new AuthenticatedUser(
+                user.getId(), user.getEmail(), user.getFullName(), user.getRole(), establishmentId));
+        EstablishmentRef reference = establishment == null ? null : EstablishmentRef.from(establishment);
+        return new LoginResponse(token.value(), token.expiresAt(), UserSummary.of(user, reference));
+    }
+
+    private EstablishmentRef referenceOf(Long establishmentId) {
+        if (establishmentId == null) {
+            return null;
+        }
+        return establishmentRepository.findById(establishmentId).map(EstablishmentRef::from).orElse(null);
     }
 }

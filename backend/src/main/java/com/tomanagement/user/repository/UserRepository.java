@@ -23,5 +23,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByRole(Role role);
 
-    List<User> findAllByOrderByFullNameAsc();
+    /** Users are not tenant-filtered by Hibernate: every lookup from the establishment screens goes through here. */
+    Optional<User> findByIdAndEstablishmentId(Long id, Long establishmentId);
+
+    List<User> findAllByEstablishmentIdOrderByFullNameAsc(Long establishmentId);
+
+    long countByEstablishmentIdAndActiveTrue(Long establishmentId);
+
+    List<User> findByEstablishmentIdAndRoleOrderByFullNameAsc(Long establishmentId, Role role);
 }

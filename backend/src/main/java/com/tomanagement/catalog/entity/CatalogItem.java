@@ -2,6 +2,8 @@ package com.tomanagement.catalog.entity;
 
 import java.util.Objects;
 
+import org.hibernate.annotations.TenantId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +19,10 @@ public abstract class CatalogItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @Column(name = "establishment_id", nullable = false, updatable = false)
+    private Long establishmentId;
 
     @Column(nullable = false, length = 80)
     private String name;

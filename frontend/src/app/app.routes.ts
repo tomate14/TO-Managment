@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, guestGuard } from './core/auth/auth.guards';
+import { inject } from '@angular/core';
+import { adminGuard, authGuard, establishmentGuard, guestGuard, superadminGuard } from './core/auth/auth.guards';
+import { AuthService } from './core/auth/auth.service';
 
 const APP_NAME = 'Terapia Ocupacional';
 
@@ -15,9 +17,40 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'pacientes' },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: () => {
+          const auth = inject(AuthService);
+          return auth.isSuperadmin() && !auth.establishment() ? 'establecimientos' : 'pacientes';
+        },
+      },
+      {
+        path: 'establecimientos',
+        canActivate: [superadminGuard],
+        title: `Establecimientos · ${APP_NAME}`,
+        loadComponent: () =>
+          import('./features/establishments/establishments-page/establishments-page').then((m) => m.EstablishmentsPage),
+      },
+      {
+        path: 'establecimientos/nuevo',
+        canActivate: [superadminGuard],
+        title: `Nuevo establecimiento · ${APP_NAME}`,
+        loadComponent: () =>
+          import('./features/establishments/establishment-form-page/establishment-form-page').then(
+            (m) => m.EstablishmentFormPage,
+          ),
+      },
+      {
+        path: 'establecimiento',
+        canActivate: [establishmentGuard, adminGuard],
+        title: `Establecimiento · ${APP_NAME}`,
+        loadComponent: () =>
+          import('./features/establishment/establishment-page/establishment-page').then((m) => m.EstablishmentPage),
+      },
       {
         path: 'pacientes',
+        canActivate: [establishmentGuard],
         children: [
           {
             path: '',
@@ -62,6 +95,7 @@ export const routes: Routes = [
       },
       {
         path: 'agenda',
+        canActivate: [establishmentGuard],
         children: [
           {
             path: '',
@@ -84,6 +118,7 @@ export const routes: Routes = [
       },
       {
         path: 'plantillas',
+        canActivate: [establishmentGuard],
         children: [
           {
             path: '',
@@ -118,7 +153,7 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios',
-        canActivate: [adminGuard],
+        canActivate: [establishmentGuard, adminGuard],
         children: [
           {
             path: '',
@@ -139,7 +174,7 @@ export const routes: Routes = [
       },
       {
         path: 'catalogos',
-        canActivate: [adminGuard],
+        canActivate: [establishmentGuard, adminGuard],
         title: `Catálogos · ${APP_NAME}`,
         loadComponent: () => import('./features/catalogs/catalogs-page/catalogs-page').then((m) => m.CatalogsPage),
       },

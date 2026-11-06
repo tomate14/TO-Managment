@@ -7,7 +7,7 @@ import { LoginPage } from './login-page';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserSummary } from '../../../core/auth/auth.models';
 
-const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA' };
+const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte' } };
 
 function setup(query: Record<string, string> = {}) {
   const login = vi.fn();
@@ -164,6 +164,21 @@ describe('LoginPage', () => {
     type(el, '#password', 'secreta');
     submit(fixture);
     expect(el.querySelector('[role="alert"]')?.textContent).toContain('No pudimos conectar con el servidor');
+    expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+  });
+
+  it('403 ESTABLISHMENT_INACTIVE shows the inactive-establishment banner, not the connection one', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_INACTIVE', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]')?.textContent;
+    expect(alert).toContain('Tu establecimiento está inactivo');
+    expect(alert).toContain('Pedile al administrador de la plataforma que lo reactive.');
+    expect(alert).not.toContain('No pudimos conectar con el servidor');
     expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
   });
 

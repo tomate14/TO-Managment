@@ -7,8 +7,15 @@
     </div>
   </div>
 
+  @if (establishmentName(); as name) {
+    <div class="side-nav__establishment">
+      <small class="side-nav__establishment-label">Establecimiento</small>
+      <span class="side-nav__establishment-name">{{ name }}</span>
+    </div>
+  }
+
   <div class="side-nav__links">
-    @for (item of items; track item.path) {
+    @for (item of items(); track item.path) {
       <a
         class="side-nav__link"
         [routerLink]="item.path"
@@ -25,13 +32,18 @@
           @case ('templates') {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"></rect><path d="M9 3h6v3H9z"></path><path d="M9 11h6M9 15h6M9 19h3"></path></svg>
           }
+          @case ('establishment') {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>
+          }
         }{{ item.label }}</a>
     }
   </div>
 
-  @if (user()?.role === 'ADMIN') {
+  @if (showAdmin()) {
     <div class="side-nav__links">
       <p class="side-nav__section">Administración</p>
+      <a class="side-nav__link" routerLink="/establecimiento" routerLinkActive="is-active" ariaCurrentWhenActive="page">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>Establecimiento</a>
       <a class="side-nav__link" routerLink="/usuarios" routerLinkActive="is-active" ariaCurrentWhenActive="page">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Usuarios</a>
       <a class="side-nav__link" routerLink="/catalogos" routerLinkActive="is-active" ariaCurrentWhenActive="page">

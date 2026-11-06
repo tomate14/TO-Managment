@@ -10,10 +10,12 @@ import java.time.Instant;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.dto.ChangePasswordRequest;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -38,7 +40,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class ChangePasswordTest {
 
     private static final String PASSWORD_URL = "/api/auth/password";
@@ -55,22 +57,28 @@ class ChangePasswordTest {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTables testTables;
+
+    @Autowired
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private Long establishmentId;
     private User therapist;
 
     @BeforeEach
     void seedUser() {
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
         therapist = userRepository.save(User.builder()
                 .email("ana@consultorio.com")
                 .passwordHash(passwordEncoder.encode(CURRENT))
                 .fullName("Ana Pérez")
                 .role(Role.TERAPEUTA)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build());
     }
@@ -119,8 +127,8 @@ class ChangePasswordTest {
     }
 
     private MockHttpServletRequestBuilder authenticated(MockHttpServletRequestBuilder request) {
-        String token = tokenProvider.issue(new AuthenticatedUser(
-                therapist.getId(), therapist.getEmail(), therapist.getFullName(), therapist.getRole())).value();
+        String token = tenancy.tokenFor(new AuthenticatedUser(
+                therapist.getId(), therapist.getEmail(), therapist.getFullName(), therapist.getRole(), establishmentId));
         return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 

@@ -1,5 +1,8 @@
 package com.tomanagement.diagnosis.entity;
 
+import org.hibernate.annotations.TenantId;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -24,6 +27,10 @@ public abstract class Treatment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @Column(name = "establishment_id", nullable = false, updatable = false)
+    private Long establishmentId;
 
     protected Treatment() {
         // Required by JPA.

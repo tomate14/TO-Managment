@@ -24,7 +24,7 @@ describe('UserFormPage', () => {
       providers: [
         provideRouter([]),
         { provide: UsersService, useValue: usersService },
-        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'm@c.com', fullName: 'Mariana', role: 'ADMIN' }) } },
+        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'm@c.com', fullName: 'Mariana', role: 'ADMIN', establishment: { id: 1, name: 'Norte' } }) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id === null ? {} : { id }) } } },
       ],
     });
@@ -123,5 +123,11 @@ describe('UserFormPage', () => {
       el.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((radio) => expect(radio.disabled).toBe(true));
       expect(el.textContent).toContain('No podés cambiar tu propio rol.');
     });
+  });
+
+  it('offers only Admin and Terapeuta when creating users', () => {
+    const { el } = setup(null);
+    const labels = Array.from(el.querySelectorAll('.role-option__label')).map((l) => l.textContent?.trim());
+    expect(labels).toEqual(['Terapeuta', 'Admin']);
   });
 });

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.common.exception.AccessDeniedApplicationException;
+import com.tomanagement.common.exception.InternalSystemException;
 import com.tomanagement.user.entity.Role;
 
 import org.junit.jupiter.api.Test;
@@ -16,12 +17,29 @@ import org.junit.jupiter.api.Test;
 class AppointmentVisibilityPolicyTest {
 
     private static final AuthenticatedUser ADMIN =
-            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN);
+            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN, null);
     private static final AuthenticatedUser THERAPIST =
-            new AuthenticatedUser(2L, "therapist@example.com", "Therapist", Role.TERAPEUTA);
+            new AuthenticatedUser(2L, "therapist@example.com", "Therapist", Role.TERAPEUTA, null);
 
     private final AppointmentVisibilityPolicyFactory factory = new AppointmentVisibilityPolicyFactory(
             List.of(new AdminVisibilityPolicy(), new TherapistVisibilityPolicy()));
+
+    @Test
+    void factoryFailsFastWhenARoleIsUnmapped() {
+        List<AppointmentVisibilityPolicy> onlyTherapist = List.of(new TherapistVisibilityPolicy());
+
+        assertThatThrownBy(() -> new AppointmentVisibilityPolicyFactory(onlyTherapist))
+                .isInstanceOf(InternalSystemException.class);
+    }
+
+    @Test
+    void factoryFailsFastWhenARoleIsMappedTwice() {
+        List<AppointmentVisibilityPolicy> duplicated = List.of(
+                new AdminVisibilityPolicy(), new AdminVisibilityPolicy(), new TherapistVisibilityPolicy());
+
+        assertThatThrownBy(() -> new AppointmentVisibilityPolicyFactory(duplicated))
+                .isInstanceOf(InternalSystemException.class);
+    }
 
     @Test
     void adminSeesEveryoneOrTheRequestedTherapists() {
@@ -42,6 +60,15 @@ class AppointmentVisibilityPolicyTest {
         assertThatCode(() -> policy.checkCanManage(THERAPIST, THERAPIST.id())).doesNotThrowAnyException();
         assertThatThrownBy(() -> policy.checkCanManage(THERAPIST, 99L))
                 .isInstanceOf(AccessDeniedApplicationException.class);
+    }
+
+    @Test
+    void aSuperadminInsideAnEstablishmentGetsTheAdminPolicy() {
+        AuthenticatedUser superadmin = new AuthenticatedUser(3L, "root@example.com", "Root", Role.SUPERADMIN, 10L);
+        AppointmentVisibilityPolicy policy = factory.forRole(Role.SUPERADMIN);
+        assertThat(policy).isSameAs(factory.forRole(Role.ADMIN));
+        assertThat(policy.visibleTherapists(superadmin, Set.of())).isEmpty();
+        assertThatCode(() -> policy.checkCanManage(superadmin, 99L)).doesNotThrowAnyException();
     }
 
     @Test

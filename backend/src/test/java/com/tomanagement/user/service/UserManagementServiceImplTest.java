@@ -20,6 +20,7 @@ import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.DuplicateResourceException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.common.exception.ResourceNotFoundException;
+import com.tomanagement.tenant.CurrentEstablishmentProvider;
 import com.tomanagement.user.dto.CreateUserRequest;
 import com.tomanagement.user.dto.UpdateUserRequest;
 import com.tomanagement.user.dto.UserResponse;
@@ -39,6 +40,7 @@ class UserManagementServiceImplTest {
     private static final Instant NOW = Instant.parse("2026-11-04T12:00:00Z");
     private static final Long ADMIN_ID = 1L;
     private static final Long THERAPIST_ID = 2L;
+    private static final Long ESTABLISHMENT_ID = 10L;
 
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
@@ -48,12 +50,15 @@ class UserManagementServiceImplTest {
     void setUp() {
         userRepository = mock(UserRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
-        service = new UserManagementServiceImpl(userRepository, passwordEncoder, Clock.fixed(NOW, ZoneOffset.UTC));
+        CurrentEstablishmentProvider currentEstablishment = mock(CurrentEstablishmentProvider.class);
+        when(currentEstablishment.requireEstablishmentId()).thenReturn(ESTABLISHMENT_ID);
+        service = new UserManagementServiceImpl(userRepository, passwordEncoder, currentEstablishment,
+                Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test
-    void listsUsersOrderedByTheRepository() {
-        when(userRepository.findAllByOrderByFullNameAsc())
+    void listsTheUsersOfTheSessionEstablishmentOrderedByTheRepository() {
+        when(userRepository.findAllByEstablishmentIdOrderByFullNameAsc(ESTABLISHMENT_ID))
                 .thenReturn(List.of(user(ADMIN_ID, Role.ADMIN, true), user(THERAPIST_ID, Role.TERAPEUTA, false)));
 
         assertThat(service.list()).extracting(UserResponse::id, UserResponse::active)
@@ -78,6 +83,7 @@ class UserManagementServiceImplTest {
             assertThat(user.getRole()).isEqualTo(Role.TERAPEUTA);
             assertThat(user.isActive()).isTrue();
             assertThat(user.getCreatedAt()).isEqualTo(NOW);
+            assertThat(user.getEstablishmentId()).isEqualTo(ESTABLISHMENT_ID);
         });
         assertThat(created.active()).isTrue();
     }
@@ -109,7 +115,8 @@ class UserManagementServiceImplTest {
     @Test
     void updatesNameAndRoleOfAnotherUser() {
         User therapist = user(THERAPIST_ID, Role.TERAPEUTA, true);
-        when(userRepository.findById(THERAPIST_ID)).thenReturn(Optional.of(therapist));
+        when(userRepository.findByIdAndEstablishmentId(THERAPIST_ID, ESTABLISHMENT_ID))
+                .thenReturn(Optional.of(therapist));
 
         UserResponse updated = service.update(THERAPIST_ID, new UpdateUserRequest("Carla R. Ríos", Role.ADMIN), ADMIN_ID);
 
@@ -119,7 +126,8 @@ class UserManagementServiceImplTest {
 
     @Test
     void anAdminCanRenameHerselfButNotChangeHerOwnRole() {
-        when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(user(ADMIN_ID, Role.ADMIN, true)));
+        when(userRepository.findByIdAndEstablishmentId(ADMIN_ID, ESTABLISHMENT_ID))
+                .thenReturn(Optional.of(user(ADMIN_ID, Role.ADMIN, true)));
 
         assertThat(service.update(ADMIN_ID, new UpdateUserRequest("Mariana G.", Role.ADMIN), ADMIN_ID).fullName())
                 .isEqualTo("Mariana G.");
@@ -132,7 +140,8 @@ class UserManagementServiceImplTest {
     @Test
     void deactivatesAndReactivatesAnotherUser() {
         User therapist = user(THERAPIST_ID, Role.TERAPEUTA, true);
-        when(userRepository.findById(THERAPIST_ID)).thenReturn(Optional.of(therapist));
+        when(userRepository.findByIdAndEstablishmentId(THERAPIST_ID, ESTABLISHMENT_ID))
+                .thenReturn(Optional.of(therapist));
 
         assertThat(service.changeActive(THERAPIST_ID, false, ADMIN_ID).active()).isFalse();
         assertThat(service.changeActive(THERAPIST_ID, true, ADMIN_ID).active()).isTrue();
@@ -141,7 +150,8 @@ class UserManagementServiceImplTest {
     @Test
     void anAdminCannotDeactivateHerself() {
         User admin = user(ADMIN_ID, Role.ADMIN, true);
-        when(userRepository.findById(ADMIN_ID)).thenReturn(Optional.of(admin));
+        when(userRepository.findByIdAndEstablishmentId(ADMIN_ID, ESTABLISHMENT_ID))
+                .thenReturn(Optional.of(admin));
 
         assertThatThrownBy(() -> service.changeActive(ADMIN_ID, false, ADMIN_ID))
                 .isInstanceOf(BusinessRuleException.class)
@@ -152,12 +162,25 @@ class UserManagementServiceImplTest {
 
     @Test
     void unknownUsersAreNotFound() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findByIdAndEstablishmentId(99L, ESTABLISHMENT_ID))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.get(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    void usersOfAnotherEstablishmentAreNotFound() {
+        when(userRepository.findByIdAndEstablishmentId(THERAPIST_ID, ESTABLISHMENT_ID))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(THERAPIST_ID, new UpdateUserRequest("Carla", Role.ADMIN), ADMIN_ID))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .extracting(error -> ((ApplicationException) error).getErrorCode())
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, never()).findById(THERAPIST_ID);
     }
 
     @Test
@@ -174,6 +197,7 @@ class UserManagementServiceImplTest {
                 .role(role)
                 .active(active)
                 .createdAt(NOW)
+                .establishmentId(ESTABLISHMENT_ID)
                 .build();
         ReflectionTestUtils.setField(user, "id", id);
         return user;

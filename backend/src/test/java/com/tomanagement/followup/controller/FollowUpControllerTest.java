@@ -16,9 +16,9 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.catalog.entity.BodySegment;
 import com.tomanagement.catalog.entity.ScarType;
 import com.tomanagement.catalog.entity.SurgeryType;
@@ -63,10 +63,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, TestTables.class})
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class FollowUpControllerTest {
 
-    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA);
 
     @Autowired
     private MockMvc mockMvc;
@@ -96,7 +95,7 @@ class FollowUpControllerTest {
     private QuestionRepository questionRepository;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -111,11 +110,19 @@ class FollowUpControllerTest {
     private Question splint;
     private Question hours;
     private Question grip;
+    private AuthenticatedUser therapist;
 
     @BeforeEach
     void seed() {
         testTables.truncate(TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT,
-                TestTable.EVALUATION_TEMPLATE, TestTable.BODY_SEGMENT, TestTable.SCAR_TYPE, TestTable.SURGERY_TYPE);
+                TestTable.EVALUATION_TEMPLATE, TestTable.BODY_SEGMENT, TestTable.SCAR_TYPE, TestTable.SURGERY_TYPE,
+                TestTable.ESTABLISHMENT);
+        Long establishmentId = tenancy.create("Consultorio").getId();
+        therapist = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, establishmentId);
+        tenancy.runAs(establishmentId, this::seedData);
+    }
+
+    private void seedData() {
         Patient lucia = patientRepository.save(Patient.builder()
                 .dni("30123456")
                 .data(new PatientData("Lucía", "Fernández", LocalDate.of(1984, 3, 21), "249 412-3456", "Docente", "OSDE",
@@ -322,7 +329,7 @@ class FollowUpControllerTest {
     }
 
     private ResultActions perform(MockHttpServletRequestBuilder request) throws Exception {
-        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.issue(THERAPIST).value()));
+        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tenancy.tokenFor(therapist)));
     }
 
     private String json(Map<String, ?> body) throws Exception {
