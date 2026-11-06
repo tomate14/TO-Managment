@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.appointment.entity.Appointment;
 import com.tomanagement.appointment.entity.AppointmentDuration;
@@ -31,11 +32,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Appointment persistence and the database overlap guarantees (É7), against a real Postgres.
+ * Appointment persistence and the database overlap guarantees (É7), against a real Postgres. Repository calls run
+ * under the test establishment (outside a request the tenant would otherwise be NONE).
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, TestTables.class})
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class AppointmentRepositoryTest {
 
     @Autowired
@@ -50,24 +52,32 @@ class AppointmentRepositoryTest {
     @Autowired
     private TestTables testTables;
 
+    @Autowired
+    private TestTenancy tenancy;
+
+    private Long establishmentId;
     private User therapist;
     private Patient lucia;
     private Patient diego;
 
     @BeforeEach
     void seed() {
-        testTables.truncate(TestTable.APPOINTMENT, TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT);
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APPOINTMENT, TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT,
+                TestTable.PATIENT, TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
         therapist = userRepository.save(User.builder()
                 .email("ana@consultorio.com")
                 .passwordHash("x".repeat(60))
                 .fullName("Ana Terapeuta")
                 .role(Role.TERAPEUTA)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build());
-        lucia = patient("30123456", "Lucía");
-        diego = patient("28999888", "Diego");
+        tenancy.runAs(establishmentId, () -> {
+            lucia = patient("30123456", "Lucía");
+            diego = patient("28999888", "Diego");
+        });
     }
 
     @AfterEach
@@ -77,26 +87,32 @@ class AppointmentRepositoryTest {
 
     @Test
     void theDatabaseRejectsOverlappingAppointmentsOfTheSameTherapist() {
-        appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_60));
-        assertThatThrownBy(() -> appointmentRepository.saveAndFlush(
-                appointment(therapist, diego, at("2026-11-10T10:30"), AppointmentDuration.MINUTES_30)))
-                .isInstanceOf(DataIntegrityViolationException.class)
-                .hasMessageContaining(OverlapConstraint.THERAPIST.getConstraintName());
+        tenancy.runAs(establishmentId, () -> {
+            appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_60));
+            assertThatThrownBy(() -> appointmentRepository.saveAndFlush(
+                    appointment(therapist, diego, at("2026-11-10T10:30"), AppointmentDuration.MINUTES_30)))
+                    .isInstanceOf(DataIntegrityViolationException.class)
+                    .hasMessageContaining(OverlapConstraint.THERAPIST.getConstraintName());
+        });
     }
 
     @Test
     void backToBackAppointmentsAreAllowed() {
-        appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_30));
-        appointmentRepository.saveAndFlush(appointment(therapist, diego, at("2026-11-10T10:30"), AppointmentDuration.MINUTES_30));
-        assertThat(appointmentRepository.count()).isEqualTo(2);
+        tenancy.runAs(establishmentId, () -> {
+            appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_30));
+            appointmentRepository.saveAndFlush(appointment(therapist, diego, at("2026-11-10T10:30"), AppointmentDuration.MINUTES_30));
+            assertThat(appointmentRepository.count()).isEqualTo(2);
+        });
     }
 
     @Test
     void overlapQueriesIgnoreTheExcludedAppointment() {
-        Appointment saved = appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_60));
-        assertThat(appointmentRepository.existsOverlapForTherapist(therapist.getId(), at("2026-11-10T10:30"), at("2026-11-10T11:00"), null)).isTrue();
-        assertThat(appointmentRepository.existsOverlapForTherapist(therapist.getId(), at("2026-11-10T10:30"), at("2026-11-10T11:00"), saved.getId())).isFalse();
-        assertThat(appointmentRepository.existsOverlapForPatient(lucia.getId(), at("2026-11-10T11:00"), at("2026-11-10T11:30"), null)).isFalse();
+        tenancy.runAs(establishmentId, () -> {
+            Appointment saved = appointmentRepository.saveAndFlush(appointment(therapist, lucia, at("2026-11-10T10:00"), AppointmentDuration.MINUTES_60));
+            assertThat(appointmentRepository.existsOverlapForTherapist(therapist.getId(), at("2026-11-10T10:30"), at("2026-11-10T11:00"), null)).isTrue();
+            assertThat(appointmentRepository.existsOverlapForTherapist(therapist.getId(), at("2026-11-10T10:30"), at("2026-11-10T11:00"), saved.getId())).isFalse();
+            assertThat(appointmentRepository.existsOverlapForPatient(lucia.getId(), at("2026-11-10T11:00"), at("2026-11-10T11:30"), null)).isFalse();
+        });
     }
 
     private Patient patient(String dni, String firstName) {

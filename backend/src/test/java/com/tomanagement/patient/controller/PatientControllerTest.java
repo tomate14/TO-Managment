@@ -14,9 +14,9 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.user.entity.Role;
 
@@ -42,13 +42,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestcontainersConfiguration.class, TestTables.class})
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 @ExtendWith(OutputCaptureExtension.class)
 class PatientControllerTest {
 
     private static final String PATIENTS = "/api/patients";
-    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, null);
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -56,14 +54,18 @@ class PatientControllerTest {
     private TestTables testTables;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private AuthenticatedUser therapist;
+
     @BeforeEach
     void cleanUp() {
-        testTables.truncate(TestTable.PATIENT);
+        testTables.truncate(TestTable.PATIENT, TestTable.ESTABLISHMENT);
+        Long establishmentId = tenancy.create("Consultorio").getId();
+        therapist = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, establishmentId);
     }
 
     @Test
@@ -181,7 +183,7 @@ class PatientControllerTest {
     }
 
     private ResultActions perform(MockHttpServletRequestBuilder request) throws Exception {
-        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenProvider.issue(THERAPIST).value()));
+        return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, "Bearer " + tenancy.tokenFor(therapist)));
     }
 
     private String json(Map<String, ?> body) throws Exception {

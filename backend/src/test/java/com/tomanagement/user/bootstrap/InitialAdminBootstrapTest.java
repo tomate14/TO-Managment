@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -23,7 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class InitialAdminBootstrapTest {
 
     private static final String CONFIGURED_EMAIL = "admin.inicial@consultorio.com";
@@ -37,9 +40,18 @@ class InitialAdminBootstrapTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private TestTables testTables;
+
+    @Autowired
+    private TestTenancy tenancy;
+
+    private Long establishmentId;
+
     @BeforeEach
     void cleanUp() {
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
     }
 
     @Test
@@ -87,13 +99,14 @@ class InitialAdminBootstrapTest {
         bootstrap.run(new DefaultApplicationArguments());
     }
 
-    private static User user(String email, Role role) {
+    private User user(String email, Role role) {
         return User.builder()
                 .email(email)
                 .passwordHash("$2a$10$abcdefghijklmnopqrstuuJ8zJ2mOBs3m5yYyX0qQ2w8oVXl1K1aG")
                 .fullName("Otra Persona")
                 .role(role)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build();
     }

@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -21,7 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class UserRepositoryTest {
 
     @Autowired
@@ -33,9 +36,18 @@ class UserRepositoryTest {
     @Value("${APP_DB_SCHEMA}")
     private String appSchema;
 
+    @Autowired
+    private TestTables testTables;
+
+    @Autowired
+    private TestTenancy tenancy;
+
+    private Long establishmentId;
+
     @BeforeEach
     void cleanUp() {
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
     }
 
     @Test
@@ -68,20 +80,22 @@ class UserRepositoryTest {
     @Test
     void findsUserInsertedWithMixedCaseEmailBypassingEntityNormalization() {
         jdbcTemplate.update(
-                "insert into " + appSchema + ".app_user (email, password_hash, full_name, role) values (?, ?, ?, ?)",
+                "insert into " + appSchema + ".app_user (email, password_hash, full_name, role, establishment_id)"
+                        + " values (?, ?, ?, ?, ?)",
                 "Ana.Perez@Consultorio.com", "$2a$10$abcdefghijklmnopqrstuuJ8zJ2mOBs3m5yYyX0qQ2w8oVXl1K1aG",
-                "Ana Pérez", Role.TERAPEUTA.name());
+                "Ana Pérez", Role.TERAPEUTA.name(), establishmentId);
 
         assertThat(userRepository.findByEmail("ana.perez@consultorio.com")).isPresent();
     }
 
-    private static User user(String email, Role role) {
+    private User user(String email, Role role) {
         return User.builder()
                 .email(email)
                 .passwordHash("$2a$10$abcdefghijklmnopqrstuuJ8zJ2mOBs3m5yYyX0qQ2w8oVXl1K1aG")
                 .fullName("Ana Pérez")
                 .role(role)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build();
     }

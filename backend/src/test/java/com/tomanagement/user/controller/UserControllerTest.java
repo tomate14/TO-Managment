@@ -12,9 +12,11 @@ import java.time.Instant;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
+import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -36,7 +38,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class, TestTenancy.class})
 class UserControllerTest {
 
     private static final String USERS = "/api/users";
@@ -52,17 +54,22 @@ class UserControllerTest {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private TokenProvider tokenProvider;
+    private TestTables testTables;
+
+    @Autowired
+    private TestTenancy tenancy;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private Long establishmentId;
     private User admin;
     private User therapist;
 
     @BeforeEach
     void seedUsers() {
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        establishmentId = tenancy.create("Consultorio").getId();
         admin = userRepository.save(user("mariana@consultorio.com", "Mariana Gómez", Role.ADMIN));
         therapist = userRepository.save(user("carla@consultorio.com", "Carla Ríos", Role.TERAPEUTA));
     }
@@ -176,8 +183,8 @@ class UserControllerTest {
     }
 
     private MockHttpServletRequestBuilder as(User user, MockHttpServletRequestBuilder request) {
-        String token = tokenProvider.issue(
-                new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole(), null)).value();
+        String token = tenancy.tokenFor(
+                new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole(), establishmentId));
         return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 
@@ -192,6 +199,7 @@ class UserControllerTest {
                 .fullName(fullName)
                 .role(role)
                 .active(true)
+                .establishmentId(establishmentId)
                 .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
                 .build();
     }

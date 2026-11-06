@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import com.tomanagement.catalog.entity.BodySegment;
 
+import org.hibernate.annotations.TenantId;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,6 +26,10 @@ public class EvaluationTemplate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @TenantId
+    @Column(name = "establishment_id", nullable = false, updatable = false)
+    private Long establishmentId;
 
     @Column(nullable = false, length = 120)
     private String name;
