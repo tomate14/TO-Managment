@@ -82,6 +82,9 @@ public class AuthServiceImpl implements AuthService {
             throw new AccessDeniedApplicationException();
         }
         User user = activeUser(actor.id());
+        if (user.getRole() != Role.SUPERADMIN) {
+            throw new AccessDeniedApplicationException();
+        }
         Establishment target = null;
         if (establishmentId != null) {
             target = establishmentRepository.findById(establishmentId)

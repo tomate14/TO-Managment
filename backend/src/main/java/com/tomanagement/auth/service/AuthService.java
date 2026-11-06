@@ -15,6 +15,9 @@ public interface AuthService {
     LoginResponse login(LoginRequest request);
 
     /**
+     * Returns the signed-in user; the establishment in the summary is the one carried by the token (so a superadmin
+     * who entered an establishment sees it).
+     *
      * @throws com.tomanagement.common.exception.AuthenticationFailedException AUTHENTICATION_REQUIRED when the user
      *         no longer exists or was deactivated
      */

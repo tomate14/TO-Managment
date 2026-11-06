@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
 import com.tomanagement.TestcontainersConfiguration;
+import com.tomanagement.auth.security.AuthenticatedUser;
+import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.establishment.entity.Establishment;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
@@ -42,7 +44,7 @@ import org.springframework.test.web.servlet.RequestBuilder;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestTables.class})
 @ExtendWith(OutputCaptureExtension.class)
 class AuthControllerTest {
 
@@ -63,6 +65,9 @@ class AuthControllerTest {
 
     @Autowired
     private TestTables testTables;
+
+    @Autowired
+    private TokenProvider tokenProvider;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -124,6 +129,17 @@ class AuthControllerTest {
     @Test
     void onlyTheSuperadminChangesEstablishment() throws Exception {
         mockMvc.perform(changeEstablishment(tokenFor("terapeuta@consultorio.com"), northId))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.name()));
+    }
+
+    @Test
+    void demotedSuperadminWithAStaleTokenCannotEnterAnEstablishment() throws Exception {
+        User demoted = userRepository.findByEmail("terapeuta@consultorio.com").orElseThrow();
+        String staleToken = tokenProvider.issue(new AuthenticatedUser(
+                demoted.getId(), demoted.getEmail(), demoted.getFullName(), Role.SUPERADMIN, null)).value();
+
+        mockMvc.perform(changeEstablishment(staleToken, northId))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.name()));
     }
