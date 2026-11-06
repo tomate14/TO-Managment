@@ -167,6 +167,21 @@ describe('LoginPage', () => {
     expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
   });
 
+  it('403 ESTABLISHMENT_INACTIVE shows the inactive-establishment banner, not the connection one', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_INACTIVE', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]')?.textContent;
+    expect(alert).toContain('Tu establecimiento está inactivo');
+    expect(alert).toContain('Pedile al administrador de la plataforma que lo reactive.');
+    expect(alert).not.toContain('No pudimos conectar con el servidor');
+    expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+  });
+
   it('shows the expired-session notice when arriving with ?sesion=vencida', () => {
     const { el } = setup({ sesion: 'vencida' });
     const notice = el.querySelector('[role="status"]');

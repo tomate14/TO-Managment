@@ -95,7 +95,7 @@ describe('EstablishmentForm', () => {
     const { fixture, el } = render();
     fillValid(el, fixture);
     submit(el, fixture);
-    expect(el.querySelector('#est-name-error')).toBeTruthy();
+    expect(el.querySelector('#est-name-error')?.textContent).toContain('Ya hay un establecimiento con ese nombre.');
   });
 
   it('emits cancelled from the Cancelar button', () => {

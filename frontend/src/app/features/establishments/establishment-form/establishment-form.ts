@@ -1,7 +1,7 @@
 import { Component, inject, output, signal } from '@angular/core';
 import { AbstractControl, FormControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
-import { ESTABLISHMENT_ERROR_CODES, EstablishmentSummary } from '../establishments.models';
+import { ESTABLISHMENT_ERROR_CODES, ESTABLISHMENT_NAME_TAKEN_MESSAGE, EstablishmentSummary } from '../establishments.models';
 import { EstablishmentsService } from '../establishments.service';
 
 type FieldName = 'name' | 'fullName' | 'email' | 'password';
@@ -57,7 +57,7 @@ export class EstablishmentForm {
   protected fieldError(field: FieldName): string | null {
     const control = this.form.controls[field];
     if (field === 'name' && this.nameTaken()) {
-      return 'Ya hay un establecimiento con ese nombre.';
+      return ESTABLISHMENT_NAME_TAKEN_MESSAGE;
     }
     if (field === 'email' && this.emailTaken()) {
       return 'Ya hay un usuario con este email.';

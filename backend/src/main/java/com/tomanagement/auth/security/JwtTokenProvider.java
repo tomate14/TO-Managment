@@ -69,14 +69,21 @@ public class JwtTokenProvider implements TokenProvider {
     public AuthenticatedUser parse(String token) {
         try {
             Claims claims = parser.parseSignedClaims(token).getPayload();
+            Role role = Role.valueOf(claims.get(TokenClaim.ROLE.getClaimName(), String.class));
+            Long establishmentId = Optional.ofNullable(
+                            claims.get(TokenClaim.ESTABLISHMENT.getClaimName(), Number.class))
+                    .map(Number::longValue)
+                    .orElse(null);
+            if (role.requiresEstablishment() && establishmentId == null) {
+                // Tokens minted before multi-tenancy carry no establishment and their user ids may be reused.
+                throw new AuthenticationFailedException(ErrorCode.AUTHENTICATION_REQUIRED);
+            }
             return new AuthenticatedUser(
                     Long.valueOf(claims.getSubject()),
                     claims.get(TokenClaim.EMAIL.getClaimName(), String.class),
                     claims.get(TokenClaim.FULL_NAME.getClaimName(), String.class),
-                    Role.valueOf(claims.get(TokenClaim.ROLE.getClaimName(), String.class)),
-                    Optional.ofNullable(claims.get(TokenClaim.ESTABLISHMENT.getClaimName(), Number.class))
-                            .map(Number::longValue)
-                            .orElse(null));
+                    role,
+                    establishmentId);
         } catch (ExpiredJwtException expired) {
             throw new AuthenticationFailedException(ErrorCode.TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException invalid) {

@@ -5,7 +5,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Thread-local tenant override for system work (seeding an establishment) and tests. The override is scoped to the
+ * Thread-local tenant override for tests and future system jobs. It is not used by the establishment seeder (which
+ * writes through JDBC with an explicit establishment_id) and is only effective when it wraps the whole
+ * transaction/session boundary, because the tenant is resolved when the session opens. The override is scoped to the
  * given work and the previous value is always restored, so it never leaks into later work on the same thread.
  */
 public final class TenantContext {

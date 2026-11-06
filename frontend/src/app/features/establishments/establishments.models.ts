@@ -22,6 +22,9 @@ export interface CreateEstablishmentPayload {
   };
 }
 
+/** Copy shown when an establishment name is already used. */
+export const ESTABLISHMENT_NAME_TAKEN_MESSAGE = 'Ya hay un establecimiento con ese nombre.';
+
 /** Backend error codes these screens react to. */
 export const ESTABLISHMENT_ERROR_CODES = {
   nameTaken: 'ESTABLISHMENT_NAME_TAKEN',

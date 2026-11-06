@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class SecurityIntegrationTest {
 
     private static final AuthenticatedUser THERAPIST =
-            new AuthenticatedUser(1L, "ana@consultorio.com", "Ana Pérez", Role.TERAPEUTA, null);
+            new AuthenticatedUser(1L, "ana@consultorio.com", "Ana Pérez", Role.TERAPEUTA, 1L);
 
     @Autowired
     private MockMvc mockMvc;

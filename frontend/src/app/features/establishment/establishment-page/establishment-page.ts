@@ -3,12 +3,11 @@ import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, Validatio
 import { RouterLink } from '@angular/router';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
-import { ESTABLISHMENT_ERROR_CODES } from '../../establishments/establishments.models';
+import { ESTABLISHMENT_ERROR_CODES, ESTABLISHMENT_NAME_TAKEN_MESSAGE } from '../../establishments/establishments.models';
 import { formatDate } from '../../patients/patient-format';
 import { CurrentEstablishment, CurrentEstablishmentService } from '../current-establishment.service';
 
 const MAX_NAME = 120;
-const NAME_TAKEN_MESSAGE = 'Ya hay un establecimiento con ese nombre.';
 const LOAD_ERROR = 'No pudimos cargar el establecimiento. Intentá de nuevo.';
 const SAVE_ERROR = 'No pudimos guardar los cambios. Intentá de nuevo.';
 
@@ -69,7 +68,7 @@ export class EstablishmentPage implements OnInit {
   protected nameError(): string | null {
     const control = this.form.controls.name;
     if (this.nameTaken()) {
-      return NAME_TAKEN_MESSAGE;
+      return ESTABLISHMENT_NAME_TAKEN_MESSAGE;
     }
     if ((!this.submitted() && !control.touched) || control.valid) {
       return null;

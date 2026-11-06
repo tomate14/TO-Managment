@@ -230,6 +230,17 @@ class AuthControllerTest {
     }
 
     @Test
+    void meWithAnAdminTokenLackingAnEstablishmentReturns401() throws Exception {
+        User therapist = userRepository.findByEmail("terapeuta@consultorio.com").orElseThrow();
+        String legacyToken = tokenProvider.issue(new AuthenticatedUser(
+                therapist.getId(), therapist.getEmail(), therapist.getFullName(), Role.ADMIN, null)).value();
+
+        mockMvc.perform(get(ME).header(HttpHeaders.AUTHORIZATION, "Bearer " + legacyToken))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(ErrorCode.AUTHENTICATION_REQUIRED.name()));
+    }
+
+    @Test
     void meWithoutTokenReturns401() throws Exception {
         mockMvc.perform(get(ME))
                 .andExpect(status().isUnauthorized())

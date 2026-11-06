@@ -7,14 +7,13 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { injectIsDesktop } from '../../../layout/desktop-media';
 import { userInitials } from '../../../layout/user-initials';
 import { EstablishmentForm } from '../establishment-form/establishment-form';
-import { ESTABLISHMENT_ERROR_CODES, EstablishmentSummary } from '../establishments.models';
+import { ESTABLISHMENT_ERROR_CODES, ESTABLISHMENT_NAME_TAKEN_MESSAGE, EstablishmentSummary } from '../establishments.models';
 import { EstablishmentsService } from '../establishments.service';
 
 const NEW_URL = '/establecimientos/nuevo';
 const HOME_URL = '/pacientes';
 const MAX_NAME = 120;
 const BLANK_MESSAGE = 'Ingresá un nombre.';
-const TAKEN_MESSAGE = 'Ya hay un establecimiento con ese nombre.';
 const LOAD_ERROR = 'No pudimos cargar los establecimientos. Intentá de nuevo en unos minutos.';
 const SAVE_ERROR = 'No pudimos guardar el cambio. Intentá de nuevo.';
 const ENTER_ERROR = 'No pudimos entrar al establecimiento. Intentá de nuevo.';
@@ -107,7 +106,7 @@ export class EstablishmentsPage {
       error: (err: unknown) => {
         this.setPending(item.id, false);
         this.editError.set(
-          apiErrorCode(err) === ESTABLISHMENT_ERROR_CODES.nameTaken ? TAKEN_MESSAGE : (apiErrorMessage(err) ?? SAVE_ERROR),
+          apiErrorCode(err) === ESTABLISHMENT_ERROR_CODES.nameTaken ? ESTABLISHMENT_NAME_TAKEN_MESSAGE : (apiErrorMessage(err) ?? SAVE_ERROR),
         );
       },
     });

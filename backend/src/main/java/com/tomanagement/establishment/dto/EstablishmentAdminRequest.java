@@ -4,6 +4,7 @@ import com.tomanagement.user.entity.EmailNormalizer;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -15,7 +16,7 @@ public record EstablishmentAdminRequest(
         String fullName,
         @NotBlank(message = "Ingresá el email.") @Email(message = "Ingresá un email válido.")
         @Size(max = 254, message = "El email es demasiado largo.") String email,
-        @NotBlank(message = "Ingresá la contraseña inicial.")
+        @NotNull(message = "Ingresá la contraseña inicial.")
         @Size(min = 8, max = 72, message = "La contraseña tiene que tener entre 8 y 72 caracteres.") String password) {
 
     public EstablishmentAdminRequest {

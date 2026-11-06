@@ -21,7 +21,7 @@ class JwtTokenProviderTest {
     private static final JwtProperties PROPERTIES =
             new JwtProperties("test-secret-for-unit-and-integration-tests-only-0123456789abcdef", 3_600_000L);
     private static final AuthenticatedUser USER =
-            new AuthenticatedUser(7L, "ana@consultorio.com", "Ana Pérez", Role.TERAPEUTA, null);
+            new AuthenticatedUser(7L, "ana@consultorio.com", "Ana Pérez", Role.TERAPEUTA, 3L);
 
     private final TokenProvider provider = new JwtTokenProvider(PROPERTIES, Clock.fixed(NOW, ZoneOffset.UTC));
 
@@ -47,6 +47,14 @@ class JwtTokenProviderTest {
                 provider.issue(new AuthenticatedUser(1L, "r@x.com", "Root", Role.SUPERADMIN, null)).value());
 
         assertThat(parsed.establishmentId()).isNull();
+    }
+
+    @Test
+    void tokenWithoutEstablishmentIsRejectedForRolesThatRequireOne() {
+        assertRequiresAuthentication(provider.issue(
+                new AuthenticatedUser(7L, "a@x.com", "Ana", Role.ADMIN, null)).value());
+        assertRequiresAuthentication(provider.issue(
+                new AuthenticatedUser(8L, "b@x.com", "Beto", Role.TERAPEUTA, null)).value());
     }
 
     @Test
