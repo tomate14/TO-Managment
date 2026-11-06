@@ -265,7 +265,7 @@ class AppointmentControllerTest {
     }
 
     private static AuthenticatedUser actor(User user) {
-        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
+        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole(), null);
     }
 
     private Patient patient(String dni, String firstName, String lastName) {

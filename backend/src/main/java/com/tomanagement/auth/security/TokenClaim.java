@@ -7,7 +7,8 @@ public enum TokenClaim {
 
     EMAIL("email"),
     FULL_NAME("name"),
-    ROLE("role");
+    ROLE("role"),
+    ESTABLISHMENT("est");
 
     private final String claimName;
 

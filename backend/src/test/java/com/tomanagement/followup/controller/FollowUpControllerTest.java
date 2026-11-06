@@ -66,7 +66,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @Import({TestcontainersConfiguration.class, TestTables.class})
 class FollowUpControllerTest {
 
-    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA);
+    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, null);
 
     @Autowired
     private MockMvc mockMvc;

@@ -12,8 +12,12 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tomanagement.TestTable;
+import com.tomanagement.TestTables;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
@@ -44,7 +48,9 @@ class AuthControllerTest {
 
     private static final String LOGIN = "/api/auth/login";
     private static final String ME = "/api/auth/me";
+    private static final String ESTABLISHMENT = "/api/auth/establishment";
     private static final String PASSWORD = "Contrasena-Segura-1";
+    private static final Instant CREATED_AT = Instant.parse("2026-11-04T12:00:00Z");
 
     @Autowired
     private MockMvc mockMvc;
@@ -53,16 +59,94 @@ class AuthControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private EstablishmentRepository establishmentRepository;
+
+    @Autowired
+    private TestTables testTables;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private Long northId;
+
     @BeforeEach
     void seedUsers() {
-        userRepository.deleteAll();
+        testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
+        northId = establishmentRepository.save(new Establishment("Consultorio Norte", CREATED_AT)).getId();
         userRepository.save(user("terapeuta@consultorio.com", "Ana Pérez", Role.TERAPEUTA, true));
         userRepository.save(user("inactiva@consultorio.com", "Inés Baja", Role.TERAPEUTA, false));
+    }
+
+    @Test
+    void loginReturnsTheEstablishment() throws Exception {
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.establishment.id").value(northId))
+                .andExpect(jsonPath("$.user.establishment.name").value("Consultorio Norte"));
+    }
+
+    @Test
+    void usersOfAnInactiveEstablishmentCannotLogIn() throws Exception {
+        deactivateNorth();
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
+    void superadminEntersAndLeavesAnEstablishment() throws Exception {
+        userRepository.save(superadmin());
+        String outside = tokenFor("root@plataforma.com");
+
+        mockMvc.perform(get(ME).header(HttpHeaders.AUTHORIZATION, "Bearer " + outside))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.establishment").doesNotExist());
+
+        MvcResult entered = mockMvc.perform(changeEstablishment(outside, northId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.establishment.id").value(northId))
+                .andReturn();
+        String inside = objectMapper.readTree(entered.getResponse().getContentAsString()).get("token").asText();
+
+        mockMvc.perform(get(ME).header(HttpHeaders.AUTHORIZATION, "Bearer " + inside))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.establishment.id").value(northId));
+
+        mockMvc.perform(changeEstablishment(inside, null))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.establishment").doesNotExist());
+    }
+
+    @Test
+    void onlyTheSuperadminChangesEstablishment() throws Exception {
+        mockMvc.perform(changeEstablishment(tokenFor("terapeuta@consultorio.com"), northId))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.name()));
+    }
+
+    @Test
+    void superadminCannotEnterAnInactiveEstablishment() throws Exception {
+        userRepository.save(superadmin());
+        String outside = tokenFor("root@plataforma.com");
+        deactivateNorth();
+
+        mockMvc.perform(changeEstablishment(outside, northId))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
+    void superadminCannotEnterAnUnknownEstablishment() throws Exception {
+        userRepository.save(superadmin());
+        String outside = tokenFor("root@plataforma.com");
+
+        mockMvc.perform(changeEstablishment(outside, northId + 1000))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_NOT_FOUND.name()));
     }
 
     @Test
@@ -165,6 +249,32 @@ class AuthControllerTest {
         return objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
     }
 
+    private RequestBuilder changeEstablishment(String token, Long establishmentId) throws Exception {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("establishmentId", establishmentId);
+        return post(ESTABLISHMENT)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body));
+    }
+
+    private void deactivateNorth() {
+        Establishment north = establishmentRepository.findById(northId).orElseThrow();
+        north.changeActive(false);
+        establishmentRepository.save(north);
+    }
+
+    private User superadmin() {
+        return User.builder()
+                .email("root@plataforma.com")
+                .passwordHash(passwordEncoder.encode(PASSWORD))
+                .fullName("Root")
+                .role(Role.SUPERADMIN)
+                .active(true)
+                .createdAt(CREATED_AT)
+                .build();
+    }
+
     private User user(String email, String fullName, Role role, boolean active) {
         return User.builder()
                 .email(email)
@@ -172,7 +282,8 @@ class AuthControllerTest {
                 .fullName(fullName)
                 .role(role)
                 .active(active)
-                .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
+                .establishmentId(northId)
+                .createdAt(CREATED_AT)
                 .build();
     }
 }

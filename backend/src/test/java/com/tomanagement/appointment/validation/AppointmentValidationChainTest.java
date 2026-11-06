@@ -60,7 +60,7 @@ class AppointmentValidationChainTest {
         therapist = user(2L, true);
         lucia = patient(10L, "Lucía");
         diego = patient(11L, "Diego");
-        admin = new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN);
+        admin = new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN, null);
     }
 
     @ParameterizedTest
@@ -110,7 +110,7 @@ class AppointmentValidationChainTest {
 
     @Test
     void aTherapistCannotBookAnotherTherapistsAgenda() {
-        AuthenticatedUser other = new AuthenticatedUser(99L, "other@example.com", "Other", Role.TERAPEUTA);
+        AuthenticatedUser other = new AuthenticatedUser(99L, "other@example.com", "Other", Role.TERAPEUTA, null);
         AppointmentValidationContext context =
                 new AppointmentValidationContext(other, draft(LocalDateTime.parse("2026-11-10T10:30"), 30));
         assertThatThrownBy(() -> chain.validate(context)).isInstanceOf(AccessDeniedApplicationException.class);

@@ -16,9 +16,9 @@ import org.junit.jupiter.api.Test;
 class AppointmentVisibilityPolicyTest {
 
     private static final AuthenticatedUser ADMIN =
-            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN);
+            new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN, null);
     private static final AuthenticatedUser THERAPIST =
-            new AuthenticatedUser(2L, "therapist@example.com", "Therapist", Role.TERAPEUTA);
+            new AuthenticatedUser(2L, "therapist@example.com", "Therapist", Role.TERAPEUTA, null);
 
     private final AppointmentVisibilityPolicyFactory factory = new AppointmentVisibilityPolicyFactory(
             List.of(new AdminVisibilityPolicy(), new TherapistVisibilityPolicy()));

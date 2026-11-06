@@ -47,7 +47,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 class TemplateControllerTest {
 
     private static final String TEMPLATES = "/api/templates";
-    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA);
+    private static final AuthenticatedUser THERAPIST = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, null);
 
     @Autowired
     private MockMvc mockMvc;

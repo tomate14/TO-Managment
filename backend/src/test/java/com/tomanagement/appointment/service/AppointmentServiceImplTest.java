@@ -41,7 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 class AppointmentServiceImplTest {
 
-    private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN);
+    private static final AuthenticatedUser ADMIN = new AuthenticatedUser(1L, "admin@example.com", "Admin", Role.ADMIN, null);
 
     private final AppointmentRepository appointmentRepository = mock(AppointmentRepository.class);
     private final UserRepository userRepository = mock(UserRepository.class);

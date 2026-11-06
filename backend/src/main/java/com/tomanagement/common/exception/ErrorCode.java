@@ -72,6 +72,10 @@ public enum ErrorCode {
     PATIENT_BUSY(HttpStatus.CONFLICT, "El paciente ya tiene un turno en ese horario."),
     DIAGNOSIS_NOT_OF_PATIENT(HttpStatus.UNPROCESSABLE_ENTITY, "El diagnóstico no es de ese paciente."),
     THERAPIST_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese terapeuta está inactivo: elegí uno activo."),
+    ESTABLISHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El establecimiento no existe."),
+    ESTABLISHMENT_NAME_TAKEN(HttpStatus.CONFLICT, "Ya hay un establecimiento con ese nombre."),
+    ESTABLISHMENT_INACTIVE(HttpStatus.FORBIDDEN, "El establecimiento está inactivo."),
+    ESTABLISHMENT_REQUIRED(HttpStatus.FORBIDDEN, "Elegí un establecimiento para continuar."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

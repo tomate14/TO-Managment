@@ -177,7 +177,7 @@ class UserControllerTest {
 
     private MockHttpServletRequestBuilder as(User user, MockHttpServletRequestBuilder request) {
         String token = tokenProvider.issue(
-                new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole())).value();
+                new AuthenticatedUser(user.getId(), user.getEmail(), user.getFullName(), user.getRole(), null)).value();
         return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 

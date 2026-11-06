@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.crypto.SecretKey;
 
@@ -14,6 +15,7 @@ import com.tomanagement.user.entity.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -47,11 +49,15 @@ public class JwtTokenProvider implements TokenProvider {
     public IssuedToken issue(AuthenticatedUser user) {
         Instant issuedAt = clock.instant();
         Instant expiresAt = issuedAt.plusMillis(expirationMs);
-        String value = Jwts.builder()
+        JwtBuilder builder = Jwts.builder()
                 .subject(String.valueOf(user.id()))
                 .claim(TokenClaim.EMAIL.getClaimName(), user.email())
                 .claim(TokenClaim.FULL_NAME.getClaimName(), user.fullName())
-                .claim(TokenClaim.ROLE.getClaimName(), user.role().name())
+                .claim(TokenClaim.ROLE.getClaimName(), user.role().name());
+        if (user.establishmentId() != null) {
+            builder.claim(TokenClaim.ESTABLISHMENT.getClaimName(), user.establishmentId());
+        }
+        String value = builder
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiresAt))
                 .signWith(key)
@@ -67,7 +73,10 @@ public class JwtTokenProvider implements TokenProvider {
                     Long.valueOf(claims.getSubject()),
                     claims.get(TokenClaim.EMAIL.getClaimName(), String.class),
                     claims.get(TokenClaim.FULL_NAME.getClaimName(), String.class),
-                    Role.valueOf(claims.get(TokenClaim.ROLE.getClaimName(), String.class)));
+                    Role.valueOf(claims.get(TokenClaim.ROLE.getClaimName(), String.class)),
+                    Optional.ofNullable(claims.get(TokenClaim.ESTABLISHMENT.getClaimName(), Number.class))
+                            .map(Number::longValue)
+                            .orElse(null));
         } catch (ExpiredJwtException expired) {
             throw new AuthenticationFailedException(ErrorCode.TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException invalid) {

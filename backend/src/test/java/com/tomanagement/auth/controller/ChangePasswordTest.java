@@ -120,7 +120,7 @@ class ChangePasswordTest {
 
     private MockHttpServletRequestBuilder authenticated(MockHttpServletRequestBuilder request) {
         String token = tokenProvider.issue(new AuthenticatedUser(
-                therapist.getId(), therapist.getEmail(), therapist.getFullName(), therapist.getRole())).value();
+                therapist.getId(), therapist.getEmail(), therapist.getFullName(), therapist.getRole(), null)).value();
         return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 
