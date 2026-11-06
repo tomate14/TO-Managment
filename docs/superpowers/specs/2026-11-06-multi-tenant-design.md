@@ -99,7 +99,7 @@ la gestión de usuarios, en la lista de terapeutas de la agenda y al validar el 
 
 - Catálogos por defecto modelados como `enum DefaultCatalogEntry` (tipo de catálogo + nombre), sin constantes sueltas.
 - Servicios interfaz + implementación (`EstablishmentService`, `CurrentEstablishmentService`), DTOs validados, excepciones custom.
-- Errores nuevos: `ESTABLISHMENT_NOT_FOUND` (404), `ESTABLISHMENT_NAME_TAKEN` (409), `ESTABLISHMENT_INACTIVE` (403 en login / 422 al entrar), `ESTABLISHMENT_REQUIRED` (403).
+- Errores nuevos: `ESTABLISHMENT_NOT_FOUND` (404), `ESTABLISHMENT_NAME_TAKEN` (409), `ESTABLISHMENT_INACTIVE` (403, al iniciar sesión o al entrar como superadmin), `ESTABLISHMENT_REQUIRED` (403).
 - `InitialAdminService`: si no hay ningún SUPERADMIN, crea el del `.env` con rol SUPERADMIN y sin establecimiento.
 - La gestión de usuarios del admin solo ofrece los roles ADMIN y TERAPEUTA, y crea los usuarios en el establecimiento de la sesión.
 
