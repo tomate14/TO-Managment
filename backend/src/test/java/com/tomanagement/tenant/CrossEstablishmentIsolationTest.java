@@ -176,8 +176,8 @@ class CrossEstablishmentIsolationTest {
                 .createQuery("select e.id from SegmentEvaluation e", Long.class).getResultList()));
         assertThat(followUpSeenByA).isEmpty();
         assertThat(followUpSeenByB).isPresent();
-        assertThat(evaluationsSeenByA).isEmpty();
         assertThat(evaluationsSeenByB).hasSize(1);
+        assertThat(evaluationsSeenByA).hasSize(1).doesNotContainAnyElementsOf(evaluationsSeenByB);
     }
 
     @Test
@@ -198,7 +198,7 @@ class CrossEstablishmentIsolationTest {
                 .content(json(Map.of("fullName", "Robada", "role", "ADMIN")))), ErrorCode.USER_NOT_FOUND);
 
         assertThat(ids(read(perform(a.adminToken(), get("/api/diagnoses/" + a.diagnosisId() + "/follow-ups")))))
-                .isEmpty();
+                .containsExactly(a.followUpId());
         assertThat(userRepository.findById(b.therapistId())).get().satisfies(unchanged -> {
             assertThat(unchanged.getFullName()).isEqualTo("Terapeuta");
             assertThat(unchanged.getRole()).isEqualTo(Role.TERAPEUTA);
