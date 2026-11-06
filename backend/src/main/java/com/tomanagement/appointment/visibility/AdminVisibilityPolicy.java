@@ -9,14 +9,15 @@ import com.tomanagement.user.entity.Role;
 import org.springframework.stereotype.Component;
 
 /**
- * Strategy for {@link Role#ADMIN}: sees and manages every agenda.
+ * Strategy for {@link Role#ADMIN} and for {@link Role#SUPERADMIN} inside an establishment: sees and manages every
+ * agenda of that establishment.
  */
 @Component
 public class AdminVisibilityPolicy implements AppointmentVisibilityPolicy {
 
     @Override
-    public Role role() {
-        return Role.ADMIN;
+    public Set<Role> roles() {
+        return Set.of(Role.ADMIN, Role.SUPERADMIN);
     }
 
     @Override

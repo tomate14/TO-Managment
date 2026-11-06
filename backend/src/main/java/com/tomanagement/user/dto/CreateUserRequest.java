@@ -2,6 +2,7 @@ package com.tomanagement.user.dto;
 
 import com.tomanagement.user.entity.EmailNormalizer;
 import com.tomanagement.user.entity.Role;
+import com.tomanagement.user.validation.ValidManagedRole;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -19,7 +20,7 @@ public record CreateUserRequest(
         String fullName,
         @NotNull(message = "Ingresá la contraseña inicial.")
         @Size(min = 8, max = 72, message = "La contraseña tiene que tener entre 8 y 72 caracteres.") String password,
-        @NotNull(message = "Elegí un rol.") Role role) {
+        @NotNull(message = "Elegí un rol.") @ValidManagedRole Role role) {
 
     public CreateUserRequest {
         email = EmailNormalizer.normalize(email);

@@ -17,7 +17,7 @@ public class AppointmentVisibilityPolicyFactory {
     private final Map<Role, AppointmentVisibilityPolicy> policiesByRole = new EnumMap<>(Role.class);
 
     public AppointmentVisibilityPolicyFactory(List<AppointmentVisibilityPolicy> policies) {
-        policies.forEach(policy -> policiesByRole.put(policy.role(), policy));
+        policies.forEach(policy -> policy.roles().forEach(role -> policiesByRole.put(role, policy)));
     }
 
     public AppointmentVisibilityPolicy forRole(Role role) {

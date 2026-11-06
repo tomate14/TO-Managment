@@ -45,6 +45,15 @@ class AppointmentVisibilityPolicyTest {
     }
 
     @Test
+    void aSuperadminInsideAnEstablishmentGetsTheAdminPolicy() {
+        AuthenticatedUser superadmin = new AuthenticatedUser(3L, "root@example.com", "Root", Role.SUPERADMIN, 10L);
+        AppointmentVisibilityPolicy policy = factory.forRole(Role.SUPERADMIN);
+        assertThat(policy).isSameAs(factory.forRole(Role.ADMIN));
+        assertThat(policy.visibleTherapists(superadmin, Set.of())).isEmpty();
+        assertThatCode(() -> policy.checkCanManage(superadmin, 99L)).doesNotThrowAnyException();
+    }
+
+    @Test
     void anAdminCanManageAnyAgenda() {
         assertThatCode(() -> factory.forRole(Role.ADMIN).checkCanManage(ADMIN, 99L)).doesNotThrowAnyException();
     }

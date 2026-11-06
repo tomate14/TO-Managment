@@ -110,9 +110,68 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.role").value("TERAPEUTA"))
                 .andExpect(jsonPath("$.active").value(true));
 
+        assertThat(userRepository.findByEmail("paula.vidal@consultorio.com")).get()
+                .satisfies(saved -> assertThat(saved.getEstablishmentId()).isEqualTo(establishmentId));
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content(json(Map.of("email", "paula.vidal@consultorio.com", "password", "clave-inicial"))))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void usersOfAnotherEstablishmentAreNotFound() throws Exception {
+        Long otherEstablishmentId = tenancy.create("Otro consultorio").getId();
+        User stranger = userRepository.save(User.builder()
+                .email("ajena@otro.com")
+                .passwordHash(passwordEncoder.encode(PASSWORD))
+                .fullName("Ana Ajena")
+                .role(Role.TERAPEUTA)
+                .active(true)
+                .establishmentId(otherEstablishmentId)
+                .createdAt(Instant.parse("2026-11-04T12:00:00Z"))
+                .build());
+        String strangerUrl = USERS + "/" + stranger.getId();
+
+        mockMvc.perform(as(admin, get(USERS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[?(@.email == 'ajena@otro.com')]").isEmpty());
+        mockMvc.perform(as(admin, get(strangerUrl)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.USER_NOT_FOUND.name()));
+        mockMvc.perform(as(admin, put(strangerUrl)).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("fullName", "Ana Cambiada", "role", "ADMIN"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.USER_NOT_FOUND.name()));
+        mockMvc.perform(as(admin, patch(strangerUrl + "/active"))
+                        .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("active", false))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.USER_NOT_FOUND.name()));
+
+        assertThat(userRepository.findById(stranger.getId())).get().satisfies(unchanged -> {
+            assertThat(unchanged.getFullName()).isEqualTo("Ana Ajena");
+            assertThat(unchanged.getRole()).isEqualTo(Role.TERAPEUTA);
+            assertThat(unchanged.isActive()).isTrue();
+        });
+    }
+
+    @Test
+    void theSuperadminRoleCannotBeAssigned() throws Exception {
+        mockMvc.perform(as(admin, post(USERS)).contentType(MediaType.APPLICATION_JSON).content(json(Map.of(
+                        "email", "root2@consultorio.com", "fullName", "Otro Root",
+                        "password", "clave-inicial", "role", "SUPERADMIN"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("role"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("Elegí Admin o Terapeuta."));
+        assertThat(userRepository.findByEmail("root2@consultorio.com")).isEmpty();
+
+        mockMvc.perform(as(admin, put(USERS + "/" + therapist.getId())).contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("fullName", "Carla Ríos", "role", "SUPERADMIN"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("role"));
+        assertThat(userRepository.findById(therapist.getId())).get()
+                .satisfies(unchanged -> assertThat(unchanged.getRole()).isEqualTo(Role.TERAPEUTA));
     }
 
     @Test
