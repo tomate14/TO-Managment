@@ -8,6 +8,7 @@ import java.util.Map;
 import com.tomanagement.common.exception.TooManyRequestsException;
 import com.tomanagement.registration.config.RegistrationProperties;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,6 +28,7 @@ public class FixedWindowRegistrationRateLimiter implements RegistrationRateLimit
     private final int maxTrackedClients;
     private Instant lastSweep;
 
+    @Autowired
     public FixedWindowRegistrationRateLimiter(RegistrationProperties properties, Clock clock) {
         this(properties, clock, RateLimiterBounds.DEFAULT.maxTrackedClients());
     }

@@ -17,7 +17,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_establishment_name_lower ON establishment (
 
 -- Tipo y aprobación del establecimiento (É9)
 ALTER TABLE establishment ADD COLUMN IF NOT EXISTS kind VARCHAR(20) NOT NULL DEFAULT 'INSTITUTION';
-ALTER TABLE establishment ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ NULL;
+-- La columna y su relleno van juntos: el relleno corre solo cuando la columna se crea, así una nueva ejecución
+-- nunca aprueba solicitudes pendientes reales.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = current_schema() AND table_name = 'establishment'
+                   AND column_name = 'approved_at') THEN
+        ALTER TABLE establishment ADD COLUMN approved_at TIMESTAMPTZ NULL;
+        UPDATE establishment SET approved_at = created_at;
+    END IF;
+END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_establishment_kind'

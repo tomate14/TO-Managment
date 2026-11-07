@@ -1,10 +1,10 @@
+import { EstablishmentKind } from '../../core/auth/auth.models';
+
 export interface EstablishmentAdmin {
   id: number;
   fullName: string;
   email: string;
 }
-
-export type EstablishmentKind = 'INSTITUTION' | 'INDIVIDUAL';
 
 /** An establishment as returned by /api/establishments (superadmin screens). */
 export interface EstablishmentSummary {

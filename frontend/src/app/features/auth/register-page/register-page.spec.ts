@@ -97,6 +97,20 @@ describe('RegisterPage', () => {
     expect(el.querySelector('#email')?.getAttribute('aria-invalid')).toBe('true');
   });
 
+  it('shows the server message on 409 ESTABLISHMENT_NAME_TAKEN instead of the connection error', () => {
+    const { fixture, register, el } = setup();
+    register.mockReturnValue(
+      throwError(
+        () => new HttpErrorResponse({ status: 409, error: { code: 'ESTABLISHMENT_NAME_TAKEN', message: 'Ya hay un establecimiento con ese nombre.' } }),
+      ),
+    );
+    fill(el);
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]')?.textContent ?? '';
+    expect(alert).toContain('Ya hay un establecimiento con ese nombre.');
+    expect(alert).not.toContain('No pudimos conectar');
+  });
+
   it('shows the confirmation after 201', () => {
     const { fixture, register, el } = setup();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);

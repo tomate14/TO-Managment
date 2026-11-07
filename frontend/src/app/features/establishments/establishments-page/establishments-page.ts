@@ -89,7 +89,7 @@ export class EstablishmentsPage {
     this.establishmentsService.approve(item.id).subscribe({
       next: (updated) => {
         this.setPending(item.id, false);
-        this.replace(updated, false);
+        this.replace(updated, true);
       },
       error: (err: unknown) => {
         this.setPending(item.id, false);
@@ -116,7 +116,7 @@ export class EstablishmentsPage {
       next: (updated) => {
         this.setPending(item.id, false);
         this.confirmingRejectId.set(null);
-        this.replace(updated, false);
+        this.replace(updated, true);
       },
       error: (err: unknown) => {
         this.setPending(item.id, false);

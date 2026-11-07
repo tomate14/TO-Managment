@@ -111,6 +111,8 @@ describe('MorePage', () => {
     expect(links).toEqual(['/establecimiento', '/catalogos', '/cambiar-contrasena']);
     expect(el.querySelector('a[href="/establecimiento"]')?.textContent).toContain('Mi consultorio');
     expect(el.textContent).not.toContain('Usuarios');
+    expect(el.textContent).toContain('Nombre y datos');
+    expect(el.textContent).toContain('Segmentos, cirugías y cicatrices');
   });
 
   it('keeps an institution admin unchanged', () => {

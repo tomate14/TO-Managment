@@ -171,6 +171,16 @@ describe('EstablishmentsPage', () => {
       expect(service.setPendingCount).toHaveBeenLastCalledWith(1);
     });
 
+    it('re-sorts the list by name after approving a request', () => {
+      service.list.mockReturnValue(of([norte, mano, ana]));
+      service.approve.mockReturnValue(of({ ...ana, pendingApproval: false, active: true }));
+      const { fixture, el } = render();
+      button(request(el, 'Ana Pérez'), 'Aprobar').click();
+      fixture.detectChanges();
+      const names = Array.from(el.querySelectorAll('.est-card .est-name')).map((n) => n.textContent?.trim());
+      expect(names).toEqual(['Ana Pérez', 'Clínica de la Mano', 'Consultorio Norte']);
+    });
+
     it('asks before rejecting', () => {
       service.setActive.mockReturnValue(of({ ...julieta, pendingApproval: false, rejected: true }));
       const { fixture, el } = render();

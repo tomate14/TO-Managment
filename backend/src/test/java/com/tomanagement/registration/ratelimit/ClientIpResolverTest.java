@@ -25,7 +25,7 @@ class ClientIpResolverTest {
 
     @Test
     void fallsBackToTheRemoteAddressWhenTheForwardedValueIsNotAnIp() {
-        for (String bad : new String[] {"not-an-ip", "999.1.1.1", "example.com", "dead.beef", "::zz", "1".repeat(500)}) {
+        for (String bad : new String[] {"not-an-ip", "999.1.1.1", "example.com", "dead.beef", "::zz", ".:", ".1:2", "1".repeat(500)}) {
             MockHttpServletRequest r = new MockHttpServletRequest();
             r.addHeader("X-Forwarded-For", bad);
             r.setRemoteAddr("10.0.0.2");

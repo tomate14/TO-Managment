@@ -17,7 +17,7 @@ public class ClientIpResolver {
 
     private static final Pattern IPV4 = Pattern.compile(
             "(?:(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)");
-    private static final Pattern IPV6_CHARACTERS = Pattern.compile("[0-9a-fA-F:.]{2,45}");
+    private static final Pattern IPV6_CHARACTERS = Pattern.compile("[0-9a-fA-F:][0-9a-fA-F:.]{1,44}");
 
     public String resolve(HttpServletRequest request) {
         String forwarded = request.getHeader(ForwardedHeader.X_FORWARDED_FOR.headerName());

@@ -152,7 +152,10 @@ export class RegisterPage {
       this.failure.set('emailTaken');
       return;
     }
-    if (err instanceof HttpErrorResponse && err.status === 429) {
+    if (apiErrorCode(err) === 'ESTABLISHMENT_NAME_TAKEN') {
+      this.serverMessage.set(apiErrorMessage(err) ?? MESSAGES.serverFallback);
+      this.failure.set('server');
+    } else if (err instanceof HttpErrorResponse && err.status === 429) {
       this.failure.set('tooMany');
     } else if (apiErrorCode(err) === 'VALIDATION_ERROR') {
       this.serverMessage.set(apiErrorMessage(err) ?? MESSAGES.serverFallback);
