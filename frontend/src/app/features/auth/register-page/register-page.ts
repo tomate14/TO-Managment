@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { LoginHero } from '../login-hero/login-hero';
@@ -85,7 +86,7 @@ export class RegisterPage {
   protected readonly messages = MESSAGES;
 
   constructor() {
-    this.form.valueChanges.subscribe(() => {
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
       if (!this.loading()) {
         this.failure.set(null);
         this.serverMessage.set(null);

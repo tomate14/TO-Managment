@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export const REGISTER_URL = '/api/auth/register';
+import { REGISTER_URL } from '../../core/auth/auth.service';
 
 export interface RegistrationPayload {
   fullName: string;

@@ -7,7 +7,7 @@ import { SESSION_EXPIRED_QUERY } from '../../../core/auth/auth.models';
 import { apiErrorCode } from '../../../core/api/api-error';
 import { LoginHero } from '../login-hero/login-hero';
 
-type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'pending' | 'tooMany' | 'connection';
+type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'pending' | 'connection';
 
 interface Banner {
   title: string;
@@ -26,7 +26,6 @@ const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
     message: 'Vas a poder ingresar cuando el administrador de la plataforma la apruebe.',
     warning: true,
   },
-  tooMany: { title: 'Demasiados intentos. Probá de nuevo más tarde.', message: '' },
   connection: { title: 'No pudimos conectar con el servidor', message: 'Intentá de nuevo en unos minutos.' },
 };
 
@@ -134,9 +133,6 @@ export class LoginPage {
     }
     if (apiErrorCode(err) === 'ESTABLISHMENT_PENDING_APPROVAL') {
       return 'pending';
-    }
-    if (err instanceof HttpErrorResponse && err.status === 429) {
-      return 'tooMany';
     }
     return 'connection';
   }

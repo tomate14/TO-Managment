@@ -110,6 +110,24 @@ describe('RegisterPage', () => {
     expect(navigate).toHaveBeenCalledWith('/login');
   });
 
+  it('uses the register hero', () => {
+    const { el } = setup();
+    expect(el.querySelector('.hero--register')).not.toBeNull();
+    expect(el.textContent).toContain('Tu consultorio,');
+    expect(el.textContent).not.toContain('Cada sesión, cada segmento, cada avance.');
+  });
+
+  it('the eye button toggles visibility of both password fields', () => {
+    const { fixture, el } = setup();
+    const eye = el.querySelector<HTMLButtonElement>('button[aria-label="Mostrar contraseña"]')!;
+    eye.click();
+    fixture.detectChanges();
+    expect(el.querySelector('#password')?.getAttribute('type')).toBe('text');
+    expect(el.querySelector('#confirm')?.getAttribute('type')).toBe('text');
+    expect(eye.getAttribute('aria-label')).toBe('Ocultar contraseña');
+    expect(eye.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('shows the too-many message on 429', () => {
     const { fixture, register, el } = setup();
     register.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429, error: { code: 'TOO_MANY_REQUESTS' } })));

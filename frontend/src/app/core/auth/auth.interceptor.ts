@@ -1,9 +1,8 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { AuthService, LOGIN_URL } from './auth.service';
+import { AuthService, LOGIN_URL, REGISTER_URL } from './auth.service';
 import { apiErrorCode } from '../api/api-error';
-import { REGISTER_URL } from '../../features/auth/registration.service';
 
 const API_PREFIX = '/api/';
 

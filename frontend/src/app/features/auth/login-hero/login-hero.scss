@@ -82,7 +82,22 @@
   letter-spacing: -0.01em;
 }
 
+/* Register variant: brand-only, shorter header on mobile; no gauge ever. */
+.hero--register {
+  height: auto;
+  padding-bottom: 56px;
+
+  .hero__gauge,
+  .hero__motto {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) {
+  .hero--register .hero__motto {
+    display: block;
+  }
+
   :host {
     display: flex;
     flex: 1 1 520px;

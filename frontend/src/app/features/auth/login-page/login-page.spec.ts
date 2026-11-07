@@ -196,13 +196,20 @@ describe('LoginPage', () => {
     expect(alert?.classList).toContain('alert--warning');
   });
 
-  it('429 shows the too-many-attempts message', () => {
+  it('the pending banner shows a clock icon, the others an exclamation', () => {
     const { fixture, login, el } = setup();
-    login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429, error: { code: 'TOO_MANY_REQUESTS' } })));
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_PENDING_APPROVAL', message: 'x' } })),
+    );
     type(el, '#email', 'ana@consultorio.com');
     type(el, '#password', 'secreta');
     submit(fixture);
-    expect(el.querySelector('[role="alert"]')?.textContent).toContain('Demasiados intentos. Probá de nuevo más tarde.');
+    expect(el.querySelector('[role="alert"] svg path[d="M12 7v5l3 2"]')).not.toBeNull();
+
+    login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+    type(el, '#password', 'secreta2');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"] svg path[d="M12 7v5l3 2"]')).toBeNull();
   });
 
   it('links to the registration', () => {
