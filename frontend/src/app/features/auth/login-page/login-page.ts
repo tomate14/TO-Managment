@@ -3,30 +3,33 @@ import { AbstractControl, FormControl, NonNullableFormBuilder, ReactiveFormsModu
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
-import { SESSION_EXPIRED_QUERY } from '../../../core/auth/auth.models';
+import { SESSION_EXPIRED_QUERY, TRIAL_EXPIRED_QUERY } from '../../../core/auth/auth.models';
 import { apiErrorCode } from '../../../core/api/api-error';
 import { LoginHero } from '../login-hero/login-hero';
 
-type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'pending' | 'connection';
+type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'pending' | 'trialExpired' | 'connection';
 
 interface Banner {
   title: string;
   message: string;
+  icon: 'alert' | 'clock' | 'hourglass';
   /** Amber (warning) instead of red: the account is fine, it just can't get in yet. */
   warning?: boolean;
 }
 
 const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
-  credentials: { title: 'Email o contraseña incorrectos', message: 'Revisá los datos e intentá de nuevo.' },
-  incomplete: { title: 'Completá tu email y contraseña', message: 'Necesitamos los dos datos para ingresar.' },
-  emailFormat: { title: 'Revisá el formato del email', message: 'Tiene que ser como nombre@consultorio.com.' },
-  inactive: { title: 'Tu establecimiento está inactivo', message: 'Pedile al administrador de la plataforma que lo reactive.' },
+  credentials: { title: 'Email o contraseña incorrectos', message: 'Revisá los datos e intentá de nuevo.', icon: 'alert' },
+  incomplete: { title: 'Completá tu email y contraseña', message: 'Necesitamos los dos datos para ingresar.', icon: 'alert' },
+  emailFormat: { title: 'Revisá el formato del email', message: 'Tiene que ser como nombre@consultorio.com.', icon: 'alert' },
+  inactive: { title: 'Tu establecimiento está inactivo', message: 'Pedile al administrador de la plataforma que lo reactive.', icon: 'alert' },
   pending: {
     title: 'Tu cuenta está pendiente de aprobación',
     message: 'Vas a poder ingresar cuando el administrador de la plataforma la apruebe.',
+    icon: 'clock',
     warning: true,
   },
-  connection: { title: 'No pudimos conectar con el servidor', message: 'Intentá de nuevo en unos minutos.' },
+  trialExpired: { title: 'Tu período de prueba venció', message: 'Contactá al administrador de la plataforma.', icon: 'hourglass' },
+  connection: { title: 'No pudimos conectar con el servidor', message: 'Intentá de nuevo en unos minutos.', icon: 'alert' },
 };
 
 const HOME_URL = '/pacientes';
@@ -56,9 +59,12 @@ export class LoginPage {
 
   protected readonly loading = signal(false);
   protected readonly showPassword = signal(false);
-  protected readonly error = signal<LoginErrorKind | null>(null);
+  private readonly route = inject(ActivatedRoute);
+  protected readonly error = signal<LoginErrorKind | null>(
+    this.route.snapshot.queryParamMap.get('prueba') === TRIAL_EXPIRED_QUERY.prueba ? 'trialExpired' : null,
+  );
   protected readonly sessionExpired = signal(
-    inject(ActivatedRoute).snapshot.queryParamMap.get('sesion') === SESSION_EXPIRED_QUERY.sesion,
+    this.route.snapshot.queryParamMap.get('sesion') === SESSION_EXPIRED_QUERY.sesion,
   );
 
   constructor() {
@@ -133,6 +139,9 @@ export class LoginPage {
     }
     if (apiErrorCode(err) === 'ESTABLISHMENT_PENDING_APPROVAL') {
       return 'pending';
+    }
+    if (apiErrorCode(err) === 'TRIAL_EXPIRED') {
+      return 'trialExpired';
     }
     return 'connection';
   }

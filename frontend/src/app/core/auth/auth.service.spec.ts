@@ -79,6 +79,15 @@ describe('AuthService', () => {
     expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { sesion: 'vencida' } });
   });
 
+  it('endSession with trialExpired navigates to login with the trial notice', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    service.endSession('trialExpired');
+
+    expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { prueba: 'vencida' } });
+  });
+
   it('logout clears the stored session and navigates to login without notice', () => {
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
