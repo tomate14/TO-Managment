@@ -4,11 +4,20 @@ export interface EstablishmentAdmin {
   email: string;
 }
 
+export type EstablishmentKind = 'INSTITUTION' | 'INDIVIDUAL';
+
 /** An establishment as returned by /api/establishments (superadmin screens). */
 export interface EstablishmentSummary {
   id: number;
   name: string;
+  kind: EstablishmentKind;
   active: boolean;
+  /** An independent practice waiting for the superadmin's approval. */
+  pendingApproval: boolean;
+  /** An independent practice the superadmin rejected. */
+  rejected: boolean;
+  /** ISO instant of the registration request. */
+  createdAt: string;
   activeUsers: number;
   admins: EstablishmentAdmin[];
 }
