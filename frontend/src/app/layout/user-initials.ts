@@ -1,4 +1,4 @@
-import { Role } from '../core/auth/auth.models';
+import { Role, UserSummary, isIndividualPractice } from '../core/auth/auth.models';
 
 export function userInitials(fullName: string): string {
   return fullName
@@ -22,3 +22,10 @@ export const ROLE_SHORT_LABELS: Record<Role, string> = {
   ADMIN: 'Admin',
   TERAPEUTA: 'Terapeuta',
 };
+
+export const INDEPENDENT_THERAPIST_LABEL = 'Terapeuta independiente';
+
+/** Role label of a user; an individual-practice admin reads as an independent therapist. */
+export function roleLabelFor(user: UserSummary): string {
+  return isIndividualPractice(user) ? INDEPENDENT_THERAPIST_LABEL : ROLE_LABELS[user.role];
+}

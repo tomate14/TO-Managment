@@ -76,7 +76,7 @@ describe('auth guards', () => {
   });
 
   describe('multi-tenant guards', () => {
-    const norte = { id: 3, name: 'Norte' };
+    const norte = { id: 3, name: 'Norte', kind: 'INSTITUTION' as const };
 
     function withUser(user: Partial<UserSummary>) {
       TestBed.resetTestingModule();

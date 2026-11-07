@@ -24,7 +24,7 @@ describe('UserFormPage', () => {
       providers: [
         provideRouter([]),
         { provide: UsersService, useValue: usersService },
-        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'm@c.com', fullName: 'Mariana', role: 'ADMIN', establishment: { id: 1, name: 'Norte' } }) } },
+        { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'm@c.com', fullName: 'Mariana', role: 'ADMIN', establishment: { id: 1, name: 'Norte', kind: 'INSTITUTION' } }) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id === null ? {} : { id }) } } },
       ],
     });

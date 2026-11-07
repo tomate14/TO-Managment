@@ -7,7 +7,7 @@ import { LoginPage } from './login-page';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserSummary } from '../../../core/auth/auth.models';
 
-const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte' } };
+const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } };
 
 function setup(query: Record<string, string> = {}) {
   const login = vi.fn();

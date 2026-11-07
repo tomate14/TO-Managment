@@ -40,4 +40,55 @@ describe('SideNav', () => {
     fixture.detectChanges();
     expect(link(fixture.nativeElement).querySelector('.side-nav__badge')).toBeNull();
   });
+
+  const institutionAdmin: UserSummary = {
+    id: 2, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN',
+    establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' },
+  };
+  const independent: UserSummary = {
+    id: 3, email: 'ana@gmail.com', fullName: 'Ana Pérez', role: 'ADMIN',
+    establishment: { id: 7, name: 'Ana Pérez', kind: 'INDIVIDUAL' },
+  };
+
+  function renderAs(user: UserSummary): HTMLElement {
+    TestBed.overrideProvider(AuthService, { useValue: { currentUser: signal(user), logout: () => undefined } });
+    const fixture = TestBed.createComponent(SideNav);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  function labels(el: HTMLElement): (string | undefined)[] {
+    return Array.from(el.querySelectorAll('a')).map((a) => a.textContent?.trim());
+  }
+
+  it('shows an independent therapist "Mi consultorio", no Usuarios and the role "Terapeuta independiente"', () => {
+    const el = renderAs(independent);
+    expect(el.querySelector('.side-nav__establishment-label')?.textContent?.trim()).toBe('Mi consultorio');
+    expect(el.querySelector('.side-nav__establishment-name')?.textContent?.trim()).toBe('Ana Pérez');
+    expect(labels(el)).toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Mi consultorio', 'Catálogos', 'Cambiar contraseña']);
+    expect(el.querySelector('a[href="/usuarios"]')).toBeNull();
+    expect(el.querySelector('.side-nav__user-role')?.textContent?.trim()).toBe('Terapeuta independiente');
+  });
+
+  it('keeps an institution admin unchanged', () => {
+    const el = renderAs(institutionAdmin);
+    expect(el.querySelector('.side-nav__establishment-label')?.textContent?.trim()).toBe('Establecimiento');
+    expect(labels(el)).toEqual([
+      'Pacientes', 'Agenda', 'Plantillas', 'Establecimiento', 'Usuarios', 'Catálogos', 'Cambiar contraseña',
+    ]);
+    expect(el.querySelector('.side-nav__user-role')?.textContent?.trim()).toBe('Administrador/a');
+  });
+
+  it('keeps a therapist unchanged', () => {
+    const el = renderAs({ ...institutionAdmin, role: 'TERAPEUTA' });
+    expect(el.querySelector('.side-nav__establishment-label')?.textContent?.trim()).toBe('Establecimiento');
+    expect(labels(el)).toEqual(['Pacientes', 'Agenda', 'Plantillas', 'Cambiar contraseña']);
+    expect(el.querySelector('.side-nav__user-role')?.textContent?.trim()).toBe('Terapeuta');
+  });
+
+  it('keeps a superadmin unchanged', () => {
+    const el = renderAs(superadmin);
+    expect(el.querySelector('.side-nav__establishment')).toBeNull();
+    expect(el.querySelector('.side-nav__user-role')?.textContent?.trim()).toBe('Superadmin');
+  });
 });

@@ -6,9 +6,15 @@ import { of, throwError } from 'rxjs';
 import { EstablishmentPage } from './establishment-page';
 import { CurrentEstablishmentService } from '../current-establishment.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { UserSummary } from '../../../core/auth/auth.models';
+import { signal } from '@angular/core';
 
 describe('EstablishmentPage', () => {
   const establishment = { id: 3, name: 'Consultorio Norte', activeUsers: 4, createdDate: '2026-11-06' };
+  const admin: UserSummary = {
+    id: 1, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN',
+    establishment: { id: 3, name: 'Consultorio Norte', kind: 'INSTITUTION' },
+  };
   let get: ReturnType<typeof vi.fn>;
   let rename: ReturnType<typeof vi.fn>;
   let refreshCurrentUser: ReturnType<typeof vi.fn>;
@@ -22,7 +28,7 @@ describe('EstablishmentPage', () => {
       providers: [
         provideRouter([]),
         { provide: CurrentEstablishmentService, useValue: { get, rename } },
-        { provide: AuthService, useValue: { refreshCurrentUser } },
+        { provide: AuthService, useValue: { refreshCurrentUser, currentUser: signal(admin) } },
       ],
     });
   });
@@ -81,5 +87,21 @@ describe('EstablishmentPage', () => {
     submit(fixture);
     expect(el.querySelector('#establishment-name-error')?.textContent).toContain('Ya hay un establecimiento con ese nombre.');
     expect(refreshCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('titles the page "Establecimiento" for an institution admin', () => {
+    const { el } = render();
+    expect(el.querySelector('h1')?.textContent?.trim()).toBe('Establecimiento');
+  });
+
+  it('titles the page "Mi consultorio" for an independent therapist', () => {
+    TestBed.overrideProvider(AuthService, {
+      useValue: {
+        refreshCurrentUser,
+        currentUser: signal({ ...admin, establishment: { id: 7, name: 'Ana Pérez', kind: 'INDIVIDUAL' } }),
+      },
+    });
+    const { el } = render();
+    expect(el.querySelector('h1')?.textContent?.trim()).toBe('Mi consultorio');
   });
 });
