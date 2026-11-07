@@ -14,6 +14,7 @@ The service uses Secret Manager versions for `POSTGRES_PASSWORD`, `JWT_SECRET`,
 and `ADMIN_PASSWORD`. Never copy `.env` into the image or source upload.
 Non-secret runtime settings are configured on the Cloud Run service.
 Since É9, `REGISTRATION_MAX_PER_HOUR` is a required runtime variable (the backend does not start without it).
+Since É10, `TRIAL_DURATION_DAYS` is a required runtime variable (the backend does not start without it).
 
 Flyway baseline version 8 was recorded when initializing the hosted schema.
 Keep `SPRING_FLYWAY_BASELINE_ON_MIGRATE=false`; future changes use new Flyway

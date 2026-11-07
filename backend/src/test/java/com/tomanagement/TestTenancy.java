@@ -1,5 +1,6 @@
 package com.tomanagement;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Supplier;
 
@@ -31,7 +32,7 @@ public class TestTenancy {
     public Establishment create(String name) {
         Instant now = Instant.now();
         Establishment establishment = new Establishment(name, EstablishmentKind.INSTITUTION, now);
-        establishment.approve(now);
+        establishment.approve(now, Duration.ofDays(7));
         return establishmentRepository.save(establishment);
     }
 

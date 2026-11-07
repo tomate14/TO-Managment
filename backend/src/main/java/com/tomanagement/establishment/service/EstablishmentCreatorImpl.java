@@ -1,6 +1,7 @@
 package com.tomanagement.establishment.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 
 import com.tomanagement.common.exception.DuplicateResourceException;
@@ -44,7 +45,7 @@ public class EstablishmentCreatorImpl implements EstablishmentCreator {
         try {
             Establishment establishment = new Establishment(request.name(), request.kind(), Instant.now(clock));
             if (request.approved()) {
-                establishment.approve(Instant.now(clock));
+                establishment.approve(Instant.now(clock), Duration.ofDays(7));
             }
             establishment = establishmentRepository.saveAndFlush(establishment);
             catalogSeeder.seed(establishment.getId());

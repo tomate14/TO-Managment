@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -264,7 +265,7 @@ class EstablishmentControllerTest {
     }
 
     private void approveStored(Establishment establishment) {
-        establishment.approve(Instant.now());
+        establishment.approve(Instant.now(), Duration.ofDays(7));
         establishmentRepository.save(establishment);
     }
 

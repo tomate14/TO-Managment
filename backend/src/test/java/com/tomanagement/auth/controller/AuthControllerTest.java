@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -83,7 +84,8 @@ class AuthControllerTest {
     void seedUsers() {
         testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
         Establishment north = new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, CREATED_AT);
-        north.approve(CREATED_AT);
+        north.approve(CREATED_AT, Duration.ofDays(7));
+        north.changeTrialEnd(null);
         northId = establishmentRepository.save(north).getId();
         userRepository.save(user("terapeuta@consultorio.com", "Ana Pérez", Role.TERAPEUTA, true));
         userRepository.save(user("inactiva@consultorio.com", "Inés Baja", Role.TERAPEUTA, false));

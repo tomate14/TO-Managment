@@ -1,6 +1,7 @@
 package com.tomanagement.establishment.service;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
@@ -65,7 +66,7 @@ public class EstablishmentServiceImpl implements EstablishmentService {
     @Transactional
     public EstablishmentSummaryResponse approve(Long id) {
         Establishment establishment = find(id);
-        establishment.approve(Instant.now(clock));
+        establishment.approve(Instant.now(clock), Duration.ofDays(7));
         return summarize(establishment);
     }
 
