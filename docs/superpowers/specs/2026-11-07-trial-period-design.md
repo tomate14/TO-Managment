@@ -42,7 +42,7 @@ Migración `V12__trial_period.sql` y reflejo en `supabase/init/01_schema.sql` (i
 - **Configuración:** `TrialProperties` (`@ConfigurationProperties`, `@Validated`, `@Positive durationDays`) leída de `TRIAL_DURATION_DAYS` en `application.yml`. Se agrega a `.env`, `.env.example` (7), `docker-compose.yml` (`:?` obligatoria), `application-test.yml` y `docs/cloud-run.md`.
 - **Enums:**
   - `ErrorCode.TRIAL_EXPIRED` (403, "Tu período de prueba venció. Contactá al administrador de la plataforma.").
-  - `ErrorCode.TRIAL_END_IN_PAST` (400, "La fecha de vencimiento no puede ser anterior a hoy.").
+  - `ErrorCode.TRIAL_END_IN_PAST` (422, como el resto de las reglas de negocio, "La fecha de vencimiento no puede ser anterior a hoy.").
 - **Entidad `Establishment`:**
   - campo `trialEndsAt` (`Instant`, nullable);
   - `approve(Instant when, Duration trial)`: si es la primera aprobación (`approvedAt == null`) setea `approvedAt = when` y, si `trialEndsAt` es null, `trialEndsAt = when + trial`; siempre reactiva;
@@ -59,7 +59,7 @@ Migración `V12__trial_period.sql` y reflejo en `supabase/init/01_schema.sql` (i
   - Nuevo `PUT /api/establishments/{id}/trial` (SUPERADMIN) con `ChangeTrialEndRequest { trialEndsOn: LocalDate | null }`.
     - La fecha es el último día de prueba: se guarda como el inicio del día siguiente en `APP_TIME_ZONE` (la cuenta se bloquea a la medianoche).
     - `null` quita el vencimiento.
-    - Una fecha anterior a hoy (en `APP_TIME_ZONE`) → 400 `TRIAL_END_IN_PAST`.
+    - Una fecha anterior a hoy (en `APP_TIME_ZONE`) → 422 `TRIAL_END_IN_PAST`.
     - Responde el `EstablishmentSummaryResponse` actualizado.
 
 ## 6. Frontend
@@ -81,8 +81,8 @@ Se escriben los tests; la verificación es compile-only (instrucción vigente), 
 - Entidad: la primera aprobación fija el vencimiento; aprobar otra vez no lo cambia; `isTrialExpired` en el borde exacto.
 - Creación por superadmin: nace con vencimiento a 7 días (reloj fijo).
 - Login: vencida da 403 `TRIAL_EXPIRED`; vigente y sin vencimiento dan 200; inactiva sigue dando `ESTABLISHMENT_INACTIVE`.
-- Filtro: un token válido de un establecimiento vencido da 403 `TRIAL_EXPIRED` en un endpoint protegido; el superadmin dentro de ese establecimiento no se bloquea; endpoints públicos no consultan nada.
-- Endpoint de vencimiento: solo SUPERADMIN; fecha futura guarda el inicio del día siguiente en la zona; `null` quita; fecha pasada da 400.
+- Filtro: un token válido de un establecimiento vencido da 403 `TRIAL_EXPIRED` en un endpoint protegido; el superadmin dentro de ese establecimiento no se bloquea; un request sin token no consulta nada.
+- Endpoint de vencimiento: solo SUPERADMIN; fecha futura guarda el inicio del día siguiente en la zona; `null` quita; fecha pasada da 422.
 - Frontend: interceptor con `TRIAL_EXPIRED`; login tipo `'expired'`; fila con los tres estados; diálogo guardar, quitar y error.
 
 ## 8. Flujo de ramas y despliegue
