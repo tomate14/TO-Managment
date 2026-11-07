@@ -19,6 +19,7 @@ import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.entity.EstablishmentKind;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -80,7 +81,7 @@ class AuthControllerTest {
     @BeforeEach
     void seedUsers() {
         testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
-        northId = establishmentRepository.save(new Establishment("Consultorio Norte", CREATED_AT)).getId();
+        northId = establishmentRepository.save(new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, CREATED_AT)).getId();
         userRepository.save(user("terapeuta@consultorio.com", "Ana Pérez", Role.TERAPEUTA, true));
         userRepository.save(user("inactiva@consultorio.com", "Inés Baja", Role.TERAPEUTA, false));
     }

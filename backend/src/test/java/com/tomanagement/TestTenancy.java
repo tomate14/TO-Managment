@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.auth.security.TokenProvider;
 import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.entity.EstablishmentKind;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.tenant.TenantContext;
 
@@ -28,7 +29,7 @@ public class TestTenancy {
     }
 
     public Establishment create(String name) {
-        return establishmentRepository.save(new Establishment(name, Instant.now()));
+        return establishmentRepository.save(new Establishment(name, EstablishmentKind.INSTITUTION, Instant.now()));
     }
 
     public String tokenFor(AuthenticatedUser user) {

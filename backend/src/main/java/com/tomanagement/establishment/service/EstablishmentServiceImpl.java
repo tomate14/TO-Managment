@@ -14,6 +14,7 @@ import com.tomanagement.establishment.dto.EstablishmentSummaryResponse;
 import com.tomanagement.establishment.dto.EstablishmentSummaryResponse.AdminRef;
 import com.tomanagement.establishment.dto.RenameEstablishmentRequest;
 import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.entity.EstablishmentKind;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
@@ -61,7 +62,7 @@ public class EstablishmentServiceImpl implements EstablishmentService {
         Establishment establishment;
         try {
             establishment = establishmentRepository
-                    .saveAndFlush(new Establishment(request.name(), Instant.now(clock)));
+                    .saveAndFlush(new Establishment(request.name(), EstablishmentKind.INSTITUTION, Instant.now(clock)));
             catalogSeeder.seed(establishment.getId());
             userRepository.saveAndFlush(User.builder()
                     .email(adminData.email())
