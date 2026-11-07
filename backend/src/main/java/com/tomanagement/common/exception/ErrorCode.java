@@ -78,6 +78,7 @@ public enum ErrorCode {
     ESTABLISHMENT_INACTIVE(HttpStatus.FORBIDDEN, "El establecimiento está inactivo."),
     ESTABLISHMENT_PENDING_APPROVAL(HttpStatus.FORBIDDEN, "Tu cuenta está pendiente de aprobación."),
     ESTABLISHMENT_REQUIRED(HttpStatus.FORBIDDEN, "Elegí un establecimiento para continuar."),
+    TRIAL_END_IN_PAST(HttpStatus.UNPROCESSABLE_ENTITY, "La fecha de vencimiento no puede ser anterior a hoy."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

@@ -10,6 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,7 @@ import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +62,7 @@ class EstablishmentControllerTest {
     private static final String ME = "/api/auth/me";
     private static final String PASSWORD = "Contrasena-Segura-1";
     private static final String NEW_ADMIN_PASSWORD = "secreto123";
+    private static final ZoneId APP_ZONE = ZoneId.of("America/Argentina/Buenos_Aires");
 
     @Autowired
     private MockMvc mockMvc;
@@ -262,6 +267,105 @@ class EstablishmentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Zzz"))
                 .andExpect(jsonPath("$[1].name").value("Aaa"));
+    }
+
+    @Test
+    void creatingAnEstablishmentStartsASevenDayTrial() throws Exception {
+        MvcResult created = mockMvc.perform(as(superadmin, post(ESTABLISHMENTS)).contentType(MediaType.APPLICATION_JSON)
+                .content(json(newEstablishment("Consultorio Norte", "mg@cn.com"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.trialExpired").value(false))
+                .andReturn();
+
+        var body = objectMapper.readTree(created.getResponse().getContentAsString());
+        assertThat(Instant.parse(body.get("trialEndsAt").asText()))
+                .isEqualTo(Instant.parse(body.get("createdAt").asText()).plus(Duration.ofDays(7)));
+    }
+
+    @Test
+    void approvingARequestStartsTheTrialAndApprovingAgainKeepsIt() throws Exception {
+        Long id = pendingPractice("Mi consultorio", "ana@ind.com");
+
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/" + id + "/approval"))).andExpect(status().isOk());
+        Establishment approved = establishmentRepository.findById(id).orElseThrow();
+        assertThat(approved.getTrialEndsAt()).isEqualTo(approved.getApprovedAt().plus(Duration.ofDays(7)));
+        Instant firstTrialEnd = approved.getTrialEndsAt();
+
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/" + id + "/approval"))).andExpect(status().isOk());
+        assertThat(establishmentRepository.findById(id).orElseThrow().getTrialEndsAt()).isEqualTo(firstTrialEnd);
+    }
+
+    @Test
+    void superadminSetsTheLastDayOfTrial() throws Exception {
+        LocalDate today = LocalDate.now(APP_ZONE);
+
+        MvcResult result = mockMvc.perform(as(superadmin, put(ESTABLISHMENTS + "/" + existingId + "/trial"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(trialEnd(today.plusDays(10)))))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Instant expected = today.plusDays(11).atStartOfDay(APP_ZONE).toInstant();
+        var body = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertThat(Instant.parse(body.get("trialEndsAt").asText())).isEqualTo(expected);
+    }
+
+    @Test
+    void todayIsAValidLastDay() throws Exception {
+        mockMvc.perform(as(superadmin, put(ESTABLISHMENTS + "/" + existingId + "/trial"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(trialEnd(LocalDate.now(APP_ZONE)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trialExpired").value(false));
+    }
+
+    @Test
+    void aPastLastDayIsRejected() throws Exception {
+        mockMvc.perform(as(superadmin, put(ESTABLISHMENTS + "/" + existingId + "/trial"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(trialEnd(LocalDate.now(APP_ZONE).minusDays(1)))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value(ErrorCode.TRIAL_END_IN_PAST.name()));
+    }
+
+    @Test
+    void nullRemovesTheExpiry() throws Exception {
+        mockMvc.perform(as(superadmin, put(ESTABLISHMENTS + "/" + existingId + "/trial"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(trialEnd(null))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trialEndsAt").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.trialExpired").value(false));
+    }
+
+    @Test
+    void onlyTheSuperadminChangesTheTrial() throws Exception {
+        mockMvc.perform(as(existingAdmin, put(ESTABLISHMENTS + "/" + existingId + "/trial"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(trialEnd(null))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void unknownEstablishmentTrialIs404() throws Exception {
+        mockMvc.perform(as(superadmin, put(ESTABLISHMENTS + "/999999/trial"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(trialEnd(null))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_NOT_FOUND.name()));
+    }
+
+    @Test
+    void anExpiredEstablishmentIsFlaggedInTheList() throws Exception {
+        Establishment establishment = establishmentRepository.findById(existingId).orElseThrow();
+        establishment.approve(Instant.now(), Duration.ofDays(7));
+        establishment.changeTrialEnd(Instant.now().minusSeconds(60));
+        establishmentRepository.save(establishment);
+
+        mockMvc.perform(as(superadmin, get(ESTABLISHMENTS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == " + existingId + ")].trialExpired").value(true));
+    }
+
+    private Map<String, Object> trialEnd(LocalDate lastDay) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("trialEndsOn", lastDay == null ? null : lastDay.toString());
+        return body;
     }
 
     private void approveStored(Establishment establishment) {

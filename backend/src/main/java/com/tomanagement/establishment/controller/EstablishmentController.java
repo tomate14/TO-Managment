@@ -3,6 +3,7 @@ package com.tomanagement.establishment.controller;
 import java.util.List;
 
 import com.tomanagement.establishment.dto.ChangeEstablishmentActiveRequest;
+import com.tomanagement.establishment.dto.ChangeTrialEndRequest;
 import com.tomanagement.establishment.dto.CreateEstablishmentRequest;
 import com.tomanagement.establishment.dto.EstablishmentSummaryResponse;
 import com.tomanagement.establishment.dto.RenameEstablishmentRequest;
@@ -62,5 +63,11 @@ public class EstablishmentController {
     public EstablishmentSummaryResponse changeActive(@PathVariable("id") Long id,
             @Valid @RequestBody ChangeEstablishmentActiveRequest request) {
         return establishmentService.changeActive(id, request.active());
+    }
+
+    @PutMapping("/{id}/trial")
+    public EstablishmentSummaryResponse changeTrialEnd(@PathVariable("id") Long id,
+            @RequestBody ChangeTrialEndRequest request) {
+        return establishmentService.changeTrialEnd(id, request.trialEndsOn());
     }
 }
