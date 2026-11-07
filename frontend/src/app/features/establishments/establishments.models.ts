@@ -20,6 +20,9 @@ export interface EstablishmentSummary {
   createdAt: string;
   activeUsers: number;
   admins: EstablishmentAdmin[];
+  /** ISO instant when the trial ends (the account blocks), or null when it has no expiry. */
+  trialEndsAt: string | null;
+  trialExpired: boolean;
 }
 
 export interface CreateEstablishmentPayload {
@@ -39,4 +42,5 @@ export const ESTABLISHMENT_ERROR_CODES = {
   nameTaken: 'ESTABLISHMENT_NAME_TAKEN',
   emailTaken: 'USER_EMAIL_TAKEN',
   notFound: 'ESTABLISHMENT_NOT_FOUND',
+  trialEndPast: 'TRIAL_END_IN_PAST',
 } as const;

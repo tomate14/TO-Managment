@@ -36,4 +36,9 @@ export class EstablishmentsService {
   approve(id: number): Observable<EstablishmentSummary> {
     return this.http.post<EstablishmentSummary>(`${ESTABLISHMENTS_URL}/${id}/approval`, {});
   }
+
+  /** Sets the last trial day (yyyy-mm-dd) or, with null, removes the expiry. */
+  changeTrialEnd(id: number, trialEndsOn: string | null): Observable<EstablishmentSummary> {
+    return this.http.put<EstablishmentSummary>(`${ESTABLISHMENTS_URL}/${id}/trial`, { trialEndsOn });
+  }
 }

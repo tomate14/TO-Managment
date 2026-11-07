@@ -1,5 +1,6 @@
 package com.tomanagement.establishment.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.tomanagement.establishment.dto.CreateEstablishmentRequest;
@@ -21,4 +22,7 @@ public interface EstablishmentService {
     EstablishmentSummaryResponse rename(Long id, RenameEstablishmentRequest request);
 
     EstablishmentSummaryResponse changeActive(Long id, boolean active);
+
+    /** Sets the last day of trial; null removes the expiry; a day before today throws TRIAL_END_IN_PAST. */
+    EstablishmentSummaryResponse changeTrialEnd(Long id, LocalDate lastDay);
 }

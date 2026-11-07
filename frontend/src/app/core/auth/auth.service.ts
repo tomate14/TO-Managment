@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, map, tap } from 'rxjs';
-import { EstablishmentRef, LoginResponse, SESSION_EXPIRED_QUERY, SessionEndReason, UserSummary, isAdminInEstablishment } from './auth.models';
+import { EstablishmentRef, LoginResponse, SESSION_EXPIRED_QUERY, SessionEndReason, TRIAL_EXPIRED_QUERY, UserSummary, isAdminInEstablishment } from './auth.models';
 import { SessionStore, StoredSession } from './session-store';
 import { isJwtExpired } from './jwt-expiry';
 
@@ -77,7 +77,8 @@ export class AuthService {
 
   endSession(reason: SessionEndReason): void {
     this.clearSession();
-    void this.router.navigate(['/login'], reason === 'expired' ? { queryParams: SESSION_EXPIRED_QUERY } : {});
+    const queryParams = reason === 'expired' ? SESSION_EXPIRED_QUERY : reason === 'trialExpired' ? TRIAL_EXPIRED_QUERY : null;
+    void this.router.navigate(['/login'], queryParams ? { queryParams } : {});
   }
 
   /** User-initiated sign-out: drops the client token and returns to the login. */

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,9 @@ import { injectIsDesktop } from '../../../layout/desktop-media';
 import { userInitials } from '../../../layout/user-initials';
 import { EstablishmentForm } from '../establishment-form/establishment-form';
 import { PendingRequests } from '../pending-requests/pending-requests';
+import { TrialDialog } from '../trial-dialog/trial-dialog';
+import { trialLabel, trialLastDay } from '../trial-format';
+import { formatDate } from '../../patients/patient-format';
 import { ESTABLISHMENT_ERROR_CODES, ESTABLISHMENT_NAME_TAKEN_MESSAGE, EstablishmentSummary } from '../establishments.models';
 import { EstablishmentsService } from '../establishments.service';
 
@@ -22,7 +25,7 @@ const ENTER_ERROR = 'No pudimos entrar al establecimiento. Intentá de nuevo.';
 /** H8.2 superadmin list of establishments: cards on mobile, table on desktop (with the H8.1 side panel). */
 @Component({
   selector: 'app-establishments-page',
-  imports: [ReactiveFormsModule, NgTemplateOutlet, EstablishmentForm, PendingRequests],
+  imports: [ReactiveFormsModule, NgTemplateOutlet, EstablishmentForm, PendingRequests, TrialDialog],
   templateUrl: './establishments-page.html',
   styleUrl: './establishments-page.scss',
 })
@@ -30,10 +33,13 @@ export class EstablishmentsPage {
   private readonly establishmentsService = inject(EstablishmentsService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private trialTrigger: HTMLElement | null = null;
 
   protected readonly isDesktop = injectIsDesktop();
   protected readonly initials = userInitials;
   protected readonly maxName = MAX_NAME;
+  protected readonly trialLabel = trialLabel;
 
   protected readonly establishments = signal<EstablishmentSummary[] | null>(null);
   protected readonly error = signal<string | null>(null);
@@ -46,6 +52,8 @@ export class EstablishmentsPage {
   protected readonly pendingRequests = computed(() => (this.establishments() ?? []).filter((item) => item.pendingApproval));
   protected readonly others = computed(() => (this.establishments() ?? []).filter((item) => !item.pendingApproval));
   protected readonly pendingIds = signal<ReadonlySet<number>>(new Set());
+  protected readonly trialEditing = signal<EstablishmentSummary | null>(null);
+  protected readonly trialError = signal<string | null>(null);
 
   constructor() {
     this.editName.valueChanges.subscribe(() => this.editError.set(null));
@@ -197,8 +205,61 @@ export class EstablishmentsPage {
     });
   }
 
+  /** Last trial day as dd/mm/aaaa, or null when the establishment has no expiry. */
+  protected trialDate(item: EstablishmentSummary): string | null {
+    return item.trialEndsAt === null ? null : formatDate(trialLastDay(item.trialEndsAt));
+  }
+
+  protected openTrial(item: EstablishmentSummary): void {
+    this.trialError.set(null);
+    this.trialTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    this.trialEditing.set(item);
+  }
+
+  protected closeTrial(): void {
+    this.trialEditing.set(null);
+    this.trialError.set(null);
+    const trigger = this.trialTrigger;
+    this.trialTrigger = null;
+    afterNextRender(() => {
+      if (trigger?.isConnected) {
+        trigger.focus();
+      }
+    }, { injector: this.injector });
+  }
+
+  protected saveTrial(date: string): void {
+    this.changeTrial(date);
+  }
+
+  protected removeTrial(): void {
+    this.changeTrial(null);
+  }
+
   protected isPending(item: EstablishmentSummary): boolean {
     return this.pendingIds().has(item.id);
+  }
+
+  private changeTrial(trialEndsOn: string | null): void {
+    const item = this.trialEditing();
+    if (item === null || this.isPending(item)) {
+      return;
+    }
+    this.trialError.set(null);
+    this.setPending(item.id, true);
+    this.establishmentsService.changeTrialEnd(item.id, trialEndsOn).subscribe({
+      next: (updated) => {
+        this.setPending(item.id, false);
+        this.replace(updated, false);
+        this.closeTrial();
+      },
+      error: (err: unknown) => {
+        this.setPending(item.id, false);
+        this.trialError.set(
+          apiErrorCode(err) === ESTABLISHMENT_ERROR_CODES.trialEndPast ? (apiErrorMessage(err) ?? SAVE_ERROR) : SAVE_ERROR,
+        );
+      },
+    });
   }
 
   private replace(updated: EstablishmentSummary, resort: boolean): void {

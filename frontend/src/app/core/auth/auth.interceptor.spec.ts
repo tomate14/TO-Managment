@@ -59,6 +59,22 @@ describe('authInterceptor', () => {
     expect(end).toHaveBeenCalledWith('expired');
   });
 
+  it('ends the session when the trial expired', () => {
+    vi.spyOn(auth, 'token').mockReturnValue('abc');
+    const end = vi.spyOn(auth, 'endSession').mockImplementation(() => undefined);
+    http.get('/api/patients').subscribe({ error: () => undefined });
+    backend.expectOne('/api/patients').flush({ code: 'TRIAL_EXPIRED', message: 'x' }, { status: 403, statusText: 'Forbidden' });
+    expect(end).toHaveBeenCalledWith('trialExpired');
+  });
+
+  it('keeps the session on any other 403', () => {
+    vi.spyOn(auth, 'token').mockReturnValue('abc');
+    const end = vi.spyOn(auth, 'endSession').mockImplementation(() => undefined);
+    http.get('/api/users').subscribe({ error: () => undefined });
+    backend.expectOne('/api/users').flush({ code: 'ACCESS_DENIED', message: 'x' }, { status: 403, statusText: 'Forbidden' });
+    expect(end).not.toHaveBeenCalled();
+  });
+
   it('other 401 with a token ends the session as invalid', () => {
     vi.spyOn(auth, 'token').mockReturnValue('abc');
     const end = vi.spyOn(auth, 'endSession').mockImplementation(() => undefined);

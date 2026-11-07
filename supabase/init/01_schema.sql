@@ -36,6 +36,7 @@ BEGIN
             ADD CONSTRAINT ck_establishment_kind CHECK (kind IN ('INSTITUTION', 'INDIVIDUAL'));
     END IF;
 END $$;
+ALTER TABLE establishment ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ NULL;
 
 -- Usuarios (H1.1; É8 agrega SUPERADMIN y el establecimiento)
 CREATE TABLE IF NOT EXISTS app_user (

@@ -23,10 +23,13 @@ export interface LoginResponse {
   user: UserSummary;
 }
 
-export type SessionEndReason = 'expired' | 'invalid' | 'logout';
+export type SessionEndReason = 'expired' | 'invalid' | 'logout' | 'trialExpired';
 
 /** Query params of /login that make it show the "Tu sesión venció" notice. */
 export const SESSION_EXPIRED_QUERY = { sesion: 'vencida' } as const;
+
+/** Query params of /login that make it show the "Tu período de prueba venció" notice. */
+export const TRIAL_EXPIRED_QUERY = { prueba: 'vencida' } as const;
 
 /** Admin screens: an ADMIN, or a SUPERADMIN acting inside an establishment. */
 export function isAdminInEstablishment(user: UserSummary | null | undefined): boolean {

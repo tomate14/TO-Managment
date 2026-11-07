@@ -48,6 +48,20 @@ describe('EstablishmentsService', () => {
     expect(req.request.method).toBe('POST');
   });
 
+  it('changes the trial end', () => {
+    service.changeTrialEnd(4, '2026-11-30').subscribe();
+    const req = http.expectOne('/api/establishments/4/trial');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ trialEndsOn: '2026-11-30' });
+  });
+
+  it('removes the trial end', () => {
+    service.changeTrialEnd(4, null).subscribe();
+    const req = http.expectOne('/api/establishments/4/trial');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ trialEndsOn: null });
+  });
+
   it('keeps the pending count', () => {
     expect(service.pendingCount()).toBe(0);
     service.setPendingCount(3);
