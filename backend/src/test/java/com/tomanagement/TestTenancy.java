@@ -29,7 +29,10 @@ public class TestTenancy {
     }
 
     public Establishment create(String name) {
-        return establishmentRepository.save(new Establishment(name, EstablishmentKind.INSTITUTION, Instant.now()));
+        Instant now = Instant.now();
+        Establishment establishment = new Establishment(name, EstablishmentKind.INSTITUTION, now);
+        establishment.approve(now);
+        return establishmentRepository.save(establishment);
     }
 
     public String tokenFor(AuthenticatedUser user) {

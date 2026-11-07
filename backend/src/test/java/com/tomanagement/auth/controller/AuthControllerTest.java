@@ -2,6 +2,7 @@ package com.tomanagement.auth.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -81,7 +82,9 @@ class AuthControllerTest {
     @BeforeEach
     void seedUsers() {
         testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
-        northId = establishmentRepository.save(new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, CREATED_AT)).getId();
+        Establishment north = new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, CREATED_AT);
+        north.approve(CREATED_AT);
+        northId = establishmentRepository.save(north).getId();
         userRepository.save(user("terapeuta@consultorio.com", "Ana Pérez", Role.TERAPEUTA, true));
         userRepository.save(user("inactiva@consultorio.com", "Inés Baja", Role.TERAPEUTA, false));
     }
@@ -101,6 +104,49 @@ class AuthControllerTest {
         mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
+    void aPendingPracticeCannotLogIn() throws Exception {
+        register("Ana Pérez", "ana@gmail.com");
+
+        mockMvc.perform(login("ana@gmail.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_PENDING_APPROVAL.name()));
+    }
+
+    @Test
+    void aRejectedPracticeSeesInactive() throws Exception {
+        register("Ana Pérez", "ana@gmail.com");
+        userRepository.save(superadmin());
+        String root = tokenFor("root@plataforma.com");
+        Long practiceId = practiceIdOf("ana@gmail.com");
+
+        mockMvc.perform(patch("/api/establishments/" + practiceId + "/active")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + root)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("active", false))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(login("ana@gmail.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
+    void anApprovedPracticeLogsInAndCarriesItsKind() throws Exception {
+        register("Ana Pérez", "ana@gmail.com");
+        userRepository.save(superadmin());
+        String root = tokenFor("root@plataforma.com");
+
+        mockMvc.perform(post("/api/establishments/" + practiceIdOf("ana@gmail.com") + "/approval")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + root))
+                .andExpect(status().is2xxSuccessful());
+
+        mockMvc.perform(login("ana@gmail.com", PASSWORD))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user.establishment.kind").value("INDIVIDUAL"))
+                .andExpect(jsonPath("$.user.role").value("ADMIN"));
     }
 
     @Test
@@ -264,6 +310,17 @@ class AuthControllerTest {
         String body = objectMapper.writeValueAsString(new LinkedHashMap<>(Map.of(
                 "email", email, "password", password)));
         return post(LOGIN).contentType(MediaType.APPLICATION_JSON).content(body);
+    }
+
+    private void register(String fullName, String email) throws Exception {
+        mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "fullName", fullName, "email", email, "password", PASSWORD))))
+                .andExpect(status().isCreated());
+    }
+
+    private Long practiceIdOf(String email) {
+        return userRepository.findByEmail(email).orElseThrow().getEstablishmentId();
     }
 
     private String errorBody(RequestBuilder request) throws Exception {

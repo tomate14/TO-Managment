@@ -76,6 +76,7 @@ public enum ErrorCode {
     ESTABLISHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El establecimiento no existe."),
     ESTABLISHMENT_NAME_TAKEN(HttpStatus.CONFLICT, "Ya hay un establecimiento con ese nombre."),
     ESTABLISHMENT_INACTIVE(HttpStatus.FORBIDDEN, "El establecimiento está inactivo."),
+    ESTABLISHMENT_PENDING_APPROVAL(HttpStatus.FORBIDDEN, "Tu cuenta está pendiente de aprobación."),
     ESTABLISHMENT_REQUIRED(HttpStatus.FORBIDDEN, "Elegí un establecimiento para continuar."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
