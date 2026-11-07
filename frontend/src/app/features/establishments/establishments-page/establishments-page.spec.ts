@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { EstablishmentsPage } from './establishments-page';
 import { EstablishmentsService } from '../establishments.service';
 import { EstablishmentSummary } from '../establishments.models';
@@ -198,6 +199,41 @@ describe('EstablishmentsPage', () => {
       expect(rejected.textContent).toContain('Rechazada');
       expect(rejected.querySelector('.est-enter')).toBeNull();
       expect(card(el, 'Consultorio Norte').textContent).not.toContain('Independiente');
+    });
+
+    it('reopens a rejected request when it is switched on', () => {
+      const rejected = { ...julieta, pendingApproval: false, rejected: true };
+      service.list.mockReturnValue(of([ana, rejected, norte]));
+      service.setActive.mockReturnValue(of({ ...julieta, pendingApproval: true, rejected: false, active: true }));
+      const { fixture, el } = render();
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 1');
+      card(el, 'Julieta Ríos').querySelector<HTMLButtonElement>('[role="switch"]')!.click();
+      fixture.detectChanges();
+      expect(service.setActive).toHaveBeenCalledWith(4, true);
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 2');
+      expect(request(el, 'Julieta Ríos')).toBeTruthy();
+      expect(el.querySelectorAll('.est-card').length).toBe(1);
+      expect(service.setPendingCount).toHaveBeenLastCalledWith(2);
+    });
+
+    it('shows the error when approving fails', () => {
+      service.approve.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500, error: { message: 'No se pudo aprobar.' } })));
+      const { fixture, el } = render();
+      button(request(el, 'Ana Pérez'), 'Aprobar').click();
+      fixture.detectChanges();
+      expect(el.querySelector('.alert--error')!.textContent).toContain('No se pudo aprobar.');
+      expect(el.querySelectorAll('.est-request').length).toBe(2);
+    });
+
+    it('shows the error and keeps the confirmation open when rejecting fails', () => {
+      service.setActive.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500, error: { message: 'No se pudo rechazar.' } })));
+      const { fixture, el } = render();
+      button(request(el, 'Julieta Ríos'), 'Rechazar').click();
+      fixture.detectChanges();
+      button(request(el, 'Julieta Ríos'), 'Sí, rechazar').click();
+      fixture.detectChanges();
+      expect(el.querySelector('.alert--error')!.textContent).toContain('No se pudo rechazar.');
+      expect(request(el, 'Julieta Ríos').textContent).toContain('¿Rechazar la solicitud? No va a poder ingresar.');
     });
   });
 });

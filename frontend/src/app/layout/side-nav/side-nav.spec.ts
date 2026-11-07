@@ -31,7 +31,8 @@ describe('SideNav', () => {
     const fixture = TestBed.createComponent(SideNav);
     fixture.detectChanges();
     const badge = link(fixture.nativeElement).querySelector('.side-nav__badge');
-    expect(badge?.textContent?.trim()).toBe('2');
+    expect(badge?.querySelector('[aria-hidden="true"]')?.textContent?.trim()).toBe('2');
+    expect(badge?.querySelector('.visually-hidden')?.textContent).toContain('2 pendientes');
   });
 
   it('shows no badge when nothing is pending', () => {
