@@ -1,0 +1,45 @@
+<div class="trial-overlay" (click)="cancel.emit()" aria-hidden="true"></div>
+<div class="trial-dialog" [class.trial-dialog--sheet]="!desktop()" role="dialog" aria-modal="true"
+     aria-labelledby="trial-dialog-title" (keydown.escape)="cancel.emit()">
+  @if (!desktop()) {
+    <span class="trial-dialog__grab" aria-hidden="true"></span>
+  }
+  <div>
+    <h2 id="trial-dialog-title" class="trial-dialog__title">Vencimiento de la prueba</h2>
+    <p class="trial-dialog__subtitle">{{ subtitle() }}</p>
+  </div>
+
+  <form class="trial-dialog__form" (submit)="$event.preventDefault(); submit()" novalidate>
+    <div class="field">
+      <label class="field__label" for="trial-dialog-date">Último día de prueba</label>
+      <input id="trial-dialog-date" class="field__input" type="date" [formControl]="date" [min]="today"
+             [class.field__input--invalid]="shownError()" [attr.aria-invalid]="!!shownError()"
+             [attr.aria-describedby]="shownError() ? 'trial-dialog-error trial-dialog-hint' : 'trial-dialog-hint'">
+      @if (shownError(); as message) {
+        <p id="trial-dialog-error" class="field__error">{{ message }}</p>
+      }
+      <p id="trial-dialog-hint" class="field__hint">
+        La cuenta se bloquea a la medianoche de ese día.
+        @if (!desktop()) {
+          Si es una cuenta paga, quitá el vencimiento.
+        }
+      </p>
+    </div>
+
+    @if (desktop()) {
+      <div class="trial-dialog__actions">
+        <button type="button" class="trial-dialog__remove" [disabled]="busy()" (click)="remove.emit()">Quitar vencimiento</button>
+        <span class="trial-dialog__spacer"></span>
+        <button type="button" class="trial-btn trial-btn--secondary" [disabled]="busy()" (click)="cancel.emit()">Cancelar</button>
+        <button type="submit" class="trial-btn" [disabled]="busy()">Guardar</button>
+      </div>
+    } @else {
+      <div class="trial-dialog__stack">
+        <button type="submit" class="trial-btn trial-btn--large" [disabled]="busy()">Guardar</button>
+        <button type="button" class="trial-btn trial-btn--large trial-btn--secondary trial-btn--danger-text" [disabled]="busy()"
+                (click)="remove.emit()">Quitar vencimiento</button>
+        <button type="button" class="trial-dialog__link" [disabled]="busy()" (click)="cancel.emit()">Cancelar</button>
+      </div>
+    }
+  </form>
+</div>

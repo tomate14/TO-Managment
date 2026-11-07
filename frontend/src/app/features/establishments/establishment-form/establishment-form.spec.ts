@@ -7,7 +7,7 @@ import { EstablishmentsService } from '../establishments.service';
 import { EstablishmentSummary } from '../establishments.models';
 
 describe('EstablishmentForm', () => {
-  const created: EstablishmentSummary = { id: 9, name: 'Kinesio Centro', kind: 'INSTITUTION', active: true, pendingApproval: false, rejected: false, createdAt: '2026-11-01T12:00:00Z', activeUsers: 1, admins: [] };
+  const created: EstablishmentSummary = { id: 9, name: 'Kinesio Centro', kind: 'INSTITUTION', active: true, pendingApproval: false, rejected: false, createdAt: '2026-11-01T12:00:00Z', activeUsers: 1, admins: [], trialEndsAt: null, trialExpired: false };
   let service: { create: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
