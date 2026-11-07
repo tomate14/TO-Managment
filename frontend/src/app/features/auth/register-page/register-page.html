@@ -1,0 +1,107 @@
+<main class="register">
+  <app-login-hero />
+  <section class="register__panel">
+    @if (sentTo(); as email) {
+      <div class="register__content register__content--done">
+        <div class="register__done" aria-hidden="true">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+        </div>
+        <h1 class="register__title">Recibimos tu solicitud</h1>
+        <p class="register__lead">Vas a poder ingresar cuando el administrador de la plataforma la apruebe.</p>
+        <div class="alert alert--info register__info" role="status">
+          <div>Usá el email <strong>{{ email }}</strong> y la contraseña que elegiste. Si intentás ingresar antes, vas a ver que tu cuenta sigue pendiente.</div>
+        </div>
+        <button type="button" class="btn-primary register__back" (click)="goToLogin()">Volver al inicio de sesión</button>
+      </div>
+    } @else {
+      <div class="register__content">
+        <div class="register__intro">
+          <p class="register__kicker">Terapeuta independiente</p>
+          <h1 class="register__title">Creá tu cuenta</h1>
+          <p class="register__lead">Trabajá con tu propio consultorio: tus pacientes, tus plantillas y tu agenda.</p>
+        </div>
+
+        @if (failure() === 'tooMany' || failure() === 'connection' || failure() === 'server') {
+          <div #errorBanner class="alert alert--error" role="alert" tabindex="-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+            <div>
+              @switch (failure()) {
+                @case ('tooMany') { {{ messages.tooMany }} }
+                @case ('server') { {{ serverMessage() }} }
+                @default { {{ messages.connection }} }
+              }
+            </div>
+          </div>
+        }
+
+        <form class="register__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="field">
+            <label class="field__label" for="fullName">Nombre y apellido</label>
+            <input id="fullName" class="field__input" [class.field__input--invalid]="showError('fullName')"
+                   [attr.aria-invalid]="showError('fullName')" type="text" autocomplete="name"
+                   placeholder="Ana Pérez" formControlName="fullName" />
+            @if (showError('fullName')) {
+              <p class="field__error">{{ fieldMessages.fullName }}</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="email">Email</label>
+            <input id="email" class="field__input" [class.field__input--invalid]="showError('email')"
+                   [attr.aria-invalid]="showError('email')" type="email" autocomplete="email" inputmode="email"
+                   placeholder="nombre@consultorio.com" formControlName="email" />
+            @if (isEmailTaken()) {
+              <p class="field__error">{{ messages.emailTaken }}</p>
+            } @else if (showError('email')) {
+              <p class="field__error">{{ fieldMessages.email }}</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="password">Contraseña</label>
+            <div class="register__password">
+              <input id="password" class="field__input register__password-input"
+                     [class.field__input--invalid]="showError('password')" [attr.aria-invalid]="showError('password')"
+                     [type]="showPassword() ? 'text' : 'password'" autocomplete="new-password"
+                     placeholder="Elegí una contraseña" formControlName="password" />
+              <button type="button" class="register__eye" (click)="togglePassword()"
+                      [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                      [attr.aria-pressed]="showPassword()">
+                @if (showPassword()) {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3 3.8"></path><path d="M6.4 6.4C3.9 8.1 2.5 12 2.5 12S6 19 12 19a9.6 9.6 0 0 0 5.6-1.8"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>
+                } @else {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                }
+              </button>
+            </div>
+            @if (showError('password')) {
+              <p class="field__error">{{ fieldMessages.password }}</p>
+            } @else {
+              <p class="field__hint">Mínimo 8 caracteres.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="confirm">Repetí la contraseña</label>
+            <input id="confirm" class="field__input" [class.field__input--invalid]="showError('confirm')"
+                   [attr.aria-invalid]="showError('confirm')" [type]="showPassword() ? 'text' : 'password'"
+                   autocomplete="new-password" placeholder="Repetí tu contraseña" formControlName="confirm" />
+            @if (showError('confirm')) {
+              <p class="field__error">{{ messages.mismatch }}</p>
+            }
+          </div>
+
+          <button type="submit" class="btn-primary register__submit" [disabled]="loading()" [attr.aria-busy]="loading()">
+            @if (loading()) {
+              <span class="spinner" aria-hidden="true"></span><span>Enviando…</span>
+            } @else {
+              <span>Enviar solicitud</span>
+            }
+          </button>
+        </form>
+
+        <p class="register__switch">¿Ya tenés cuenta? <a class="register__link" routerLink="/login">Iniciá sesión</a></p>
+      </div>
+    }
+  </section>
+</main>

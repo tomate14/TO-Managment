@@ -78,6 +78,11 @@
     color: var(--color-error-text);
   }
 
+  &--warning {
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+  }
+
   &--info {
     background: var(--color-primary-soft);
     color: var(--color-primary-dark);

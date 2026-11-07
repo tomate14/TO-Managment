@@ -182,6 +182,35 @@ describe('LoginPage', () => {
     expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
   });
 
+  it('explains a pending account', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_PENDING_APPROVAL', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain('Tu cuenta está pendiente de aprobación');
+    expect(alert?.textContent).toContain('Vas a poder ingresar cuando el administrador de la plataforma la apruebe.');
+    expect(alert?.classList).toContain('alert--warning');
+  });
+
+  it('429 shows the too-many-attempts message', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429, error: { code: 'TOO_MANY_REQUESTS' } })));
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('Demasiados intentos. Probá de nuevo más tarde.');
+  });
+
+  it('links to the registration', () => {
+    const { el } = setup();
+    const link = el.querySelector<HTMLAnchorElement>('a[href="/registro"]');
+    expect(link?.textContent).toContain('¿Sos terapeuta independiente? Creá tu cuenta');
+  });
+
   it('shows the expired-session notice when arriving with ?sesion=vencida', () => {
     const { el } = setup({ sesion: 'vencida' });
     const notice = el.querySelector('[role="status"]');

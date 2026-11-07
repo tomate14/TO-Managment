@@ -1,17 +1,19 @@
 import { Component, ElementRef, Injector, afterNextRender, inject, signal, viewChild } from '@angular/core';
 import { AbstractControl, FormControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SESSION_EXPIRED_QUERY } from '../../../core/auth/auth.models';
 import { apiErrorCode } from '../../../core/api/api-error';
 import { LoginHero } from '../login-hero/login-hero';
 
-type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'connection';
+type LoginErrorKind = 'credentials' | 'incomplete' | 'emailFormat' | 'inactive' | 'pending' | 'tooMany' | 'connection';
 
 interface Banner {
   title: string;
   message: string;
+  /** Amber (warning) instead of red: the account is fine, it just can't get in yet. */
+  warning?: boolean;
 }
 
 const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
@@ -19,6 +21,12 @@ const ERROR_BANNERS: Record<LoginErrorKind, Banner> = {
   incomplete: { title: 'Completá tu email y contraseña', message: 'Necesitamos los dos datos para ingresar.' },
   emailFormat: { title: 'Revisá el formato del email', message: 'Tiene que ser como nombre@consultorio.com.' },
   inactive: { title: 'Tu establecimiento está inactivo', message: 'Pedile al administrador de la plataforma que lo reactive.' },
+  pending: {
+    title: 'Tu cuenta está pendiente de aprobación',
+    message: 'Vas a poder ingresar cuando el administrador de la plataforma la apruebe.',
+    warning: true,
+  },
+  tooMany: { title: 'Demasiados intentos. Probá de nuevo más tarde.', message: '' },
   connection: { title: 'No pudimos conectar con el servidor', message: 'Intentá de nuevo en unos minutos.' },
 };
 
@@ -31,7 +39,7 @@ function trimmedEmail(control: AbstractControl<string>): ValidationErrors | null
 
 @Component({
   selector: 'app-login-page',
-  imports: [ReactiveFormsModule, LoginHero],
+  imports: [ReactiveFormsModule, RouterLink, LoginHero],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
 })
@@ -123,6 +131,12 @@ export class LoginPage {
     }
     if (apiErrorCode(err) === 'ESTABLISHMENT_INACTIVE') {
       return 'inactive';
+    }
+    if (apiErrorCode(err) === 'ESTABLISHMENT_PENDING_APPROVAL') {
+      return 'pending';
+    }
+    if (err instanceof HttpErrorResponse && err.status === 429) {
+      return 'tooMany';
     }
     return 'connection';
   }
