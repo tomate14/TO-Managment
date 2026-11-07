@@ -24,6 +24,7 @@ Las imágenes están a 2x (390 px de ancho lógico en mobile, 1440 px en escrito
 | H7.1–H7.4 Agenda de turnos | `h7.1-agenda/` | calendario, turnos asignados y reserva (mobile y desktop) |
 | H8.1–H8.4 Establecimientos | `h8-establecimientos/` | lista y alta de establecimientos, superadmin dentro de un establecimiento, pantalla Establecimiento del admin |
 | H9.1–H9.4 Terapeutas independientes | `h9-independientes/` | registro, solicitud enviada, login pendiente, aprobación del superadmin, menú y "Más" de una independiente |
+| H10.1–H10.3 Período de prueba | `h10-prueba/` | login con prueba vencida, vencimientos en Establecimientos, diálogo para extender o quitar el vencimiento |
 
 ## Tokens de diseño
 
