@@ -23,6 +23,11 @@ import com.tomanagement.catalog.repository.BodySegmentRepository;
 import com.tomanagement.catalog.repository.ScarTypeRepository;
 import com.tomanagement.catalog.repository.SurgeryTypeRepository;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.entity.EstablishmentKind;
+import com.tomanagement.establishment.repository.EstablishmentRepository;
+import com.tomanagement.establishment.service.EstablishmentCreator;
+import com.tomanagement.establishment.service.NewEstablishment;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
@@ -70,6 +75,12 @@ class EstablishmentControllerTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EstablishmentCreator establishmentCreator;
+
+    @Autowired
+    private EstablishmentRepository establishmentRepository;
 
     @Autowired
     private TestTables testTables;
@@ -190,6 +201,76 @@ class EstablishmentControllerTest {
                 .content(json(Map.of("name", " "))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()));
+    }
+
+    @Test
+    void superadminCreatesApprovedInstitutions() throws Exception {
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS)).contentType(MediaType.APPLICATION_JSON)
+                .content(json(newEstablishment("Consultorio Norte", "mg@cn.com"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.kind").value("INSTITUTION"))
+                .andExpect(jsonPath("$.pendingApproval").value(false))
+                .andExpect(jsonPath("$.rejected").value(false));
+    }
+
+    @Test
+    void approvalActivatesAPendingPractice() throws Exception {
+        Long id = pendingPractice("Mi consultorio", "ana@ind.com");
+
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/" + id + "/approval")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.kind").value("INDIVIDUAL"))
+                .andExpect(jsonPath("$.pendingApproval").value(false))
+                .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
+    void approvalIsIdempotentAndReactivates() throws Exception {
+        Long id = pendingPractice("Mi consultorio", "ana@ind.com");
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/" + id + "/approval"))).andExpect(status().isOk());
+        mockMvc.perform(as(superadmin, patch(ESTABLISHMENTS + "/" + id + "/active"))
+                .contentType(MediaType.APPLICATION_JSON).content(json(Map.of("active", false))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/" + id + "/approval")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.rejected").value(false));
+    }
+
+    @Test
+    void approvalIsOnlyForTheSuperadmin() throws Exception {
+        mockMvc.perform(as(existingAdmin, post(ESTABLISHMENTS + "/" + existingId + "/approval")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void approvalOfAnUnknownEstablishmentIs404() throws Exception {
+        mockMvc.perform(as(superadmin, post(ESTABLISHMENTS + "/999999/approval")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_NOT_FOUND.name()));
+    }
+
+    @Test
+    void pendingPracticesAreListedFirst() throws Exception {
+        approveStored(establishmentRepository.findById(existingId).orElseThrow());
+        approveStored(tenancy.create("Aaa"));
+        pendingPractice("Zzz", "zzz@ind.com");
+
+        mockMvc.perform(as(superadmin, get(ESTABLISHMENTS)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Zzz"))
+                .andExpect(jsonPath("$[1].name").value("Aaa"));
+    }
+
+    private void approveStored(Establishment establishment) {
+        establishment.approve(Instant.now());
+        establishmentRepository.save(establishment);
+    }
+
+    private Long pendingPractice(String name, String email) {
+        return establishmentCreator.create(new NewEstablishment(name, EstablishmentKind.INDIVIDUAL, false,
+                "Ana Perez", email, NEW_ADMIN_PASSWORD)).getId();
     }
 
     private Map<String, Object> newEstablishment(String name, String adminEmail) {

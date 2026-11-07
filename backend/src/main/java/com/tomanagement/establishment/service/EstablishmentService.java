@@ -15,6 +15,9 @@ public interface EstablishmentService {
 
     EstablishmentSummaryResponse create(CreateEstablishmentRequest request);
 
+    /** Approves a pending practice; idempotent, and it also reactivates a rejected or deactivated one. */
+    EstablishmentSummaryResponse approve(Long id);
+
     EstablishmentSummaryResponse rename(Long id, RenameEstablishmentRequest request);
 
     EstablishmentSummaryResponse changeActive(Long id, boolean active);
