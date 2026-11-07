@@ -110,6 +110,18 @@
   }
 }
 
+.side-nav__badge {
+  min-width: 20px;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #F2C46D;
+  color: #4A2E00;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .side-nav__section {
   margin: 0 0 4px;
   padding: 0 12px;

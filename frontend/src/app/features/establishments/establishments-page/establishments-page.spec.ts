@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { EstablishmentsPage } from './establishments-page';
 import { EstablishmentsService } from '../establishments.service';
 import { EstablishmentSummary } from '../establishments.models';
@@ -11,6 +12,7 @@ describe('EstablishmentsPage', () => {
   const norte: EstablishmentSummary = {
     id: 1,
     name: 'Consultorio Norte',
+    kind: 'INSTITUTION', pendingApproval: false, rejected: false, createdAt: '2026-11-01T15:00:00Z',
     active: true,
     activeUsers: 4,
     admins: [{ id: 10, fullName: 'Mariana Gómez', email: 'mariana.gomez@cnorte.com' }],
@@ -18,15 +20,40 @@ describe('EstablishmentsPage', () => {
   const mano: EstablishmentSummary = {
     id: 2,
     name: 'Clínica de la Mano',
+    kind: 'INSTITUTION', pendingApproval: false, rejected: false, createdAt: '2026-11-01T15:00:00Z',
     active: false,
     activeUsers: 3,
     admins: [{ id: 11, fullName: 'Diego Medina', email: 'diego@clinicamano.com' }],
   };
-  let service: { list: ReturnType<typeof vi.fn>; rename: ReturnType<typeof vi.fn>; setActive: ReturnType<typeof vi.fn> };
+  const ana: EstablishmentSummary = {
+    id: 3,
+    name: 'Ana Pérez',
+    kind: 'INDIVIDUAL',
+    pendingApproval: true,
+    rejected: false,
+    createdAt: '2026-11-06T15:00:00Z',
+    active: false,
+    activeUsers: 1,
+    admins: [{ id: 12, fullName: 'Ana Pérez', email: 'ana.perez@gmail.com' }],
+  };
+  const julieta: EstablishmentSummary = {
+    ...ana,
+    id: 4,
+    name: 'Julieta Ríos',
+    createdAt: '2026-11-05T15:00:00Z',
+    admins: [{ id: 13, fullName: 'Julieta Ríos', email: 'julieta.rios@outlook.com' }],
+  };
+  let service: {
+    list: ReturnType<typeof vi.fn>;
+    rename: ReturnType<typeof vi.fn>;
+    setActive: ReturnType<typeof vi.fn>;
+    approve: ReturnType<typeof vi.fn>;
+    setPendingCount: ReturnType<typeof vi.fn>;
+  };
   let auth: { enterEstablishment: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    service = { list: vi.fn(() => of([norte, mano])), rename: vi.fn(), setActive: vi.fn() };
+    service = { list: vi.fn(() => of([norte, mano])), rename: vi.fn(), setActive: vi.fn(), approve: vi.fn(), setPendingCount: vi.fn() };
     auth = { enterEstablishment: vi.fn(() => of(undefined)) };
     TestBed.configureTestingModule({
       imports: [EstablishmentsPage],
@@ -105,5 +132,118 @@ describe('EstablishmentsPage', () => {
     const { el } = render();
     el.querySelector<HTMLButtonElement>('.est-header__new')!.click();
     expect(navigate).toHaveBeenCalledWith('/establecimientos/nuevo');
+  });
+
+  describe('pending practices', () => {
+    beforeEach(() => service.list.mockReturnValue(of([ana, julieta, norte])));
+
+    function request(el: HTMLElement, name: string): HTMLElement {
+      return Array.from(el.querySelectorAll<HTMLElement>('.est-request')).find((c) => c.textContent?.includes(name))!;
+    }
+
+    function button(root: HTMLElement, label: string): HTMLButtonElement {
+      return Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((b) => b.textContent?.trim() === label)!;
+    }
+
+    it('renders the pending section only when there are pending practices', () => {
+      const { el } = render();
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 2');
+      expect(request(el, 'Ana Pérez').textContent).toContain('ana.perez@gmail.com');
+      expect(request(el, 'Ana Pérez').textContent).toMatch(/pidió el \d{2}\/\d{2}\/2026/);
+      expect(service.setPendingCount).toHaveBeenCalledWith(2);
+
+      service.list.mockReturnValue(of([norte, mano]));
+      const { el: plain } = render();
+      expect(plain.querySelector('.est-pending')).toBeNull();
+      expect(service.setPendingCount).toHaveBeenLastCalledWith(0);
+    });
+
+    it('approves a request and moves it to the list', () => {
+      service.approve.mockReturnValue(of({ ...ana, pendingApproval: false, active: true }));
+      const { fixture, el } = render();
+      button(request(el, 'Ana Pérez'), 'Aprobar').click();
+      fixture.detectChanges();
+      expect(service.approve).toHaveBeenCalledWith(3);
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 1');
+      expect(el.querySelectorAll('.est-request').length).toBe(1);
+      expect(card(el, 'Ana Pérez').textContent).toContain('Independiente');
+      expect(card(el, 'Ana Pérez').textContent).toContain('Activo');
+      expect(service.setPendingCount).toHaveBeenLastCalledWith(1);
+    });
+
+    it('re-sorts the list by name after approving a request', () => {
+      service.list.mockReturnValue(of([norte, mano, ana]));
+      service.approve.mockReturnValue(of({ ...ana, pendingApproval: false, active: true }));
+      const { fixture, el } = render();
+      button(request(el, 'Ana Pérez'), 'Aprobar').click();
+      fixture.detectChanges();
+      const names = Array.from(el.querySelectorAll('.est-card .est-name')).map((n) => n.textContent?.trim());
+      expect(names).toEqual(['Ana Pérez', 'Clínica de la Mano', 'Consultorio Norte']);
+    });
+
+    it('asks before rejecting', () => {
+      service.setActive.mockReturnValue(of({ ...julieta, pendingApproval: false, rejected: true }));
+      const { fixture, el } = render();
+      button(request(el, 'Julieta Ríos'), 'Rechazar').click();
+      fixture.detectChanges();
+      expect(request(el, 'Julieta Ríos').textContent).toContain('¿Rechazar la solicitud? No va a poder ingresar.');
+      expect(service.setActive).not.toHaveBeenCalled();
+
+      button(request(el, 'Julieta Ríos'), 'Cancelar').click();
+      fixture.detectChanges();
+      expect(request(el, 'Julieta Ríos').textContent).not.toContain('¿Rechazar la solicitud?');
+
+      button(request(el, 'Julieta Ríos'), 'Rechazar').click();
+      fixture.detectChanges();
+      button(request(el, 'Julieta Ríos'), 'Sí, rechazar').click();
+      fixture.detectChanges();
+      expect(service.setActive).toHaveBeenCalledWith(4, false);
+      expect(card(el, 'Julieta Ríos').textContent).toContain('Rechazada');
+    });
+
+    it('shows the Independiente badge and the Rechazada state in the list', () => {
+      service.list.mockReturnValue(of([{ ...julieta, pendingApproval: false, rejected: true }, norte]));
+      const { el } = render();
+      const rejected = card(el, 'Julieta Ríos');
+      expect(rejected.textContent).toContain('Independiente');
+      expect(rejected.textContent).toContain('Rechazada');
+      expect(rejected.querySelector('.est-enter')).toBeNull();
+      expect(card(el, 'Consultorio Norte').textContent).not.toContain('Independiente');
+    });
+
+    it('reopens a rejected request when it is switched on', () => {
+      const rejected = { ...julieta, pendingApproval: false, rejected: true };
+      service.list.mockReturnValue(of([ana, rejected, norte]));
+      service.setActive.mockReturnValue(of({ ...julieta, pendingApproval: true, rejected: false, active: true }));
+      const { fixture, el } = render();
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 1');
+      card(el, 'Julieta Ríos').querySelector<HTMLButtonElement>('[role="switch"]')!.click();
+      fixture.detectChanges();
+      expect(service.setActive).toHaveBeenCalledWith(4, true);
+      expect(el.querySelector('.est-pending')!.textContent).toContain('Pendientes de aprobación · 2');
+      expect(request(el, 'Julieta Ríos')).toBeTruthy();
+      expect(el.querySelectorAll('.est-card').length).toBe(1);
+      expect(service.setPendingCount).toHaveBeenLastCalledWith(2);
+    });
+
+    it('shows the error when approving fails', () => {
+      service.approve.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500, error: { message: 'No se pudo aprobar.' } })));
+      const { fixture, el } = render();
+      button(request(el, 'Ana Pérez'), 'Aprobar').click();
+      fixture.detectChanges();
+      expect(el.querySelector('.alert--error')!.textContent).toContain('No se pudo aprobar.');
+      expect(el.querySelectorAll('.est-request').length).toBe(2);
+    });
+
+    it('shows the error and keeps the confirmation open when rejecting fails', () => {
+      service.setActive.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500, error: { message: 'No se pudo rechazar.' } })));
+      const { fixture, el } = render();
+      button(request(el, 'Julieta Ríos'), 'Rechazar').click();
+      fixture.detectChanges();
+      button(request(el, 'Julieta Ríos'), 'Sí, rechazar').click();
+      fixture.detectChanges();
+      expect(el.querySelector('.alert--error')!.textContent).toContain('No se pudo rechazar.');
+      expect(request(el, 'Julieta Ríos').textContent).toContain('¿Rechazar la solicitud? No va a poder ingresar.');
+    });
   });
 });

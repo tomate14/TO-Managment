@@ -12,3 +12,4 @@ ADMIN_EMAIL: Admin.Inicial@Consultorio.com
 ADMIN_PASSWORD: admin-inicial-test
 ADMIN_NAME: Admin Inicial
 APP_TIME_ZONE: America/Argentina/Buenos_Aires
+REGISTRATION_MAX_PER_HOUR: 1000

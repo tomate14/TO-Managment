@@ -7,6 +7,7 @@ import { SessionStore, StoredSession } from './session-store';
 import { isJwtExpired } from './jwt-expiry';
 
 export const LOGIN_URL = '/api/auth/login';
+export const REGISTER_URL = '/api/auth/register';
 const ME_URL = '/api/auth/me';
 const ESTABLISHMENT_URL = '/api/auth/establishment';
 const PASSWORD_URL = '/api/auth/password';

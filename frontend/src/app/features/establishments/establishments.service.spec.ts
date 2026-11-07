@@ -41,4 +41,16 @@ describe('EstablishmentsService', () => {
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ active: false });
   });
+
+  it('approves a practice', () => {
+    service.approve(4).subscribe();
+    const req = http.expectOne('/api/establishments/4/approval');
+    expect(req.request.method).toBe('POST');
+  });
+
+  it('keeps the pending count', () => {
+    expect(service.pendingCount()).toBe(0);
+    service.setPendingCount(3);
+    expect(service.pendingCount()).toBe(3);
+  });
 });

@@ -14,7 +14,7 @@ const futureToken = jwtWithExp(Date.now() / 1000 + 3600);
 const response: LoginResponse = {
   token: futureToken,
   expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
-  user: { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte' } },
+  user: { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } },
 };
 
 describe('AuthService', () => {
@@ -118,7 +118,7 @@ describe('AuthService', () => {
     const inside: LoginResponse = {
       token: newToken,
       expiresAt: new Date(Date.now() + 7_200_000).toISOString(),
-      user: { id: 9, email: 'root@c.com', fullName: 'Root', role: 'SUPERADMIN', establishment: { id: 3, name: 'Norte' } },
+      user: { id: 9, email: 'root@c.com', fullName: 'Root', role: 'SUPERADMIN', establishment: { id: 3, name: 'Norte', kind: 'INSTITUTION' } },
     };
     let done = false;
     service.enterEstablishment(3).subscribe(() => (done = true));
@@ -130,7 +130,7 @@ describe('AuthService', () => {
 
     expect(done).toBe(true);
     expect(service.token()).toBe(newToken);
-    expect(service.establishment()).toEqual({ id: 3, name: 'Norte' });
+    expect(service.establishment()).toEqual({ id: 3, name: 'Norte', kind: 'INSTITUTION' });
     expect(service.isSuperadmin()).toBe(true);
     expect(service.isAdminInEstablishment()).toBe(true);
   });

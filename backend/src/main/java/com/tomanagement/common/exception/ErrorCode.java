@@ -19,6 +19,7 @@ public enum ErrorCode {
     AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "Tenés que iniciar sesión para continuar."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Tu sesión venció. Ingresá de nuevo para continuar."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "No tenés permisos para realizar esta acción."),
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "Demasiados intentos. Probá de nuevo más tarde."),
     ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, "La ruta solicitada no existe."),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "Método HTTP no permitido para esta ruta."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "El usuario no existe."),
@@ -75,6 +76,7 @@ public enum ErrorCode {
     ESTABLISHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El establecimiento no existe."),
     ESTABLISHMENT_NAME_TAKEN(HttpStatus.CONFLICT, "Ya hay un establecimiento con ese nombre."),
     ESTABLISHMENT_INACTIVE(HttpStatus.FORBIDDEN, "El establecimiento está inactivo."),
+    ESTABLISHMENT_PENDING_APPROVAL(HttpStatus.FORBIDDEN, "Tu cuenta está pendiente de aprobación."),
     ESTABLISHMENT_REQUIRED(HttpStatus.FORBIDDEN, "Elegí un establecimiento para continuar."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 

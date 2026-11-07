@@ -7,7 +7,7 @@
     <section class="more__establishment" aria-label="Establecimiento">
       <span class="more__establishment-avatar" aria-hidden="true">{{ initials(establishment.name) }}</span>
       <span class="more__establishment-text">
-        <span class="more__establishment-label">Establecimiento</span>
+        <span class="more__establishment-label">{{ individual() ? 'Mi consultorio' : 'Establecimiento' }}</span>
         <span class="more__establishment-name">{{ establishment.name }}</span>
       </span>
     </section>
@@ -20,7 +20,7 @@
         <span class="more__account-name">{{ currentUser.fullName }}</span>
         <span class="more__account-email">{{ currentUser.email }}</span>
       </div>
-      <span class="more__role">{{ roleLabels[currentUser.role] }}</span>
+      <span class="more__role">{{ roleLabel(currentUser) }}</span>
     </section>
   }
 
@@ -33,11 +33,12 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path></svg>
           </span>
           <span class="more__row-text">
-            <span class="more__row-label">Establecimiento</span>
+            <span class="more__row-label">{{ individual() ? 'Mi consultorio' : 'Establecimiento' }}</span>
             <span class="more__row-hint">Nombre y datos</span>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="more__chevron"><path d="M9 5l7 7-7 7"></path></svg>
         </a>
+        @if (!individual()) {
         <a class="more__row more__row--divided" routerLink="/usuarios">
           <span class="more__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
@@ -48,6 +49,7 @@
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="more__chevron"><path d="M9 5l7 7-7 7"></path></svg>
         </a>
+        }
         <a class="more__row" routerLink="/catalogos">
           <span class="more__icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
@@ -59,7 +61,9 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="more__chevron"><path d="M9 5l7 7-7 7"></path></svg>
         </a>
       </div>
-      <p class="more__note">Esta sección solo la ven las administradoras.</p>
+      @if (!individual()) {
+        <p class="more__note">Esta sección solo la ven las administradoras.</p>
+      }
     </section>
   }
 

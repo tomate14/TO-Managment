@@ -53,6 +53,11 @@ public class EstablishmentController {
         return establishmentService.rename(id, request);
     }
 
+    @PostMapping("/{id}/approval")
+    public EstablishmentSummaryResponse approve(@PathVariable("id") Long id) {
+        return establishmentService.approve(id);
+    }
+
     @PatchMapping("/{id}/active")
     public EstablishmentSummaryResponse changeActive(@PathVariable("id") Long id,
             @Valid @RequestBody ChangeEstablishmentActiveRequest request) {

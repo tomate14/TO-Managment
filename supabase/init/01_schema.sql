@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V10).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V11).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -14,6 +14,28 @@ CREATE TABLE IF NOT EXISTS establishment (
     created_at TIMESTAMPTZ  NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_establishment_name_lower ON establishment (lower(name));
+
+-- Tipo y aprobación del establecimiento (É9)
+ALTER TABLE establishment ADD COLUMN IF NOT EXISTS kind VARCHAR(20) NOT NULL DEFAULT 'INSTITUTION';
+-- La columna y su relleno van juntos: el relleno corre solo cuando la columna se crea, así una nueva ejecución
+-- nunca aprueba solicitudes pendientes reales.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_schema = current_schema() AND table_name = 'establishment'
+                   AND column_name = 'approved_at') THEN
+        ALTER TABLE establishment ADD COLUMN approved_at TIMESTAMPTZ NULL;
+        UPDATE establishment SET approved_at = created_at;
+    END IF;
+END $$;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_establishment_kind'
+                   AND conrelid = 'establishment'::regclass) THEN
+        ALTER TABLE establishment
+            ADD CONSTRAINT ck_establishment_kind CHECK (kind IN ('INSTITUTION', 'INDIVIDUAL'));
+    END IF;
+END $$;
 
 -- Usuarios (H1.1; É8 agrega SUPERADMIN y el establecimiento)
 CREATE TABLE IF NOT EXISTS app_user (

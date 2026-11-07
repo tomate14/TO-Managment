@@ -64,6 +64,9 @@ public class AuthServiceImpl implements AuthService {
             if (!establishment.isActive()) {
                 throw new AccessDeniedApplicationException(ErrorCode.ESTABLISHMENT_INACTIVE);
             }
+            if (establishment.isPendingApproval()) {
+                throw new AccessDeniedApplicationException(ErrorCode.ESTABLISHMENT_PENDING_APPROVAL);
+            }
         }
         return session(user, establishment);
     }

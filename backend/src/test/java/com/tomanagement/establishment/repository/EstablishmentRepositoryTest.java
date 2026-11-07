@@ -9,6 +9,7 @@ import com.tomanagement.TestTable;
 import com.tomanagement.TestTables;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.establishment.entity.Establishment;
+import com.tomanagement.establishment.entity.EstablishmentKind;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
@@ -45,16 +46,27 @@ class EstablishmentRepositoryTest {
 
     @Test
     void establishmentNamesAreUniqueIgnoringCase() {
-        establishmentRepository.saveAndFlush(new Establishment("Consultorio Norte", Instant.now()));
+        establishmentRepository.saveAndFlush(new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, Instant.now()));
 
         assertThat(establishmentRepository.existsByNameIgnoreCase("consultorio norte")).isTrue();
-        assertThatThrownBy(() -> establishmentRepository.saveAndFlush(new Establishment("CONSULTORIO NORTE", Instant.now())))
+        assertThatThrownBy(() -> establishmentRepository.saveAndFlush(new Establishment("CONSULTORIO NORTE", EstablishmentKind.INSTITUTION, Instant.now())))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
+    void anIndividualPracticeIsStoredPendingApproval() {
+        Long id = establishmentRepository.saveAndFlush(
+                new Establishment("Ana Pérez", EstablishmentKind.INDIVIDUAL, Instant.now())).getId();
+
+        Establishment found = establishmentRepository.findById(id).orElseThrow();
+
+        assertThat(found.getKind()).isEqualTo(EstablishmentKind.INDIVIDUAL);
+        assertThat(found.getApprovedAt()).isNull();
+    }
+
+    @Test
     void superadminHasNoEstablishmentAndOthersMustHaveOne() {
-        Establishment norte = establishmentRepository.saveAndFlush(new Establishment("Norte", Instant.now()));
+        Establishment norte = establishmentRepository.saveAndFlush(new Establishment("Norte", EstablishmentKind.INSTITUTION, Instant.now()));
         userRepository.saveAndFlush(user("root@x.com", Role.SUPERADMIN, null));
         userRepository.saveAndFlush(user("ana@x.com", Role.ADMIN, norte.getId()));
 

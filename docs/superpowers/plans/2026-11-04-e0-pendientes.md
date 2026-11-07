@@ -71,8 +71,14 @@ Decisiones y hallazgos de las revisiones de É0 que las épicas siguientes **tie
 
 ## Pendientes de É8 (Multi-tenencia)
 - **Datos:** la migración `V10` vacía todas las tablas de la app (decisión "empezar de cero"). En producción: backup de Supabase y confirmación explícita antes de desplegar; rotar `JWT_SECRET` en el mismo deploy (los ids de usuario se reinician y los tokens viejos dejan de corresponder a la misma persona).
-- Fuera de alcance por decisión del spec: usuarios en más de un establecimiento, registro público de establecimientos, facturación/planes, transferir pacientes entre establecimientos, auditoría del superadmin dentro de un establecimiento y borrado de establecimientos.
+- Fuera de alcance por decisión del spec: usuarios en más de un establecimiento, registro público de establecimientos (É9 lo cubre solo para terapeutas independientes), facturación/planes, transferir pacientes entre establecimientos, auditoría del superadmin dentro de un establecimiento y borrado de establecimientos.
 - Desactivar un establecimiento o un usuario no revoca los tokens vigentes (solo bloquea el próximo login; el acceso dura hasta `JWT_EXPIRATION_MS`).
 - La lista de establecimientos muestra solo el primer admin de cada uno.
 - Accesibilidad: el panel "Nuevo establecimiento" de escritorio no maneja Escape ni el foco.
 - Sin chequeo en la base de que un hijo (diagnóstico, seguimiento, respuesta…) tenga el mismo `establishment_id` que su padre: el aislamiento lo garantiza `@TenantId` en la app (verificado con tests de integración).
+
+## Pendientes de É9 (Terapeutas independientes)
+- `REGISTRATION_MAX_PER_HOUR` es obligatoria: tiene que existir en Cloud Run antes de desplegar É9, o el backend no arranca.
+- Endurecimiento: restringir el ingreso a Cloud Run al camino de Vercel (o a un header compartido que inyecte Vercel). Hoy una llamada directa a la URL de Cloud Run puede falsificar `X-Forwarded-For`, esquivar el límite y llenar el tope de 10.000 clientes, dejando los registros nuevos en 429 hasta por una hora. La aprobación manual sigue siendo el control.
+- El límite vive en memoria, por instancia.
+- Fuera de alcance (spec §9): emails, sumarse a un establecimiento más tarde, convertir un consultorio en institución y recuperación de contraseña.

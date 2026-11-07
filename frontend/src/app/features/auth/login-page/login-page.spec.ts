@@ -7,7 +7,7 @@ import { LoginPage } from './login-page';
 import { AuthService } from '../../../core/auth/auth.service';
 import { UserSummary } from '../../../core/auth/auth.models';
 
-const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte' } };
+const user: UserSummary = { id: 1, email: 'ana@consultorio.com', fullName: 'Ana Pérez', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } };
 
 function setup(query: Record<string, string> = {}) {
   const login = vi.fn();
@@ -180,6 +180,42 @@ describe('LoginPage', () => {
     expect(alert).toContain('Pedile al administrador de la plataforma que lo reactive.');
     expect(alert).not.toContain('No pudimos conectar con el servidor');
     expect(el.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
+  });
+
+  it('explains a pending account', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_PENDING_APPROVAL', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain('Tu cuenta está pendiente de aprobación');
+    expect(alert?.textContent).toContain('Vas a poder ingresar cuando el administrador de la plataforma la apruebe.');
+    expect(alert?.classList).toContain('alert--warning');
+  });
+
+  it('the pending banner shows a clock icon, the others an exclamation', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'ESTABLISHMENT_PENDING_APPROVAL', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"] svg path[d="M12 7v5l3 2"]')).not.toBeNull();
+
+    login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
+    type(el, '#password', 'secreta2');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"] svg path[d="M12 7v5l3 2"]')).toBeNull();
+  });
+
+  it('links to the registration', () => {
+    const { el } = setup();
+    const link = el.querySelector<HTMLAnchorElement>('a[href="/registro"]');
+    expect(link?.textContent).toContain('¿Sos terapeuta independiente? Creá tu cuenta');
   });
 
   it('shows the expired-session notice when arriving with ?sesion=vencida', () => {

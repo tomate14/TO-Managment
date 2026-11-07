@@ -250,6 +250,27 @@ class CrossEstablishmentIsolationTest {
     }
 
     @Test
+    void anApprovedPracticeSeesOnlyItsOwnData() throws Exception {
+        String root = tenancy.tokenFor(new AuthenticatedUser(superadmin.getId(), superadmin.getEmail(),
+                superadmin.getFullName(), Role.SUPERADMIN, null));
+        mockMvc.perform(post("/api/auth/register").contentType(JSON).content(json(Map.of(
+                        "fullName", "Ana Independiente", "email", "ana@independiente.com", "password", PASSWORD))))
+                .andExpect(status().isCreated());
+        Long practiceId = userRepository.findByEmail("ana@independiente.com").orElseThrow().getEstablishmentId();
+        perform(root, post("/api/establishments/" + practiceId + "/approval")).andExpect(status().isOk());
+        Long practiceAdminId = userRepository.findByEmail("ana@independiente.com").orElseThrow().getId();
+        String token = read(mockMvc.perform(post("/api/auth/login").contentType(JSON).content(json(Map.of(
+                "email", "ana@independiente.com", "password", PASSWORD))))).get("token").asText();
+
+        assertThat(read(perform(token, get("/api/patients").param("q", ""))).get("content")).isEmpty();
+        expectError(perform(token, get("/api/patients/" + a.patientId())), ErrorCode.PATIENT_NOT_FOUND);
+        JsonNode segments = read(perform(token, get("/api/catalogs/body-segments")));
+        assertThat(ids(segments)).hasSize(5).doesNotContainAnyElementsOf(a.segmentIds())
+                .doesNotContainAnyElementsOf(b.segmentIds());
+        assertThat(ids(read(perform(token, get("/api/users"))))).containsExactly(practiceAdminId);
+    }
+
+    @Test
     void adminCannotCreateASuperadmin() throws Exception {
         perform(a.adminToken(), post("/api/users").contentType(JSON).content(json(Map.of(
                         "email", "root2@a.com", "fullName", "Root Falso", "password", "clave-inicial",

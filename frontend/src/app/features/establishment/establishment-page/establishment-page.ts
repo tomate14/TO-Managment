@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
+import { isIndividualPractice } from '../../../core/auth/auth.models';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ESTABLISHMENT_ERROR_CODES, ESTABLISHMENT_NAME_TAKEN_MESSAGE } from '../../establishments/establishments.models';
 import { formatDate } from '../../patients/patient-format';
@@ -31,6 +32,7 @@ export class EstablishmentPage implements OnInit {
     name: ['', [notBlank, Validators.maxLength(MAX_NAME)]],
   });
 
+  protected readonly title = computed(() => (isIndividualPractice(this.auth.currentUser()) ? 'Mi consultorio' : 'Establecimiento'));
   protected readonly establishment = signal<CurrentEstablishment | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
