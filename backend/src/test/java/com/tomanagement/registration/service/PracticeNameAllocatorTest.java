@@ -22,6 +22,13 @@ class PracticeNameAllocatorTest {
     }
 
     @Test
+    void dropsTrailingWhitespaceLeftByTheTruncation() {
+        String base = "a".repeat(115) + " " + "b".repeat(14);
+        String result = PracticeNameAllocator.allocate(base, n -> n.equals(base));
+        assertThat(result).isEqualTo("a".repeat(115) + " (2)");
+    }
+
+    @Test
     void keepsTheSuffixWithin120Characters() {
         String base = "x".repeat(120);
         String result = PracticeNameAllocator.allocate(base, n -> n.equals(base));

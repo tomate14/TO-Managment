@@ -28,7 +28,12 @@ public class RegistrationController {
         this.ipResolver = ipResolver;
     }
 
-    /** Spring validates the body before this runs, so invalid bodies are not counted by the limiter. */
+    /**
+     * Spring validates the body before this runs, so invalid bodies are not counted by the limiter.
+     * Two simultaneous registrations with the same name can both pass the name check; the loser hits the unique index
+     * and gets 409 ESTABLISHMENT_NAME_TAKEN. Accepted: it is a rare race and retrying the same transaction is not
+     * possible after a failed flush.
+     */
     @PostMapping("/api/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void register(HttpServletRequest request, @Valid @RequestBody RegisterTherapistRequest body) {

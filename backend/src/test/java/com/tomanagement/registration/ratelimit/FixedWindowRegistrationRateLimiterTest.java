@@ -25,4 +25,17 @@ class FixedWindowRegistrationRateLimiterTest {
         clock.advance(Duration.ofHours(1));
         limiter.acquire("1.2.3.4"); // new window
     }
+
+    @Test
+    void refusesNewClientsAtTheCapUnlessExpiredWindowsCanBeEvicted() {
+        MutableClock clock = new MutableClock(Instant.parse("2026-11-06T12:00:00Z"));
+        RegistrationRateLimiter limiter =
+                new FixedWindowRegistrationRateLimiter(new RegistrationProperties(5), clock, 2);
+        limiter.acquire("a");
+        limiter.acquire("b");
+        assertThatThrownBy(() -> limiter.acquire("c")).isInstanceOf(TooManyRequestsException.class);
+        limiter.acquire("a"); // tracked clients keep working
+        clock.advance(Duration.ofHours(1));
+        limiter.acquire("c"); // expired windows were evicted to make room
+    }
 }

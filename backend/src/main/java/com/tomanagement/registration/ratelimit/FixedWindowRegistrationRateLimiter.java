@@ -2,7 +2,8 @@ package com.tomanagement.registration.ratelimit;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.tomanagement.common.exception.TooManyRequestsException;
 import com.tomanagement.registration.config.RegistrationProperties;
@@ -10,8 +11,9 @@ import com.tomanagement.registration.config.RegistrationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Fixed-window counter per client, in memory: enough for one backend instance. Expired windows are evicted on every
- * call so the map stays bounded.
+ * Fixed-window counter per client, in memory: enough for one backend instance. Memory is bounded: expired windows are
+ * swept at most once per sweep interval and whenever the tracked-client cap is hit; if the cap still holds after a
+ * sweep, new clients are refused (fail closed).
  */
 @Component
 public class FixedWindowRegistrationRateLimiter implements RegistrationRateLimiter {
@@ -19,25 +21,48 @@ public class FixedWindowRegistrationRateLimiter implements RegistrationRateLimit
     private record Window(Instant start, int count) {
     }
 
-    private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
+    private final Map<String, Window> windows = new HashMap<>();
     private final int maxPerWindow;
     private final Clock clock;
+    private final int maxTrackedClients;
+    private Instant lastSweep;
 
     public FixedWindowRegistrationRateLimiter(RegistrationProperties properties, Clock clock) {
+        this(properties, clock, RateLimiterBounds.DEFAULT.maxTrackedClients());
+    }
+
+    FixedWindowRegistrationRateLimiter(RegistrationProperties properties, Clock clock, int maxTrackedClients) {
         this.maxPerWindow = properties.maxPerHour();
         this.clock = clock;
+        this.maxTrackedClients = maxTrackedClients;
+        this.lastSweep = clock.instant();
     }
 
     @Override
-    public void acquire(String clientKey) {
+    public synchronized void acquire(String clientKey) {
         Instant now = clock.instant();
-        windows.values().removeIf(window -> isExpired(window, now));
-        Window updated = windows.compute(clientKey, (key, current) -> current == null || isExpired(current, now)
+        if (!now.isBefore(lastSweep.plus(RateLimiterBounds.DEFAULT.sweepInterval()))) {
+            sweep(now);
+        }
+        Window current = windows.get(clientKey);
+        if (current == null && windows.size() >= maxTrackedClients) {
+            sweep(now);
+            if (windows.size() >= maxTrackedClients) {
+                throw new TooManyRequestsException();
+            }
+        }
+        Window updated = current == null || isExpired(current, now)
                 ? new Window(now, 1)
-                : new Window(current.start(), current.count() + 1));
+                : new Window(current.start(), current.count() + 1);
+        windows.put(clientKey, updated);
         if (updated.count() > maxPerWindow) {
             throw new TooManyRequestsException();
         }
+    }
+
+    private void sweep(Instant now) {
+        windows.values().removeIf(window -> isExpired(window, now));
+        lastSweep = now;
     }
 
     private static boolean isExpired(Window window, Instant now) {

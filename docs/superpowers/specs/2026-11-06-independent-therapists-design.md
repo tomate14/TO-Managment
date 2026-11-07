@@ -107,3 +107,5 @@ Rama desde `main` → merge a `test` → prueba manual → merge de la feat a `m
 ## 9. Fuera de alcance
 
 Emails (verificación y avisos), unirse luego a un establecimiento o transferir pacientes, convertir un consultorio individual en institución, recuperar contraseña, y un límite de intentos distribuido entre instancias.
+
+El límite de intentos se puede esquivar llamando directo a la URL de Cloud Run con un `X-Forwarded-For` falsificado; restringir el ingreso al proxy queda como endurecimiento posterior, y la aprobación manual sigue siendo el control.

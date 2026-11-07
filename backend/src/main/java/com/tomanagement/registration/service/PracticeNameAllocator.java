@@ -19,7 +19,8 @@ final class PracticeNameAllocator {
         int maxLength = EstablishmentField.NAME.maxLength();
         for (int n = 2; ; n++) {
             String suffix = " (" + n + ")";
-            String candidate = base.substring(0, Math.min(base.length(), maxLength - suffix.length())) + suffix;
+            String kept = base.substring(0, Math.min(base.length(), maxLength - suffix.length())).stripTrailing();
+            String candidate = kept + suffix;
             if (!taken.test(candidate)) {
                 return candidate;
             }

@@ -1,5 +1,7 @@
 package com.tomanagement.registration.controller;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,9 +17,11 @@ import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.catalog.repository.BodySegmentRepository;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.common.exception.TooManyRequestsException;
 import com.tomanagement.establishment.entity.Establishment;
 import com.tomanagement.establishment.entity.EstablishmentKind;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
+import com.tomanagement.registration.ratelimit.RegistrationRateLimiter;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
@@ -27,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -41,6 +46,9 @@ class RegistrationControllerTest {
 
     private static final String REGISTER = "/api/auth/register";
     private static final String PASSWORD = "secreto123";
+
+    @MockitoBean
+    private RegistrationRateLimiter rateLimiter;
 
     @Autowired
     private MockMvc mockMvc;
@@ -115,6 +123,15 @@ class RegistrationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()))
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("password"));
+    }
+
+    @Test
+    void answers429WhenTheLimiterRefuses() throws Exception {
+        doThrow(new TooManyRequestsException()).when(rateLimiter).acquire(anyString());
+
+        register("Ana Pérez", "ana@gmail.com", PASSWORD)
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value(ErrorCode.TOO_MANY_REQUESTS.name()));
     }
 
     @Test
