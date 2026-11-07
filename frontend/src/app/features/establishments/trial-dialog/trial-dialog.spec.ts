@@ -118,6 +118,30 @@ describe('TrialDialog', () => {
     expect(dateInput(el).getAttribute('aria-describedby')).toContain(error.id);
   });
 
+  it('hides a stale server error as soon as the date changes', () => {
+    const { fixture, el } = render();
+    fixture.componentRef.setInput('error', 'La fecha de vencimiento no puede ser anterior a hoy.');
+    fixture.detectChanges();
+    expect(el.querySelector('.field__error')).not.toBeNull();
+    const input = dateInput(el);
+    input.value = '2099-11-30';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(el.querySelector('.field__error')).toBeNull();
+    expect(input.classList).not.toContain('field__input--invalid');
+    fixture.componentRef.setInput('error', 'Otro error.');
+    fixture.detectChanges();
+    expect(el.querySelector('.field__error')!.textContent).toContain('Otro error.');
+  });
+
+  it('focuses the date input when it opens', () => {
+    TestBed.configureTestingModule({ imports: [TrialDialog] });
+    const fixture = TestBed.createComponent(TrialDialog);
+    fixture.componentRef.setInput('establishment', lucia);
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(dateInput(fixture.nativeElement));
+  });
+
   it('is a bottom sheet with the paid-account hint on mobile', () => {
     const { el } = render(lucia, false);
     expect(el.querySelector('.trial-dialog--sheet')).not.toBeNull();

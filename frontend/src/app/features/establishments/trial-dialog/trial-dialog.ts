@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, input, output, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, afterNextRender, computed, effect, input, output, signal, untracked, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { todayIso } from '../../patients/patient-format';
 import { EstablishmentSummary } from '../establishments.models';
@@ -26,14 +26,25 @@ export class TrialDialog implements OnInit {
   protected readonly today = todayIso();
   protected readonly date = new FormControl('', { nonNullable: true });
   protected readonly blankError = signal<string | null>(null);
-  protected readonly shownError = computed(() => this.blankError() ?? this.error());
+  /** True once the date changed after a server error: that error is stale until the next one arrives. */
+  protected readonly serverErrorDismissed = signal(false);
+  protected readonly shownError = computed(() => this.blankError() ?? (this.serverErrorDismissed() ? null : this.error()));
+  private readonly dateInput = viewChild<ElementRef<HTMLInputElement>>('dateInput');
   protected readonly subtitle = computed(() => {
     const label = trialLabel(this.establishment());
     return `${this.establishment().name} · ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
   });
 
   constructor() {
-    this.date.valueChanges.subscribe(() => this.blankError.set(null));
+    this.date.valueChanges.subscribe(() => {
+      this.blankError.set(null);
+      this.serverErrorDismissed.set(true);
+    });
+    effect(() => {
+      this.error();
+      untracked(() => this.serverErrorDismissed.set(false));
+    });
+    afterNextRender(() => this.dateInput()?.nativeElement.focus());
   }
 
   ngOnInit(): void {

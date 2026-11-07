@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -33,6 +33,8 @@ export class EstablishmentsPage {
   private readonly establishmentsService = inject(EstablishmentsService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private trialTrigger: HTMLElement | null = null;
 
   protected readonly isDesktop = injectIsDesktop();
   protected readonly initials = userInitials;
@@ -210,12 +212,20 @@ export class EstablishmentsPage {
 
   protected openTrial(item: EstablishmentSummary): void {
     this.trialError.set(null);
+    this.trialTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this.trialEditing.set(item);
   }
 
   protected closeTrial(): void {
     this.trialEditing.set(null);
     this.trialError.set(null);
+    const trigger = this.trialTrigger;
+    this.trialTrigger = null;
+    afterNextRender(() => {
+      if (trigger?.isConnected) {
+        trigger.focus();
+      }
+    }, { injector: this.injector });
   }
 
   protected saveTrial(date: string): void {

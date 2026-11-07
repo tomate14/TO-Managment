@@ -67,11 +67,13 @@
   </ng-template>
 
   <ng-template #trialButton let-item>
-    <button type="button" class="est-trial-button" [attr.aria-label]="'Vencimiento de ' + item.name"
-            [disabled]="isPending(item)" (click)="openTrial(item)">
-      <ng-container [ngTemplateOutlet]="calendarIcon" />
-      Vencimiento
-    </button>
+    @if (!item.rejected) {
+      <button type="button" class="est-trial-button" [attr.aria-label]="'Vencimiento de ' + item.name"
+              [disabled]="isPending(item)" (click)="openTrial(item)">
+        <ng-container [ngTemplateOutlet]="calendarIcon" />
+        Vencimiento
+      </button>
+    }
   </ng-template>
 
   @if (pendingRequests().length > 0) {
@@ -121,14 +123,16 @@
                 <ng-container [ngTemplateOutlet]="statusBadge" [ngTemplateOutletContext]="{ $implicit: item }" />
               </td>
               <td>
-                @if (trialDate(item); as lastDay) {
-                  @if (item.trialExpired) {
-                    <span class="badge badge--expired">Vencida</span> <span class="est-muted">el {{ lastDay }}</span>
+                @if (!item.rejected) {
+                  @if (trialDate(item); as lastDay) {
+                    @if (item.trialExpired) {
+                      <span class="badge badge--expired">Vencida</span> <span class="est-muted">el {{ lastDay }}</span>
+                    } @else {
+                      <span class="est-trial"><ng-container [ngTemplateOutlet]="calendarIcon" /> Hasta el {{ lastDay }}</span>
+                    }
                   } @else {
-                    <span class="est-trial"><ng-container [ngTemplateOutlet]="calendarIcon" /> Hasta el {{ lastDay }}</span>
+                    <span class="badge badge--inactive">Sin vencimiento</span>
                   }
-                } @else {
-                  <span class="badge badge--inactive">Sin vencimiento</span>
                 }
               </td>
               <td class="est-table__right">
@@ -160,7 +164,9 @@
                       Sin admin
                     }
                   </span>
-                  <span class="est-trial est-trial--card"><ng-container [ngTemplateOutlet]="calendarIcon" /> {{ trialLabel(item) }}</span>
+                  @if (!item.rejected) {
+                    <span class="est-trial est-trial--card"><ng-container [ngTemplateOutlet]="calendarIcon" /> {{ trialLabel(item) }}</span>
+                  }
                 }
               </span>
               <ng-container [ngTemplateOutlet]="editButton" [ngTemplateOutletContext]="{ $implicit: item }" />

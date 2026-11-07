@@ -329,6 +329,35 @@ describe('EstablishmentsPage', () => {
       expect(el.querySelector('.est-pending .est-trial')).toBeNull();
     });
 
+    it('has no trial UI for a rejected request', () => {
+      const rejected: EstablishmentSummary = { ...sur, id: 7, name: 'Centro Rechazado', pendingApproval: false, rejected: true, active: false };
+      service.list.mockReturnValue(of([rejected, lucia]));
+      const { el } = render();
+      expect(trialButton(card(el, 'Centro Rechazado'), 'Centro Rechazado')).toBeNull();
+      expect(card(el, 'Centro Rechazado').querySelector('.est-trial')).toBeNull();
+      expect(card(el, 'Centro Rechazado').textContent).not.toContain('Sin vencimiento');
+    });
+
+    it('has no trial UI for a rejected request on desktop', () => {
+      const rejected: EstablishmentSummary = { ...sur, id: 7, name: 'Centro Rechazado', pendingApproval: false, rejected: true, active: false };
+      service.list.mockReturnValue(of([rejected, lucia]));
+      const { el } = renderDesktop();
+      expect(trialButton(row(el, 'Centro Rechazado'), 'Centro Rechazado')).toBeNull();
+      expect(row(el, 'Centro Rechazado').textContent).not.toContain('Sin vencimiento');
+    });
+
+    it('focuses the date input on open and returns focus to the trigger on close', () => {
+      const { fixture, el } = render();
+      const trigger = trialButton(el, 'Lucía Fernández')!;
+      trigger.focus();
+      const opened = openDialog(el, 'Lucía Fernández', fixture);
+      expect(document.activeElement).toBe(opened.querySelector('input[type="date"]'));
+      button(opened, 'Cancelar').click();
+      fixture.detectChanges();
+      expect(dialog(el)).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
     it('saves a new last day from the dialog', () => {
       service.changeTrialEnd.mockReturnValue(of({ ...lucia, trialEndsAt: '2099-12-01T03:00:00Z' }));
       const { fixture, el } = render();

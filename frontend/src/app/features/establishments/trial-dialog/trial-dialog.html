@@ -12,7 +12,7 @@
   <form class="trial-dialog__form" (submit)="$event.preventDefault(); submit()" novalidate>
     <div class="field">
       <label class="field__label" for="trial-dialog-date">Último día de prueba</label>
-      <input id="trial-dialog-date" class="field__input" type="date" [formControl]="date" [min]="today"
+      <input #dateInput id="trial-dialog-date" class="field__input" type="date" [formControl]="date" [min]="today"
              [class.field__input--invalid]="shownError()" [attr.aria-invalid]="!!shownError()"
              [attr.aria-describedby]="shownError() ? 'trial-dialog-error trial-dialog-hint' : 'trial-dialog-hint'">
       @if (shownError(); as message) {

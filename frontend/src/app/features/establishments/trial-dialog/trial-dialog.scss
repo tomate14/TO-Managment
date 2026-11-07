@@ -91,6 +91,10 @@
 
 .trial-dialog__remove,
 .trial-dialog__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   padding: 8px 0;
   border: 0;
   background: transparent;
