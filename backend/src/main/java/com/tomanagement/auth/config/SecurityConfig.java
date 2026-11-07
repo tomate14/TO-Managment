@@ -7,6 +7,8 @@ import com.tomanagement.auth.security.JsonAccessDeniedHandler;
 import com.tomanagement.auth.security.JsonAuthenticationEntryPoint;
 import com.tomanagement.auth.security.JwtAuthenticationFilter;
 import com.tomanagement.auth.security.TokenProvider;
+import com.tomanagement.auth.security.TrialExpirationFilter;
+import com.tomanagement.establishment.service.TrialStatusChecker;
 
 import jakarta.servlet.DispatcherType;
 
@@ -37,7 +39,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, TokenProvider tokenProvider,
-            ErrorResponseWriter errorResponseWriter, CorsProperties corsProperties) throws Exception {
+            ErrorResponseWriter errorResponseWriter, CorsProperties corsProperties,
+            TrialStatusChecker trialStatusChecker) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -55,7 +58,9 @@ public class SecurityConfig {
                 .exceptionHandling(handling -> handling
                         .authenticationEntryPoint(new JsonAuthenticationEntryPoint(errorResponseWriter))
                         .accessDeniedHandler(new JsonAccessDeniedHandler(errorResponseWriter)))
-                .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new TrialExpirationFilter(trialStatusChecker, errorResponseWriter),
+                        UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

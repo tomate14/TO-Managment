@@ -11,6 +11,8 @@ public interface AuthService {
     /**
      * @throws com.tomanagement.common.exception.AuthenticationFailedException AUTHENTICATION_FAILED for unknown
      *         email, wrong password or inactive user (indistinguishable on purpose)
+     * @throws com.tomanagement.common.exception.AccessDeniedApplicationException ESTABLISHMENT_INACTIVE,
+     *         ESTABLISHMENT_PENDING_APPROVAL, or TRIAL_EXPIRED when its trial ended
      */
     LoginResponse login(LoginRequest request);
 

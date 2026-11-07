@@ -109,6 +109,41 @@ class AuthControllerTest {
     }
 
     @Test
+    void anExpiredTrialCannotLogIn() throws Exception {
+        endNorthTrialAt(Instant.now().minusSeconds(60));
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.TRIAL_EXPIRED.name()));
+    }
+
+    @Test
+    void aRunningTrialLogsIn() throws Exception {
+        endNorthTrialAt(Instant.now().plus(Duration.ofDays(2)));
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void noExpiryLogsIn() throws Exception {
+        endNorthTrialAt(null);
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void inactiveWinsOverExpired() throws Exception {
+        endNorthTrialAt(Instant.now().minusSeconds(60));
+        deactivateNorth();
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
     void aPendingPracticeCannotLogIn() throws Exception {
         register("Ana Pérez", "ana@gmail.com");
 
@@ -343,6 +378,12 @@ class AuthControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body));
+    }
+
+    private void endNorthTrialAt(Instant end) {
+        Establishment north = establishmentRepository.findById(northId).orElseThrow();
+        north.changeTrialEnd(end);
+        establishmentRepository.save(north);
     }
 
     private void deactivateNorth() {
