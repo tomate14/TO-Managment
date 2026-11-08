@@ -143,6 +143,19 @@ class CrossEstablishmentIsolationTest {
         assertThat(ids(segments)).hasSize(5).containsExactlyInAnyOrderElementsOf(a.segmentIds())
                 .doesNotContainAnyElementsOf(b.segmentIds());
 
+        Map<String, Object> metric = new LinkedHashMap<>();
+        metric.put("name", "Flexión");
+        metric.put("answerType", "NUMERIC");
+        metric.put("required", false);
+        Long metricOfB = created(perform(b.adminToken(), post("/api/segments/" + b.wristId() + "/metrics")
+                .contentType(JSON).content(json(metric)))).get("id").asLong();
+        expectError(perform(a.adminToken(), get("/api/segments/" + b.wristId() + "/metrics")),
+                ErrorCode.CATALOG_ITEM_NOT_FOUND);
+        expectError(perform(a.adminToken(), put("/api/segments/" + b.wristId() + "/metrics/" + metricOfB)
+                .contentType(JSON).content(json(metric))), ErrorCode.CATALOG_ITEM_NOT_FOUND);
+        expectError(perform(a.adminToken(), put("/api/segments/" + a.wristId() + "/metrics/" + metricOfB)
+                .contentType(JSON).content(json(metric))), ErrorCode.SEGMENT_METRIC_NOT_FOUND);
+
         JsonNode therapists = read(perform(a.adminToken(), get("/api/agenda/therapists")));
         assertThat(ids(therapists)).containsExactlyInAnyOrder(a.adminId(), a.therapistId());
 

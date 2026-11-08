@@ -11,3 +11,4 @@ SET search_path TO :"app_schema";
 -- (É4 no define datos iniciales: los pacientes son datos reales.)
 -- (É5 y É6 no definen datos iniciales.)
 -- (É7 no define datos iniciales.)
+-- (É11 no define datos iniciales.)

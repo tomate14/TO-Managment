@@ -76,6 +76,12 @@ public enum ErrorCode {
     ESTABLISHMENT_NAME_TAKEN(HttpStatus.CONFLICT, "Ya hay un establecimiento con ese nombre."),
     ESTABLISHMENT_INACTIVE(HttpStatus.FORBIDDEN, "El establecimiento está inactivo."),
     ESTABLISHMENT_REQUIRED(HttpStatus.FORBIDDEN, "Elegí un establecimiento para continuar."),
+    SEGMENT_METRIC_NOT_FOUND(HttpStatus.NOT_FOUND, "La métrica no existe."),
+    SEGMENT_METRIC_NAME_TAKEN(HttpStatus.CONFLICT, "Ya hay una métrica con ese nombre en este segmento."),
+    SEGMENT_METRIC_OPTIONS_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Las opciones tienen que ser al menos 2 y no repetirse."),
+    SEGMENT_METRIC_ORDER_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
+            "El orden tiene que incluir todas las métricas del segmento."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(
