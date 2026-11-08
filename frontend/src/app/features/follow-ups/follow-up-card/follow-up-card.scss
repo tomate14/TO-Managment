@@ -59,6 +59,17 @@
   color: var(--color-text-muted);
 }
 
+.follow-up__billed {
+  flex: none;
+  margin-left: auto;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .segment {
   display: flex;
   flex-direction: column;

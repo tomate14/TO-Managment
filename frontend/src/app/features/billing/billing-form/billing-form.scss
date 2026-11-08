@@ -1,0 +1,228 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.billing-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.billing-form__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 16px;
+}
+
+.billing-form__sessions {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.billing-form__sessions-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 16px 6px;
+}
+
+.billing-form__sessions-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.billing-form__count {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.billing-form__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    border-top: 1px solid var(--color-divider);
+  }
+}
+
+.billing-form__sessions-error {
+  padding: 0 16px 16px;
+}
+
+.session-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.session-option__check {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.session-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.session-option__date {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.session-option__segments {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.billing-form__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.amount-input {
+  position: relative;
+}
+
+.amount-input__prefix {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  font-size: 16px;
+  color: var(--color-text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.amount-input__control {
+  padding-left: 36px;
+}
+
+.billing-form__actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px 20px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.billing-form__cancel {
+  flex: none;
+  height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.billing-form__submit {
+  flex: 1;
+  height: 52px;
+  box-shadow: none;
+}
+
+@media (min-width: 1024px) {
+  /* Inside the side panel the cards are dropped: the fields sit on the white panel and the sessions keep a framed list. */
+  .billing-form__body {
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .billing-form__sessions {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .billing-form__sessions-head {
+    padding: 0 0 8px;
+  }
+
+  .billing-form__list {
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+
+    &--invalid {
+      border-color: var(--color-error);
+    }
+  }
+
+  .billing-form__sessions-error {
+    padding: 8px 0 0;
+  }
+
+  .session-option {
+    min-height: 52px;
+    padding: 8px 16px;
+  }
+
+  .session-option__text {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .session-option__date {
+    font-weight: 500;
+  }
+
+  .session-option__segments::before {
+    content: '· ';
+  }
+
+  .billing-form__card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .billing-form__actions {
+    justify-content: flex-end;
+    padding: 16px 24px;
+  }
+
+  .billing-form__submit {
+    flex: none;
+    padding: 0 24px;
+  }
+}

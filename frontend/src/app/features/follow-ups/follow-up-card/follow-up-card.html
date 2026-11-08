@@ -10,6 +10,9 @@
         <span class="follow-up__scar">Cicatriz: {{ scarType.name }}</span>
       }
     </span>
+    @if (followUp().billed) {
+      <span class="follow-up__billed">Facturada</span>
+    }
   </header>
 
   @for (evaluation of followUp().evaluations; track evaluation.id) {

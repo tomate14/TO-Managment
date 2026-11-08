@@ -8,7 +8,8 @@ public record DiagnosisResponse(
         String description,
         LocalDate createdDate,
         TreatmentResponse treatment,
-        long followUpCount) {
+        long followUpCount,
+        long pendingBillingCount) {
 
     @Override
     public String toString() {

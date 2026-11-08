@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -210,6 +211,28 @@ class FollowUpControllerTest {
                 .andExpect(jsonPath("$[0].evaluations[0].answers.length()").value(3));
         perform(get("/api/diagnoses/" + surgical.getId()))
                 .andExpect(jsonPath("$.followUpCount").value(1));
+    }
+
+    @Test
+    void followUpsCarryTheBilledMark() throws Exception {
+        register(followUp("2026-10-21", normotrophic.getId(), evaluation(wrist.getId(), null, 5, "9", flexionOf("40"))));
+        register(followUp("2026-10-28", normotrophic.getId(), evaluation(wrist.getId(), null, 3, "14", flexionOf("55"))));
+        String listing = perform(get(followUps(surgical))).andReturn().getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        Map<String, Object> billing = new HashMap<>();
+        billing.put("billedOn", "2026-10-30");
+        billing.put("amount", 25000);
+        billing.put("followUpIds", List.of(objectMapper.readTree(listing).get(1).get("id").asLong()));
+        perform(post("/api/diagnoses/" + surgical.getId() + "/billings").contentType(MediaType.APPLICATION_JSON)
+                .content(json(billing)))
+                .andExpect(status().isCreated());
+
+        perform(get(followUps(surgical)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].date").value("2026-10-28"))
+                .andExpect(jsonPath("$[0].billed").value(false))
+                .andExpect(jsonPath("$[1].date").value("2026-10-21"))
+                .andExpect(jsonPath("$[1].billed").value(true));
     }
 
     @Test

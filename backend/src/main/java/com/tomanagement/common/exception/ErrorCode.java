@@ -90,6 +90,12 @@ public enum ErrorCode {
     METRIC_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas con un valor que no es válido para su tipo."),
     METRIC_NOT_OF_SEGMENT(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas que no corresponden al segmento evaluado."),
     IMMOBILIZATION_ANSWER_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Indicá si lleva inmovilización."),
+    BILLING_NOT_FOUND(HttpStatus.NOT_FOUND, "La facturación no existe."),
+    BILLING_SESSIONS_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Elegí al menos una sesión."),
+    BILLING_AMOUNT_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "El monto tiene que ser mayor a cero."),
+    BILLING_DATE_IN_FUTURE(HttpStatus.UNPROCESSABLE_ENTITY, "La fecha no puede ser futura."),
+    BILLING_SESSION_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
+            "Hay sesiones que no son de este diagnóstico o ya están facturadas."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

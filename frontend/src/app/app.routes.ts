@@ -97,6 +97,12 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/follow-ups/follow-up-form-page/follow-up-form-page').then((m) => m.FollowUpFormPage),
           },
+          {
+            path: ':id/diagnosticos/:diagnosisId/facturacion/nueva',
+            title: `Registrar facturación · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/billing/billing-form-page/billing-form-page').then((m) => m.BillingFormPage),
+          },
         ],
       },
       {
