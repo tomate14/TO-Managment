@@ -39,7 +39,7 @@ Fecha: 2026-11-07 · Rama: `feat/segment-rom` (desde `main`) · Depende de: É3 
   - En móvil es una página, como el formulario de preguntas: `/catalogos/segmentos/:id/metricas/nueva` y `/catalogos/segmentos/:id/metricas/:metricId`.
 - **H11.3 ROM en el seguimiento.**
   - En cada evaluación de segmento, el campo ROM se reemplaza por el bloque "ROM" con las métricas activas del segmento elegido, en su orden.
-  - Cada métrica se carga según su tipo: número, Sí/No, desplegable de opciones o texto.
+  - Cada métrica se carga según su tipo: número, Sí/No, chips de opciones (como en las plantillas) o texto.
   - Si el segmento no tiene métricas activas: "Este segmento no tiene métricas ROM definidas." Los administradores ven además el link "Definir en Catálogos".
   - Al cambiar el segmento elegido, el bloque se recarga con las métricas del nuevo segmento y se descartan los valores cargados.
 - **H11.4 ROM en la tarjeta del seguimiento.**
