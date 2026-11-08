@@ -1,8 +1,11 @@
 export type Role = 'SUPERADMIN' | 'ADMIN' | 'TERAPEUTA';
 
+export type EstablishmentKind = 'INSTITUTION' | 'INDIVIDUAL';
+
 export interface EstablishmentRef {
   id: number;
   name: string;
+  kind: EstablishmentKind;
 }
 
 export interface UserSummary {
@@ -31,4 +34,9 @@ export function isAdminInEstablishment(user: UserSummary | null | undefined): bo
     return false;
   }
   return user.role === 'ADMIN' || (user.role === 'SUPERADMIN' && !!user.establishment);
+}
+
+/** An independent therapist: the admin of her own individual practice ("Mi consultorio"). */
+export function isIndividualPractice(user: UserSummary | null | undefined): boolean {
+  return user?.role === 'ADMIN' && user.establishment?.kind === 'INDIVIDUAL';
 }

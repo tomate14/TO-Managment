@@ -54,9 +54,28 @@
     </button>
   </ng-template>
 
+  <ng-template #statusBadge let-item>
+    @if (item.rejected) {
+      <span class="badge badge--rejected">Rechazada</span>
+    } @else {
+      <span class="badge" [class.badge--active]="item.active" [class.badge--inactive]="!item.active">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+    }
+  </ng-template>
+
+  @if (pendingRequests().length > 0) {
+    <app-pending-requests [requests]="pendingRequests()" [busyIds]="pendingIds()" [confirmingId]="confirmingRejectId()"
+                          (approve)="approve($event)" (askReject)="askReject($event)" (cancelReject)="cancelReject()"
+                          (confirmReject)="confirmReject($event)" />
+    @if (others().length > 0) {
+      <h2 class="est-section-title--all">Todos</h2>
+    }
+  }
+
   @if (establishments(); as list) {
     @if (list.length === 0) {
       <p class="est-empty">Todavía no hay establecimientos. Creá el primero con “Nuevo”.</p>
+    } @else if (others().length === 0) {
+      <!-- only pending requests -->
     } @else if (isDesktop()) {
       <table class="est-table">
         <thead>
@@ -69,10 +88,13 @@
           </tr>
         </thead>
         <tbody>
-          @for (item of list; track item.id) {
+          @for (item of others(); track item.id) {
             <tr class="est-row">
               <td>
                 <ng-container [ngTemplateOutlet]="nameCell" [ngTemplateOutletContext]="{ $implicit: item }" />
+                @if (item.kind === 'INDIVIDUAL' && editingId() !== item.id) {
+                  <span class="badge badge--users est-kind">Independiente</span>
+                }
               </td>
               <td>
                 @if (admin(item); as adminUser) {
@@ -83,7 +105,7 @@
               </td>
               <td>{{ item.activeUsers }}</td>
               <td>
-                <span class="badge" [class.badge--active]="item.active" [class.badge--inactive]="!item.active">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+                <ng-container [ngTemplateOutlet]="statusBadge" [ngTemplateOutletContext]="{ $implicit: item }" />
               </td>
               <td class="est-table__right">
                 <span class="est-actions">
@@ -99,7 +121,7 @@
       </table>
     } @else {
       <ul class="est-list">
-        @for (item of list; track item.id) {
+        @for (item of others(); track item.id) {
           <li class="est-card">
             <div class="est-card__main">
               <span class="est-card__avatar" [class.est-card__avatar--inactive]="!item.active" aria-hidden="true">{{ initials(item.name) }}</span>
@@ -119,7 +141,10 @@
             </div>
             <div class="est-card__footer">
               <span class="est-card__badges">
-                <span class="badge" [class.badge--active]="item.active" [class.badge--inactive]="!item.active">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
+                <ng-container [ngTemplateOutlet]="statusBadge" [ngTemplateOutletContext]="{ $implicit: item }" />
+                @if (item.kind === 'INDIVIDUAL') {
+                  <span class="badge badge--users">Independiente</span>
+                }
                 <span class="badge badge--users">{{ usersLabel(item.activeUsers) }}</span>
               </span>
               <span class="est-card__controls">

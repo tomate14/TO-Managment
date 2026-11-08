@@ -9,8 +9,13 @@
       </div>
 
       @if (error(); as kind) {
-        <div #errorBanner class="alert alert--error" role="alert" tabindex="-1">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+        <div #errorBanner class="alert" [class.alert--error]="!banner(kind).warning"
+             [class.alert--warning]="banner(kind).warning" role="alert" tabindex="-1">
+          @if (banner(kind).warning) {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          } @else {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5"></path><path d="M12 16.5h.01"></path></svg>
+          }
           <div><strong class="alert__title">{{ banner(kind).title }}</strong>{{ banner(kind).message }}</div>
         </div>
       } @else if (sessionExpired()) {
@@ -53,6 +58,8 @@
           }
         </button>
       </form>
+
+      <p class="login__switch"><a class="login__link" routerLink="/registro">¿Sos terapeuta independiente? Creá tu cuenta</a></p>
 
       <div class="login__help">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"></path></svg>

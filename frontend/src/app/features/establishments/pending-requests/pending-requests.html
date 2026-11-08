@@ -1,0 +1,31 @@
+<section class="est-pending" aria-labelledby="est-pending-title">
+  <h2 id="est-pending-title" class="est-section-title">Pendientes de aprobación · {{ requests().length }}</h2>
+  @for (item of requests(); track item.id) {
+    <div class="est-request">
+      <div class="est-request__main">
+        <span class="est-request__avatar" aria-hidden="true">{{ initials(nameOf(item)) }}</span>
+        <span class="est-card__text">
+          <span class="est-name">{{ nameOf(item) }}</span>
+          <span class="est-muted">{{ item.admins[0]?.email }} · pidió el {{ requestedOn(item) }}</span>
+        </span>
+        <span class="badge badge--users est-request__kind">Independiente</span>
+      </div>
+      @if (confirmingId() === item.id) {
+        <div class="est-request__confirm">
+          <span class="est-request__confirm-text" role="alert">¿Rechazar la solicitud? No va a poder ingresar.</span>
+          <span class="est-request__buttons">
+            <button type="button" class="est-btn est-btn--secondary" (click)="cancelReject.emit()">Cancelar</button>
+            <button type="button" class="est-btn est-btn--danger" [disabled]="busyIds().has(item.id)" (click)="confirmReject.emit(item)">Sí, rechazar</button>
+          </span>
+        </div>
+      } @else {
+        <div class="est-request__actions">
+          <span class="est-request__buttons">
+            <button type="button" class="est-btn est-btn--secondary" [disabled]="busyIds().has(item.id)" (click)="askReject.emit(item)">Rechazar</button>
+            <button type="button" class="est-btn" [disabled]="busyIds().has(item.id)" (click)="approve.emit(item)">Aprobar</button>
+          </span>
+        </div>
+      }
+    </div>
+  }
+</section>

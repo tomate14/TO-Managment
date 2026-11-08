@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { UserSummary } from '../../core/auth/auth.models';
 
 describe('Shell', () => {
-  const user: UserSummary = { id: 1, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte' } };
+  const user: UserSummary = { id: 1, email: 'm@c.com', fullName: 'Mariana Gómez', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } };
   let refresh: ReturnType<typeof vi.fn>;
   let logout: ReturnType<typeof vi.fn>;
 
@@ -109,7 +109,7 @@ describe('Shell', () => {
   });
 
   it('superadmin inside sees the banner, the establishment under the logo and the admin section', () => {
-    const el = renderAs({ ...superadmin, establishment: { id: 3, name: 'Norte' } });
+    const el = renderAs({ ...superadmin, establishment: { id: 3, name: 'Norte', kind: 'INSTITUTION' } });
     expect(el.querySelector('app-establishment-banner')?.textContent).toContain('Estás en Norte');
     expect(el.querySelector('.side-nav__establishment')?.textContent).toContain('Norte');
     expect(navLabels(el.querySelector('app-side-nav nav')!)).toEqual([

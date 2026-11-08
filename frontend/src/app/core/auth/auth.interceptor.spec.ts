@@ -39,6 +39,12 @@ describe('authInterceptor', () => {
     expect(backend.expectOne('/api/auth/login').request.headers.has('Authorization')).toBe(false);
   });
 
+  it('does not send the token to the register endpoint', () => {
+    vi.spyOn(auth, 'token').mockReturnValue('abc');
+    http.post('/api/auth/register', {}).subscribe({ error: () => undefined });
+    expect(backend.expectOne('/api/auth/register').request.headers.has('Authorization')).toBe(false);
+  });
+
   it('does not send the token to non-API URLs', () => {
     vi.spyOn(auth, 'token').mockReturnValue('abc');
     http.get('https://fonts.googleapis.com/x').subscribe();

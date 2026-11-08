@@ -13,6 +13,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login-page/login-page').then((m) => m.LoginPage),
   },
   {
+    path: 'registro',
+    canActivate: [guestGuard],
+    title: `Crear cuenta · ${APP_NAME}`,
+    loadComponent: () => import('./features/auth/register-page/register-page').then((m) => m.RegisterPage),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),

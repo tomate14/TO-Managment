@@ -23,7 +23,7 @@ describe('AppointmentForm', () => {
     { startTime: '12:30:00', available: true, reason: null },
   ];
   const patient = { id: 7, firstName: 'Lucía', lastName: 'Fernández', dni: '30123456' } as Patient;
-  const therapistUser: UserSummary = { id: 2, email: 't@c.com', fullName: 'Carla Ríos', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte' } };
+  const therapistUser: UserSummary = { id: 2, email: 't@c.com', fullName: 'Carla Ríos', role: 'TERAPEUTA', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } };
 
   let availability: ReturnType<typeof vi.fn>;
   let book: ReturnType<typeof vi.fn>;
@@ -403,7 +403,7 @@ describe('AppointmentForm', () => {
   });
 
   it('lets an admin choose among active therapists only', () => {
-    const { el } = setup({ user: { id: 1, email: 'a@c.com', fullName: 'Ana', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte' } } });
+    const { el } = setup({ user: { id: 1, email: 'a@c.com', fullName: 'Ana', role: 'ADMIN', establishment: { id: 1, name: 'Consultorio Norte', kind: 'INSTITUTION' } } });
     const names = Array.from(el.querySelectorAll('#appointment-therapist option')).map((option) => option.textContent?.trim());
     expect(names).toEqual(['Carla Ríos', 'Paula Vidal']);
   });

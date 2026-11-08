@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 public enum PublicEndpoint {
 
     LOGIN(HttpMethod.POST, "/api/auth/login"),
+    REGISTER(HttpMethod.POST, "/api/auth/register"),
     HEALTH(HttpMethod.GET, "/actuator/health");
 
     private final HttpMethod method;
