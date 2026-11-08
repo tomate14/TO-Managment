@@ -1,0 +1,19 @@
+<header class="page-header">
+  <a class="page-header__back" [routerLink]="['/catalogos/segmentos', segmentId]" aria-label="Cerrar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </a>
+  <div class="metric-page__titles">
+    <h1 class="page-header__title">{{ isEdit ? 'Editar métrica' : 'Nueva métrica' }}</h1>
+    @if (segmentName(); as name) {
+      <span class="metric-page__subtitle">Segmento: {{ name }}</span>
+    }
+  </div>
+</header>
+
+@if (error(); as message) {
+  <div class="metric-page__error alert alert--error" role="alert"><div>{{ message }}</div></div>
+} @else if (ready()) {
+  <app-segment-metric-form [segmentId]="segmentId" [metric]="metric()" (saved)="backToList()" (cancelled)="backToList()" />
+} @else {
+  <p class="metric-page__loading" role="status">Cargando…</p>
+}

@@ -6,6 +6,7 @@ import { BehaviorSubject, of, throwError } from 'rxjs';
 import { CatalogsPage } from './catalogs-page';
 import { CatalogsService } from '../catalogs.service';
 import { CatalogItem } from '../catalogs.models';
+import { SegmentMetricsService } from '../../segment-metrics/segment-metrics.service';
 
 describe('CatalogsPage', () => {
   const segments: CatalogItem[] = [
@@ -16,6 +17,7 @@ describe('CatalogsPage', () => {
   const surgeries: CatalogItem[] = [{ id: 10, name: 'Tenorrafia', active: true }];
   let service: Record<'list' | 'create' | 'rename' | 'setActive', ReturnType<typeof vi.fn>>;
   let queryParams: BehaviorSubject<ParamMap>;
+  let counts: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     queryParams = new BehaviorSubject(convertToParamMap({}));
@@ -25,11 +27,13 @@ describe('CatalogsPage', () => {
       rename: vi.fn(),
       setActive: vi.fn(),
     };
+    counts = vi.fn(() => of([{ segmentId: 1, count: 5 }]));
     TestBed.configureTestingModule({
       imports: [CatalogsPage],
       providers: [
         provideRouter([]),
         { provide: CatalogsService, useValue: service },
+        { provide: SegmentMetricsService, useValue: { counts } },
         { provide: ActivatedRoute, useValue: { queryParamMap: queryParams.asObservable() } },
       ],
     });
@@ -145,5 +149,23 @@ describe('CatalogsPage', () => {
 
     expect(service.setActive).toHaveBeenCalledWith('body-segments', 2, true);
     expect(row('Dedos').querySelector('[role="switch"]')?.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('links each segment to its ROM metrics with the active count', () => {
+    const { el, row } = render();
+    expect(counts).toHaveBeenCalled();
+    const codo = row('Codo').querySelector<HTMLAnchorElement>('.catalog-row__metrics')!;
+    expect(codo.textContent?.trim()).toBe('Métricas ROM · 5');
+    expect(codo.getAttribute('href')).toBe('/catalogos/segmentos/1');
+    expect(row('Muñeca').querySelector('.catalog-row__metrics')?.textContent?.trim()).toBe('Métricas ROM · 0');
+    expect(el.textContent).toContain('Las métricas ROM de cada segmento se piden al evaluarlo en un seguimiento.');
+  });
+
+  it('does not show ROM metrics outside Segmentos', () => {
+    queryParams.next(convertToParamMap({ tipo: 'cirugias' }));
+    const { el } = render();
+    expect(el.textContent).toContain('Tenorrafia');
+    expect(el.querySelector('.catalog-row__metrics')).toBeNull();
+    expect(counts).not.toHaveBeenCalled();
   });
 });

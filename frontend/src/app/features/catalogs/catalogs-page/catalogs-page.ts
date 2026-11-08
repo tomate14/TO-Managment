@@ -1,16 +1,19 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { CATALOG_ERROR_CODES, CATALOGS, CatalogDefinition, CatalogItem } from '../catalogs.models';
 import { CatalogsService } from '../catalogs.service';
+import { SegmentMetricsService } from '../../segment-metrics/segment-metrics.service';
 
 const DUPLICATE_MESSAGE = 'Ya existe con ese nombre (sin importar mayúsculas).';
 const BLANK_MESSAGE = 'Ingresá un nombre.';
 const LOAD_ERROR = 'No pudimos cargar el catálogo. Intentá de nuevo en unos minutos.';
 const SAVE_ERROR = 'No pudimos guardar el cambio. Intentá de nuevo.';
 const MAX_NAME = 80;
+const SEGMENTS_SLUG = 'body-segments';
+const METRICS_LABEL = 'Métricas ROM';
 
 /** É2: admin screen for the three catalogs (segments, surgery types, scar types). */
 @Component({
@@ -21,6 +24,7 @@ const MAX_NAME = 80;
 })
 export class CatalogsPage {
   private readonly catalogsService = inject(CatalogsService);
+  private readonly metricsService = inject(SegmentMetricsService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -38,6 +42,10 @@ export class CatalogsPage {
   protected readonly editName = new FormControl('', { nonNullable: true });
   protected readonly editError = signal<string | null>(null);
   protected readonly pendingIds = signal<ReadonlySet<number>>(new Set());
+
+  /** Active ROM metrics per segment (É11); null until loaded or when the counts could not be read. */
+  protected readonly metricCounts = signal<ReadonlyMap<number, number> | null>(null);
+  protected readonly isSegments = computed(() => this.current().slug === SEGMENTS_SLUG);
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(inject(DestroyRef))).subscribe((params) => {
@@ -132,6 +140,12 @@ export class CatalogsPage {
     return this.pendingIds().has(item.id);
   }
 
+  /** "Métricas ROM · n"; segments missing from the counts have no active metrics. */
+  protected metricsLabel(item: CatalogItem): string {
+    const counts = this.metricCounts();
+    return counts === null ? METRICS_LABEL : `${METRICS_LABEL} · ${counts.get(item.id) ?? 0}`;
+  }
+
   private open(catalog: CatalogDefinition): void {
     this.current.set(catalog);
     this.items.set(null);
@@ -146,6 +160,16 @@ export class CatalogsPage {
         }
       },
       error: () => this.error.set(LOAD_ERROR),
+    });
+    if (catalog.slug === SEGMENTS_SLUG) {
+      this.loadMetricCounts();
+    }
+  }
+
+  private loadMetricCounts(): void {
+    this.metricCounts.set(null);
+    this.metricsService.counts().subscribe({
+      next: (counts) => this.metricCounts.set(new Map(counts.map((entry) => [entry.segmentId, entry.count]))),
     });
   }
 
