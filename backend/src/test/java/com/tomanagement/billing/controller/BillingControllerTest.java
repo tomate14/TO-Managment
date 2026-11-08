@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -179,6 +180,17 @@ class BillingControllerTest {
         perform(post(billings()).contentType(MediaType.APPLICATION_JSON).content(json(noAmount)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()));
+    }
+
+    @Test
+    void amountMustFitTheColumn() throws Exception {
+        for (String amount : List.of("12345678901.00", "1.234")) {
+            Map<String, Object> body = request("2026-11-08", 0, sessionIds);
+            body.put("amount", new BigDecimal(amount));
+            perform(post(billings()).contentType(MediaType.APPLICATION_JSON).content(json(body)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.VALIDATION_ERROR.name()));
+        }
     }
 
     @Test
