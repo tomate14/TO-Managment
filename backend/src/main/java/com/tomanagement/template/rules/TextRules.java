@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
-import com.tomanagement.template.entity.Question;
 
 import org.springframework.stereotype.Component;
 
@@ -17,13 +16,13 @@ public class TextRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<String> canonicalExpectedValue(String rawValue, Question parent) {
+    public Optional<String> canonicalExpectedValue(String rawValue, AnswerConstraints constraints) {
         String value = rawValue.trim();
         return value.isEmpty() ? Optional.empty() : Optional.of(value);
     }
 
     @Override
-    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+    public Optional<AnswerValue> read(RawAnswer raw, AnswerConstraints constraints) {
         if (!raw.carriesOnly(AnswerType.TEXT)) {
             return Optional.empty();
         }

@@ -59,6 +59,9 @@
               <span class="catalog-row__name" [class.catalog-row__name--inactive]="!item.active">{{ item.name }}</span>
               <span class="catalog-row__status">{{ item.active ? 'Activo' : 'Inactivo' }}</span>
             </span>
+            @if (isSegments()) {
+              <a class="catalog-row__metrics" [routerLink]="['/catalogos/segmentos', item.id]">{{ metricsLabel(item) }}</a>
+            }
             <button type="button" class="catalog-row__edit-button" [attr.aria-label]="'Editar ' + item.name" (click)="startEdit(item)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>
             </button>
@@ -76,5 +79,8 @@
     <p class="catalogs__loading" role="status">Cargando…</p>
   }
 
+  @if (isSegments()) {
+    <p class="catalogs__note">Las métricas ROM de cada segmento se piden al evaluarlo en un seguimiento.</p>
+  }
   <p class="catalogs__note">Los inactivos no se ofrecen en altas nuevas, pero se siguen viendo en el historial.</p>
 </div>

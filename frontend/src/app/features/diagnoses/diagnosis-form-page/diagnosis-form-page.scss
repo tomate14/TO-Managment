@@ -152,3 +152,42 @@ select.field__input {
   height: 52px;
   box-shadow: none;
 }
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--color-neutral-bg);
+
+  &--invalid {
+    border-color: var(--color-error);
+  }
+
+  @media (min-width: 768px) {
+    max-width: 320px;
+  }
+}
+
+.segmented__option {
+  height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 1px 3px rgba(14, 41, 68, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+  }
+}

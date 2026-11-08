@@ -4,8 +4,8 @@ import { answerCountLabel, dateChip, formatAnswer, formatNumber } from '../follo
 import { FollowUp, SegmentEvaluation } from '../follow-ups.models';
 
 /**
- * H6.4 one follow-up in the history: date, scar type, and per segment its metrics and the template answers
- * (folded until opened).
+ * H6.4 / H11.4 one follow-up in the history: date, scar type, and per segment its metrics, its ROM metric values
+ * (or the fixed ROM of older follow-ups) and the template answers (folded until opened).
  */
 @Component({
   selector: 'app-follow-up-card',

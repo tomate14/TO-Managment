@@ -26,7 +26,7 @@
           <div class="diagnosis-summary__item"><dt>Retiro de puntos</dt><dd>{{ formatDate(d.treatment.stitchesRemovalDate!) }}</dd></div>
           <div class="diagnosis-summary__item"><dt>Tipo de cirugía</dt><dd>{{ d.treatment.surgeryType?.name }}</dd></div>
         } @else {
-          <div class="diagnosis-summary__item"><dt>Inmovilización</dt><dd>{{ formatDate(d.treatment.immobilizationDate!) }}</dd></div>
+          <div class="diagnosis-summary__item"><dt>Inmovilización</dt><dd>{{ immobilizationLabel(d.treatment, formatDate) }}</dd></div>
         }
       </dl>
     </section>

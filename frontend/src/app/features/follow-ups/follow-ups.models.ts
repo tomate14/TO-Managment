@@ -13,16 +13,30 @@ export interface FollowUpAnswer {
   textValue: string | null;
 }
 
+/** A recorded value of one ROM metric of the segment (É11). */
+export interface FollowUpMetricValue {
+  metricId: number;
+  name: string;
+  answerType: AnswerType;
+  numericValue: number | null;
+  booleanValue: boolean | null;
+  optionValue: string | null;
+  textValue: string | null;
+}
+
 export interface SegmentEvaluation {
   id: number;
   segment: CatalogItem;
   edema: number | null;
   pain: number;
-  rom: number;
+  /** Fixed ROM of follow-ups recorded before É11; null on newer ones, which record `metrics` instead. */
+  rom: number | null;
   strength: number;
   template: { id: number; name: string } | null;
   /** In the template tree order. */
   answers: FollowUpAnswer[];
+  /** Recorded ROM metric values of the segment, in the metrics order. */
+  metrics: FollowUpMetricValue[];
 }
 
 export interface FollowUp {
@@ -42,14 +56,23 @@ export interface AnswerPayload {
   textValue?: string;
 }
 
+export interface MetricValuePayload {
+  metricId: number;
+  numericValue?: number;
+  booleanValue?: boolean;
+  optionValue?: string;
+  textValue?: string;
+}
+
 export interface SegmentEvaluationPayload {
   segmentId: number;
   edema: number | null;
   pain: number;
-  rom: number;
   strength: number;
   templateId: number | null;
   answers: AnswerPayload[];
+  /** Only the filled metrics. */
+  metrics: MetricValuePayload[];
 }
 
 export interface CreateFollowUpPayload {
@@ -59,12 +82,11 @@ export interface CreateFollowUpPayload {
 }
 
 /** Clinical metrics whose out-of-range errors the backend reports per field (`evaluations[i].<metric>`). */
-export type Metric = 'edema' | 'pain' | 'rom' | 'strength';
+export type Metric = 'edema' | 'pain' | 'strength';
 
 export const METRIC_LABELS: Readonly<Record<Metric, string>> = {
   edema: 'Edema',
   pain: 'Dolor',
-  rom: 'ROM',
   strength: 'Fuerza',
 };
 

@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V11).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V13).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -121,6 +121,30 @@ CREATE TABLE IF NOT EXISTS question_option (
 -- Labels are unique per question (case-insensitive), enforced by the app so options can be edited in place.
 CREATE INDEX IF NOT EXISTS ix_question_option_question ON question_option (question_id, display_order);
 
+-- Métricas ROM por segmento (É11)
+CREATE TABLE IF NOT EXISTS segment_metric (
+    id               BIGSERIAL    PRIMARY KEY,
+    establishment_id BIGINT       NOT NULL REFERENCES establishment (id),
+    body_segment_id  BIGINT       NOT NULL REFERENCES body_segment (id),
+    name             VARCHAR(120) NOT NULL,
+    answer_type      VARCHAR(20)  NOT NULL CHECK (answer_type IN ('NUMERIC', 'YES_NO', 'OPTION', 'TEXT')),
+    required         BOOLEAN      NOT NULL DEFAULT FALSE,
+    active           BOOLEAN      NOT NULL DEFAULT TRUE,
+    display_order    INTEGER      NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_segment_metric_segment_name ON segment_metric (body_segment_id, lower(name));
+CREATE INDEX IF NOT EXISTS ix_segment_metric_segment ON segment_metric (body_segment_id, display_order);
+
+-- Labels are unique per metric (case-insensitive), enforced by the app so options can be edited in place.
+CREATE TABLE IF NOT EXISTS segment_metric_option (
+    id                BIGSERIAL    PRIMARY KEY,
+    establishment_id  BIGINT       NOT NULL REFERENCES establishment (id),
+    segment_metric_id BIGINT       NOT NULL REFERENCES segment_metric (id) ON DELETE CASCADE,
+    label             VARCHAR(120) NOT NULL,
+    display_order     INTEGER      NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_segment_metric_option_metric ON segment_metric_option (segment_metric_id, display_order);
+
 -- Pacientes (É4)
 CREATE TABLE IF NOT EXISTS patient (
     id                      BIGSERIAL    PRIMARY KEY,
@@ -155,8 +179,12 @@ CREATE TABLE IF NOT EXISTS surgical_treatment (
 );
 
 CREATE TABLE IF NOT EXISTS conservative_treatment (
-    treatment_id        BIGINT PRIMARY KEY REFERENCES treatment (id),
-    immobilization_date DATE   NOT NULL
+    treatment_id        BIGINT  PRIMARY KEY REFERENCES treatment (id),
+    has_immobilization  BOOLEAN NOT NULL DEFAULT TRUE,
+    immobilization_date DATE,
+    CONSTRAINT ck_conservative_immobilization CHECK (
+        (has_immobilization AND immobilization_date IS NOT NULL)
+        OR (NOT has_immobilization AND immobilization_date IS NULL))
 );
 
 CREATE TABLE IF NOT EXISTS diagnosis (
@@ -186,7 +214,7 @@ CREATE TABLE IF NOT EXISTS segment_evaluation (
     body_segment_id BIGINT        NOT NULL REFERENCES body_segment (id),
     edema           NUMERIC(6, 2),
     pain            INTEGER       NOT NULL CHECK (pain BETWEEN 0 AND 10),
-    rom             NUMERIC(6, 2) NOT NULL,
+    rom             NUMERIC(6, 2),
     strength        NUMERIC(6, 2) NOT NULL,
     template_id     BIGINT        REFERENCES evaluation_template (id),
     establishment_id BIGINT NOT NULL REFERENCES establishment (id),
@@ -206,6 +234,21 @@ CREATE TABLE IF NOT EXISTS answer (
     CONSTRAINT ck_answer_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
 );
 CREATE INDEX IF NOT EXISTS ix_answer_question ON answer (question_id);
+
+-- É11: valores de las métricas ROM de cada evaluación de segmento (reemplazan el ROM fijo, que queda como historia).
+CREATE TABLE IF NOT EXISTS metric_value (
+    id                    BIGSERIAL      PRIMARY KEY,
+    establishment_id      BIGINT         NOT NULL REFERENCES establishment (id),
+    segment_evaluation_id BIGINT         NOT NULL REFERENCES segment_evaluation (id),
+    segment_metric_id     BIGINT         NOT NULL REFERENCES segment_metric (id),
+    numeric_value         NUMERIC(12, 3),
+    boolean_value         BOOLEAN,
+    option_value          VARCHAR(120),
+    text_value            TEXT,
+    CONSTRAINT uq_metric_value_metric UNIQUE (segment_evaluation_id, segment_metric_id),
+    CONSTRAINT ck_metric_value_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
+);
+CREATE INDEX IF NOT EXISTS ix_metric_value_metric ON metric_value (segment_metric_id);
 
 -- É7: turnos. Las restricciones de exclusión impiden solapamientos por terapeuta y por paciente.
 CREATE EXTENSION IF NOT EXISTS btree_gist;

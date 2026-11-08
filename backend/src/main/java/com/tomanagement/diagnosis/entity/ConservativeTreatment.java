@@ -12,7 +12,7 @@ import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 
 /**
- * Treatment without surgery: only the immobilization date.
+ * Treatment without surgery: whether it has immobilization and, if so, the immobilization date.
  */
 @Entity
 @Table(name = "conservative_treatment")
@@ -20,7 +20,10 @@ import jakarta.persistence.Table;
 @PrimaryKeyJoinColumn(name = "treatment_id")
 public class ConservativeTreatment extends Treatment {
 
-    @Column(name = "immobilization_date", nullable = false, updatable = false)
+    @Column(name = "has_immobilization", nullable = false, updatable = false)
+    private boolean hasImmobilization;
+
+    @Column(name = "immobilization_date", updatable = false)
     private LocalDate immobilizationDate;
 
     protected ConservativeTreatment() {
@@ -28,13 +31,18 @@ public class ConservativeTreatment extends Treatment {
     }
 
     /**
-     * @throws BusinessRuleException IMMOBILIZATION_DATE_REQUIRED
+     * @throws BusinessRuleException IMMOBILIZATION_ANSWER_REQUIRED when the yes/no answer is missing,
+     *         IMMOBILIZATION_DATE_REQUIRED when it has immobilization but no date
      */
-    public ConservativeTreatment(LocalDate immobilizationDate) {
-        if (immobilizationDate == null) {
+    public ConservativeTreatment(Boolean hasImmobilization, LocalDate immobilizationDate) {
+        if (hasImmobilization == null) {
+            throw new BusinessRuleException(ErrorCode.IMMOBILIZATION_ANSWER_REQUIRED);
+        }
+        if (hasImmobilization && immobilizationDate == null) {
             throw new BusinessRuleException(ErrorCode.IMMOBILIZATION_DATE_REQUIRED);
         }
-        this.immobilizationDate = immobilizationDate;
+        this.hasImmobilization = hasImmobilization;
+        this.immobilizationDate = hasImmobilization ? immobilizationDate : null;
     }
 
     @Override
@@ -52,6 +60,11 @@ public class ConservativeTreatment extends Treatment {
         return visitor.visitConservative(this);
     }
 
+    public boolean hasImmobilization() {
+        return hasImmobilization;
+    }
+
+    /** Null when the treatment has no immobilization. */
     public LocalDate getImmobilizationDate() {
         return immobilizationDate;
     }

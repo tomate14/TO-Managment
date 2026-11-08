@@ -9,7 +9,7 @@ describe('DiagnosisCard', () => {
     id: 3, patient, description: 'Fractura distal de radio izquierdo', createdDate: '2026-10-12',
     treatment: {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
-      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true,
+      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
     followUpCount: 3,
   };
@@ -17,7 +17,7 @@ describe('DiagnosisCard', () => {
     id: 4, patient, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
     treatment: {
       type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-      immobilizationDate: '2026-08-02', requiresScarType: false,
+      hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false,
     },
     followUpCount: 1,
   };
@@ -29,6 +29,15 @@ describe('DiagnosisCard', () => {
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('shows "Sin inmovilización" for a conservative diagnosis without immobilization', () => {
+    const el = render({
+      ...conservative,
+      treatment: { ...conservative.treatment, hasImmobilization: false, immobilizationDate: null },
+    });
+    expect(el.textContent).toContain('Inmovilización');
+    expect(el.textContent).toContain('Sin inmovilización');
+  });
 
   it('shows a surgical diagnosis with surgery date and type', () => {
     const el = render(surgical);

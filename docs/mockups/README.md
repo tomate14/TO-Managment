@@ -25,6 +25,7 @@ Las imágenes están a 2x (390 px de ancho lógico en mobile, 1440 px en escrito
 | H8.1–H8.4 Establecimientos | `h8-establecimientos/` | lista y alta de establecimientos, superadmin dentro de un establecimiento, pantalla Establecimiento del admin |
 | H9.1–H9.4 Terapeutas independientes | `h9-independientes/` | registro, solicitud enviada, login pendiente, aprobación del superadmin, menú y "Más" de una independiente |
 | H10.1–H10.3 Período de prueba | `h10-prueba/` | login con prueba vencida, vencimientos en Establecimientos, diálogo para extender o quitar el vencimiento |
+| H11.1–H11.5 ROM por segmento e inmovilización | `h11-rom-segmento/` | métricas ROM por segmento (lista, alta y edición), bloque ROM en el seguimiento, tarjetas con métricas, diagnóstico conservador con "¿Lleva inmovilización?" |
 
 ## Tokens de diseño
 

@@ -64,9 +64,10 @@
     @for (group of evaluations.controls; track group; let index = $index) {
       <app-segment-evaluation-editor
         [group]="group" [index]="index" [segments]="segmentsAt(index)"
-        [problems]="problemsAt(index)" [showProblems]="submitted()" [serverErrors]="serverErrors().get(index) ?? {}"
+        [problems]="problemsAt(index)" [showProblems]="submitted()" [serverErrors]="serverErrorsAt(index)"
         [canRemove]="evaluations.length > 1"
-        (remove)="removeSegment(index)" (templateChange)="setTemplate(group, $event)" />
+        (remove)="removeSegment(index)" (templateChange)="setTemplate(group, $event)"
+        (metricsChange)="setMetrics(group, $event)" />
     }
 
     @if (canAddSegment()) {

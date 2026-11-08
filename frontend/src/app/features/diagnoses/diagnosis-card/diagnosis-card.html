@@ -19,7 +19,7 @@
     <span class="diagnosis-card__facts">
       <span class="diagnosis-card__fact">
         <span class="diagnosis-card__fact-label">Inmovilización</span>
-        <span class="diagnosis-card__fact-value">{{ formatDate(diagnosis().treatment.immobilizationDate!) }}</span>
+        <span class="diagnosis-card__fact-value">{{ immobilizationLabel(diagnosis().treatment, formatDate) }}</span>
       </span>
     </span>
   }

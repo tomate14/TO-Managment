@@ -31,11 +31,6 @@
                  [id]="prefix() + '-edema'" [class.field__input--invalid]="error('edema')" [attr.aria-invalid]="!!error('edema')">
         </div>
         <div class="field metrics__field">
-          <label class="field__label" [for]="prefix() + '-rom'">ROM</label>
-          <input class="field__input" type="text" inputmode="decimal" autocomplete="off" formControlName="rom"
-                 [id]="prefix() + '-rom'" [class.field__input--invalid]="error('rom')" [attr.aria-invalid]="!!error('rom')">
-        </div>
-        <div class="field metrics__field">
           <label class="field__label" [for]="prefix() + '-strength'">Fuerza</label>
           <input class="field__input" type="text" inputmode="decimal" autocomplete="off" formControlName="strength"
                  [id]="prefix() + '-strength'" [class.field__input--invalid]="error('strength')"
@@ -43,9 +38,6 @@
         </div>
       </div>
       @if (error('edema'); as message) {
-        <p class="field__error"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg> {{ message }}</p>
-      }
-      @if (error('rom'); as message) {
         <p class="field__error"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg> {{ message }}</p>
       }
       @if (error('strength'); as message) {
@@ -66,6 +58,14 @@
         </div>
         @if (painError(); as message) { <p class="field__error">{{ message }}</p> }
       </div>
+
+      @if (metricsError(); as message) {
+        <p class="field__error">{{ message }}</p>
+      } @else if (metrics(); as list) {
+        <app-segment-metrics-fields [metrics]="list" [values]="group().controls.metrics" [idPrefix]="prefix()"
+                                    [problems]="metricProblems()" [showProblems]="showProblems()"
+                                    [segmentId]="segmentId()" [canDefine]="canDefineMetrics()" />
+      }
 
       <div class="field">
         <label class="field__label" [for]="prefix() + '-template'">Plantilla</label>

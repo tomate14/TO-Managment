@@ -181,8 +181,35 @@ export const routes: Routes = [
       {
         path: 'catalogos',
         canActivate: [establishmentGuard, adminGuard],
-        title: `Catálogos · ${APP_NAME}`,
-        loadComponent: () => import('./features/catalogs/catalogs-page/catalogs-page').then((m) => m.CatalogsPage),
+        children: [
+          {
+            path: '',
+            title: `Catálogos · ${APP_NAME}`,
+            loadComponent: () => import('./features/catalogs/catalogs-page/catalogs-page').then((m) => m.CatalogsPage),
+          },
+          {
+            path: 'segmentos/:segmentId',
+            title: `Métricas ROM · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/segment-metrics/segment-metrics-page/segment-metrics-page').then((m) => m.SegmentMetricsPage),
+          },
+          {
+            path: 'segmentos/:segmentId/metricas/nueva',
+            title: `Nueva métrica · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/segment-metrics/segment-metric-form-page/segment-metric-form-page').then(
+                (m) => m.SegmentMetricFormPage,
+              ),
+          },
+          {
+            path: 'segmentos/:segmentId/metricas/:metricId',
+            title: `Editar métrica · ${APP_NAME}`,
+            loadComponent: () =>
+              import('./features/segment-metrics/segment-metric-form-page/segment-metric-form-page').then(
+                (m) => m.SegmentMetricFormPage,
+              ),
+          },
+        ],
       },
       {
         path: 'cambiar-contrasena',

@@ -79,9 +79,14 @@
 
 .segment__metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 0;
+
+  /* Follow-ups recorded before É11 also show their fixed ROM. */
+  &--legacy {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .segment__metric {
@@ -99,6 +104,57 @@
     font-size: 17px;
     font-weight: 800;
   }
+}
+
+.segment__rom {
+  padding: 12px 14px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-primary-tint);
+}
+
+.segment__rom-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+}
+
+.segment__rom-values {
+  margin: 0;
+}
+
+.segment__rom-value {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  font-size: 15px;
+
+  & + & {
+    border-top: 1px solid var(--color-border);
+  }
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+    white-space: pre-line;
+  }
+}
+
+/* The colon reads "Nombre: valor" to screen readers; the layout already separates name and value. */
+.segment__rom-colon {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .segment__toggle {

@@ -21,8 +21,10 @@ public record FollowUpResponse(
 
     /**
      * @param edema    null when it was omitted
+     * @param rom      legacy fixed ROM (before É11); null for evaluations recorded with metrics
      * @param template null when no template was answered
      * @param answers  in the template tree order
+     * @param metrics  values of the segment ROM metrics, in the metric display order
      */
     public record SegmentEvaluationResponse(
             Long id,
@@ -32,7 +34,8 @@ public record FollowUpResponse(
             BigDecimal rom,
             BigDecimal strength,
             TemplateRef template,
-            List<AnswerResponse> answers) {
+            List<AnswerResponse> answers,
+            List<MetricValueResponse> metrics) {
     }
 
     public record TemplateRef(Long id, String name) {
@@ -56,6 +59,24 @@ public record FollowUpResponse(
         @Override
         public String toString() {
             return "AnswerResponse[questionId=" + questionId + ", ***]";
+        }
+    }
+
+    /**
+     * The value of a segment ROM metric with the metric name, even when the metric is now inactive.
+     */
+    public record MetricValueResponse(
+            Long metricId,
+            String name,
+            AnswerType answerType,
+            BigDecimal numericValue,
+            Boolean booleanValue,
+            String optionValue,
+            String textValue) {
+
+        @Override
+        public String toString() {
+            return "MetricValueResponse[metricId=" + metricId + ", ***]";
         }
     }
 }

@@ -34,19 +34,22 @@ public class FollowUpRegistrationServiceImpl implements FollowUpRegistrationServ
     private final FollowUpRepository followUpRepository;
     private final FollowUpValidationChain validationChain;
     private final TemplateAnswerReader answerReader;
+    private final SegmentMetricValueReader metricValueReader;
     private final TemplateQuestionsLoader questionsLoader;
     private final FollowUpMapper mapper;
 
     public FollowUpRegistrationServiceImpl(DiagnosisRepository diagnosisRepository,
             ScarTypeRepository scarTypeRepository, BodySegmentRepository bodySegmentRepository,
             FollowUpRepository followUpRepository, FollowUpValidationChain validationChain,
-            TemplateAnswerReader answerReader, TemplateQuestionsLoader questionsLoader, FollowUpMapper mapper) {
+            TemplateAnswerReader answerReader, SegmentMetricValueReader metricValueReader,
+            TemplateQuestionsLoader questionsLoader, FollowUpMapper mapper) {
         this.diagnosisRepository = diagnosisRepository;
         this.scarTypeRepository = scarTypeRepository;
         this.bodySegmentRepository = bodySegmentRepository;
         this.followUpRepository = followUpRepository;
         this.validationChain = validationChain;
         this.answerReader = answerReader;
+        this.metricValueReader = metricValueReader;
         this.questionsLoader = questionsLoader;
         this.mapper = mapper;
     }
@@ -63,22 +66,27 @@ public class FollowUpRegistrationServiceImpl implements FollowUpRegistrationServ
                 .date(request.date())
                 .scarType(scarType(request.scarTypeId()))
                 .build();
-        request.evaluations().forEach(evaluation -> addEvaluation(followUp, evaluation));
+        List<SegmentEvaluationRequest> evaluations = request.evaluations();
+        for (int index = 0; index < evaluations.size(); index++) {
+            addEvaluation(followUp, index, evaluations.get(index));
+        }
         FollowUp saved = followUpRepository.saveAndFlush(followUp);
         return mapper.toResponse(saved, questionsLoader.questionsByTemplate(List.of(saved)));
     }
 
-    private void addEvaluation(FollowUp followUp, SegmentEvaluationRequest request) {
+    private void addEvaluation(FollowUp followUp, int index, SegmentEvaluationRequest request) {
         BodySegment segment = bodySegmentRepository.findById(request.segmentId())
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CATALOG_ITEM_NOT_FOUND));
-        ClinicalMetrics metrics = new ClinicalMetrics(request.edema(), request.pain(), request.rom(), request.strength());
-        if (request.templateId() == null) {
-            followUp.evaluate(segment, metrics, null);
-            return;
+        ClinicalMetrics metrics = new ClinicalMetrics(request.edema(), request.pain(), request.strength());
+        TemplateAnswers answers = request.templateId() == null
+                ? null
+                : answerReader.read(request.segmentId(), request.templateId(), request.answersOrEmpty());
+        SegmentEvaluation evaluation = followUp.evaluate(segment, metrics,
+                answers == null ? null : answers.template());
+        metricValueReader.read(index, request.segmentId(), request.metricsOrEmpty()).forEach(evaluation::record);
+        if (answers != null) {
+            answers.answers().forEach(evaluation::answer);
         }
-        TemplateAnswers answers = answerReader.read(request.segmentId(), request.templateId(), request.answersOrEmpty());
-        SegmentEvaluation evaluation = followUp.evaluate(segment, metrics, answers.template());
-        answers.answers().forEach(evaluation::answer);
     }
 
     private ScarType scarType(Long scarTypeId) {

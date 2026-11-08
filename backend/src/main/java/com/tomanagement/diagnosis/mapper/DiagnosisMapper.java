@@ -21,14 +21,14 @@ public class DiagnosisMapper {
         @Override
         public TreatmentResponse visitSurgical(SurgicalTreatment treatment) {
             return new TreatmentResponse(treatment.getType(), treatment.getSurgeryDate(),
-                    treatment.getStitchesRemovalDate(), CatalogItemResponse.from(treatment.getSurgeryType()), null,
+                    treatment.getStitchesRemovalDate(), CatalogItemResponse.from(treatment.getSurgeryType()), null, null,
                     treatment.requiresScarType());
         }
 
         @Override
         public TreatmentResponse visitConservative(ConservativeTreatment treatment) {
             return new TreatmentResponse(treatment.getType(), null, null, null, treatment.getImmobilizationDate(),
-                    treatment.requiresScarType());
+                    treatment.hasImmobilization(), treatment.requiresScarType());
         }
     };
 
