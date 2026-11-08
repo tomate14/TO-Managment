@@ -34,3 +34,29 @@ gcloud run deploy to-management-backend --source ./backend --project tomanagment
 
 This updates the source while retaining existing runtime settings and secret
 references. Verify `/actuator/health` after each deployment.
+
+# Frontend deployment
+
+- Service: `to-management-frontend` (same project and region as the backend)
+- Source: `frontend/Dockerfile` (Angular build served by nginx)
+- nginx serves the app and proxies `/api/*` to the backend, so the browser only talks to the frontend origin.
+
+Runtime settings (non-secret, configured on the service):
+
+| Variable | Value |
+|---|---|
+| `FRONTEND_PORT` | `8080` (the port Cloud Run sends traffic to) |
+| `API_BASE_URL` | the backend service URL, e.g. `https://to-management-backend-556030996910.us-west2.run.app` |
+| `NGINX_RESOLVER` | `8.8.8.8` (locally it is Docker's DNS, `127.0.0.11`) |
+
+The frontend origin must be listed in the backend's `CORS_ALLOWED_ORIGINS`: browsers send `Origin` on API
+writes even though the request is proxied by the same origin.
+
+Deploy after authenticating with Google Cloud CLI:
+
+```powershell
+gcloud run deploy to-management-frontend --source ./frontend --project tomanagment --region us-west2 --allow-unauthenticated
+```
+
+The service keeps its runtime settings between deployments. Verify that the home page loads and that
+`/api/auth/me` answers 401 through the proxy.
