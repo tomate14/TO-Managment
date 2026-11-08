@@ -121,6 +121,24 @@ class AnswerTypeRulesTest {
                 "x".repeat(QuestionLimit.ANSWER_TEXT_MAX_LENGTH.getValue() + 1)), notes)).isEmpty();
     }
 
+    @Test
+    void optionRulesAcceptAnyConstraintsAndReturnTheCanonicalLabel() {
+        Limits limits = new Limits(null, null, List.of("Firme", "Blanda"));
+        assertThat(factory.forType(AnswerType.OPTION).read(new RawAnswer(null, null, "firme", null), limits))
+                .hasValueSatisfying(value -> assertThat(value.text()).hasValue("Firme"));
+    }
+
+    @Test
+    void numericRulesWithoutLimitsAcceptAnyNumber() {
+        Limits limits = new Limits(null, null, List.of());
+        assertThat(factory.forType(AnswerType.NUMERIC)
+                .read(new RawAnswer(new BigDecimal("-10"), null, null, null), limits)).isPresent();
+    }
+
+    private record Limits(BigDecimal getMinValue, BigDecimal getMaxValue, List<String> getOptionLabels)
+            implements AnswerConstraints {
+    }
+
     private static Question question(AnswerType type, List<String> options) {
         Question question = new Question(new EvaluationTemplate("Plantilla", new BodySegment("Muñeca")), 1);
         question.define(new QuestionDefinition("Pregunta", type, null, null, options, null, null));

@@ -8,7 +8,6 @@ import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
-import com.tomanagement.template.entity.Question;
 
 import org.springframework.stereotype.Component;
 
@@ -33,7 +32,7 @@ public class NumericRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<String> canonicalExpectedValue(String rawValue, Question parent) {
+    public Optional<String> canonicalExpectedValue(String rawValue, AnswerConstraints constraints) {
         try {
             return Optional.of(new BigDecimal(rawValue.trim()).stripTrailingZeros().toPlainString());
         } catch (NumberFormatException notANumber) {
@@ -42,13 +41,13 @@ public class NumericRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+    public Optional<AnswerValue> read(RawAnswer raw, AnswerConstraints constraints) {
         if (!raw.carriesOnly(AnswerType.NUMERIC)) {
             return Optional.empty();
         }
         BigDecimal value = raw.numericValue();
-        boolean aboveMinimum = question.getMinValue() == null || value.compareTo(question.getMinValue()) >= 0;
-        boolean belowMaximum = question.getMaxValue() == null || value.compareTo(question.getMaxValue()) <= 0;
+        boolean aboveMinimum = constraints.getMinValue() == null || value.compareTo(constraints.getMinValue()) >= 0;
+        boolean belowMaximum = constraints.getMaxValue() == null || value.compareTo(constraints.getMaxValue()) <= 0;
         return aboveMinimum && belowMaximum ? Optional.of(AnswerValue.ofNumber(value)) : Optional.empty();
     }
 }
