@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
+import com.tomanagement.catalog.entity.BodySegment;
+import com.tomanagement.catalog.repository.BodySegmentRepository;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.diagnosis.entity.ConservativeTreatment;
 import com.tomanagement.diagnosis.entity.Diagnosis;
@@ -86,6 +89,9 @@ class BillingControllerTest {
     private FollowUpRepository followUpRepository;
 
     @Autowired
+    private BodySegmentRepository bodySegmentRepository;
+
+    @Autowired
     private TestTenancy tenancy;
 
     @Autowired
@@ -100,7 +106,7 @@ class BillingControllerTest {
     @BeforeEach
     void seed() {
         testTables.truncate(TestTable.FOLLOW_UP, TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT,
-                TestTable.ESTABLISHMENT);
+                TestTable.BODY_SEGMENT, TestTable.ESTABLISHMENT);
         Long establishmentId = tenancy.create("Consultorio").getId();
         therapist = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, establishmentId);
         tenancy.runAs(establishmentId, this::seedData);
@@ -146,6 +152,38 @@ class BillingControllerTest {
                 .andExpect(jsonPath("$.pending[2].date").value("2026-10-20"))
                 .andExpect(jsonPath("$.pending[3].date").value("2026-10-27"))
                 .andExpect(jsonPath("$.billings.length()").value(0));
+    }
+
+    @Test
+    void summaryListsTheSegmentNamesInEvaluationOrder() throws Exception {
+        Long wrist = tenancy.callAs(therapist.establishmentId(),
+                () -> bodySegmentRepository.save(new BodySegment("Muñeca")).getId());
+        Long hand = tenancy.callAs(therapist.establishmentId(),
+                () -> bodySegmentRepository.save(new BodySegment("Mano")).getId());
+        // Evaluated hand first, although the wrist segment was created first.
+        Map<String, Object> body = new HashMap<>();
+        body.put("date", "2026-10-30");
+        body.put("evaluations", new ArrayList<>(List.of(evaluationOf(hand), evaluationOf(wrist))));
+        perform(post("/api/diagnoses/" + diagnosis.getId() + "/follow-ups").contentType(MediaType.APPLICATION_JSON)
+                .content(json(body)))
+                .andExpect(status().isCreated());
+
+        perform(get(billing()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pending.length()").value(5))
+                .andExpect(jsonPath("$.pending[4].date").value("2026-10-30"))
+                .andExpect(jsonPath("$.pending[4].segments.length()").value(2))
+                .andExpect(jsonPath("$.pending[4].segments[0]").value("Mano"))
+                .andExpect(jsonPath("$.pending[4].segments[1]").value("Muñeca"));
+    }
+
+    private static Map<String, Object> evaluationOf(Long segmentId) {
+        Map<String, Object> evaluation = new HashMap<>();
+        evaluation.put("segmentId", segmentId);
+        evaluation.put("pain", 2);
+        evaluation.put("strength", new BigDecimal("16"));
+        evaluation.put("metrics", new ArrayList<>());
+        return evaluation;
     }
 
     @Test

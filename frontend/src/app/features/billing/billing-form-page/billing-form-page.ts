@@ -9,6 +9,7 @@ import { BillingSummary } from '../billing.models';
 import { BillingService } from '../billing.service';
 
 const LOAD_ERROR = 'No pudimos cargar las sesiones pendientes. Intentá de nuevo en unos minutos.';
+const STALE_NOTICE = 'Algunas sesiones ya estaban facturadas. Actualizamos la lista: revisá las sesiones y volvé a intentar.';
 
 /**
  * H12.2 mobile: register a billing (`/pacientes/:id/diagnosticos/:diagnosisId/facturacion/nueva`).
@@ -32,6 +33,11 @@ export class BillingFormPage {
   protected readonly diagnosis = signal<Diagnosis | null>(null);
   protected readonly summary = signal<BillingSummary | null>(null);
   protected readonly error = signal<string | null>(null);
+  /** Message carried into the re-created form after a stale list. */
+  protected readonly staleNotice = signal<string | null>(null);
+  /** One entry per load of the summary, so the form is re-created with the fresh pending list. */
+  protected readonly formKeys = signal<number[]>([0]);
+  private loads = 0;
 
   protected readonly subtitle = computed(() => {
     const diagnosis = this.diagnosis();
@@ -43,8 +49,25 @@ export class BillingFormPage {
       next: (diagnosis) => this.diagnosis.set(diagnosis),
       error: () => this.diagnosis.set(null),
     });
+    this.loadSummary();
+  }
+
+  private loadSummary(): void {
     this.billingService.summary(this.diagnosisId).subscribe({
       next: (summary) => this.summary.set(summary),
+      error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? LOAD_ERROR),
+    });
+  }
+
+  /** The form hit a stale pending list: reload the summary and re-create the form, keeping the message. */
+  protected onStale(): void {
+    this.billingService.summary(this.diagnosisId).subscribe({
+      next: (summary) => {
+        this.staleNotice.set(STALE_NOTICE);
+        this.summary.set(summary);
+        this.loads += 1;
+        this.formKeys.set([this.loads]);
+      },
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? LOAD_ERROR),
     });
   }

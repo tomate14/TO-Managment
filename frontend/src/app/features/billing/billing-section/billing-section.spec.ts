@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { BillingSection } from './billing-section';
 import { BillingService } from '../billing.service';
 import { Billing, BillingSummary } from '../billing.models';
@@ -186,5 +187,33 @@ describe('BillingSection', () => {
     expect(el.querySelector('[role="dialog"]')).toBeNull();
     expect(changed).toHaveBeenCalled();
     expect(el.querySelector('.billing__register')).toBeNull();
+  });
+
+  it('re-fetches the summary on a stale 422 and re-creates the form with the fresh pending list and the message', () => {
+    const fresh: BillingSummary = {
+      ...summary, billedSessions: 3, pendingSessions: 1,
+      pending: [{ followUpId: 4, date: '2026-11-06', segments: ['Muñeca'] }],
+    };
+    const { fixture, el, changed } = setup(summary, true);
+    el.querySelector<HTMLButtonElement>('.billing__register')!.click();
+    fixture.detectChanges();
+    expect(el.querySelectorAll('[role="dialog"] input[type="checkbox"]').length).toBe(2);
+
+    service.summary.mockReturnValue(of(fresh));
+    service.register.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 422, error: { code: 'BILLING_SESSION_INVALID', message: 'Hay sesiones ya facturadas.' },
+    })));
+    const amount = el.querySelector<HTMLInputElement>('#billing-amount')!;
+    amount.value = '20000';
+    amount.dispatchEvent(new Event('input'));
+    el.querySelector<HTMLFormElement>('.billing-form')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(service.summary).toHaveBeenCalledTimes(2);
+    const boxes = Array.from(el.querySelectorAll<HTMLInputElement>('[role="dialog"] input[type="checkbox"]'));
+    expect(boxes.map((box) => box.checked)).toEqual([true]);
+    expect(el.querySelector('[role="dialog"] .billing-form__body > [role="alert"]')?.textContent).toContain('ya estaban facturadas');
+    expect(el.querySelector('.counter--pending')?.textContent).toContain('1');
+    expect(changed).toHaveBeenCalled();
   });
 });

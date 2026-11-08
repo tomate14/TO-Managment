@@ -120,6 +120,33 @@ describe('BillingForm', () => {
       .toContain('Hay sesiones que no son de este diagnóstico o ya están facturadas.');
   });
 
+  it('emits stale on BILLING_SESSION_INVALID and keeps the message', () => {
+    const { fixture, el, typeAmount, submit } = render();
+    const stale = vi.fn();
+    fixture.componentInstance.stale.subscribe(stale);
+    register.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 422, error: { code: 'BILLING_SESSION_INVALID', message: 'Ya facturadas.' },
+    })));
+    typeAmount('1000');
+    submit();
+    expect(stale).toHaveBeenCalledTimes(1);
+    expect(el.querySelector('.billing-form__body > [role="alert"]')?.textContent).toContain('Ya facturadas.');
+  });
+
+  it('shows the notice it was created with', () => {
+    TestBed.configureTestingModule({
+      imports: [BillingForm],
+      providers: [{ provide: BillingService, useValue: { register: vi.fn() } }],
+    });
+    const fixture = TestBed.createComponent(BillingForm);
+    fixture.componentRef.setInput('diagnosisId', 3);
+    fixture.componentRef.setInput('pending', pending);
+    fixture.componentRef.setInput('notice', 'Actualizamos la lista.');
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.billing-form__body > [role="alert"]')?.textContent)
+      .toContain('Actualizamos la lista.');
+  });
+
   it('shows the backend field errors under their fields', () => {
     const { el, typeAmount, submit } = render();
     register.mockReturnValue(throwError(() => new HttpErrorResponse({

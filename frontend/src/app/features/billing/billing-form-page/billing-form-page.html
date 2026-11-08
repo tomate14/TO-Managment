@@ -16,7 +16,10 @@
   @if (s.pending.length === 0) {
     <p class="billing-page__message billing-page__empty">Todavía no hay sesiones para facturar.</p>
   } @else {
-    <app-billing-form [diagnosisId]="diagnosisId" [pending]="s.pending" (saved)="backToDiagnosis()" (cancelled)="backToDiagnosis()" />
+    @for (key of formKeys(); track key) {
+      <app-billing-form [diagnosisId]="diagnosisId" [pending]="s.pending" [notice]="staleNotice()"
+                        (saved)="backToDiagnosis()" (cancelled)="backToDiagnosis()" (stale)="onStale()" />
+    }
   }
 } @else {
   <p class="billing-page__message billing-page__empty" role="status">Cargando…</p>

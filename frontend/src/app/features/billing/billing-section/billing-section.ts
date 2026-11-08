@@ -9,6 +9,7 @@ import { Billing, BillingSummary } from '../billing.models';
 import { BillingService } from '../billing.service';
 
 const LOAD_ERROR = 'No pudimos cargar la facturación. Intentá de nuevo en unos minutos.';
+const STALE_NOTICE = 'Algunas sesiones ya estaban facturadas. Actualizamos la lista: revisá las sesiones y volvé a intentar.';
 const VOID_ERROR = 'No pudimos anular la facturación. Intentá de nuevo.';
 
 /**
@@ -47,6 +48,8 @@ export class BillingSection implements OnInit {
   /** Number of the current panel opening, or null when the panel is closed. */
   private readonly panelOpening = signal<number | null>(null);
   private openings = 0;
+  /** Message carried into the re-created form after a stale list. */
+  protected readonly staleNotice = signal<string | null>(null);
 
   protected readonly panelOpen = computed(() => this.panelOpening() !== null);
   /** One entry per opening, so the form is re-created (all sessions checked again) instead of reading its input only once. */
@@ -67,11 +70,34 @@ export class BillingSection implements OnInit {
       if (this.panelOpen()) {
         return;
       }
-      this.openings += 1;
-      this.panelOpening.set(this.openings);
+      this.staleNotice.set(null);
+      this.reopenPanel();
     } else {
       void this.router.navigate(['/pacientes', this.patientId(), 'diagnosticos', this.diagnosisId(), 'facturacion', 'nueva']);
     }
+  }
+
+  /** A new panel opening re-creates the form, so it reads the summary's current pending list. */
+  private reopenPanel(): void {
+    this.openings += 1;
+    this.panelOpening.set(this.openings);
+  }
+
+  /** The form hit a stale pending list: reload the summary and re-create the form, keeping the message. */
+  protected onStale(): void {
+    this.billingService.summary(this.diagnosisId()).subscribe({
+      next: (summary) => {
+        this.staleNotice.set(STALE_NOTICE);
+        this.summary.set(summary);
+        this.changed.emit();
+        if (summary.pending.length === 0) {
+          this.closePanel();
+        } else {
+          this.reopenPanel();
+        }
+      },
+      error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? LOAD_ERROR),
+    });
   }
 
   protected closePanel(): void {

@@ -20,6 +20,7 @@ const DATE_IN_FUTURE = 'La fecha no puede ser futura.';
 const AMOUNT_REQUIRED = 'Ingresá el monto.';
 const AMOUNT_NOT_POSITIVE = 'El monto tiene que ser mayor a cero.';
 const AMOUNT_INVALID = 'El monto no es válido.';
+const SESSION_INVALID = 'Hay sesiones que no son de este diagnóstico o ya están facturadas.';
 const SAVE_ERROR = 'No pudimos registrar la facturación. Intentá de nuevo.';
 
 /** Backend field names of a 400 VALIDATION_ERROR, mapped to the form field that shows them. */
@@ -43,7 +44,12 @@ export class BillingForm implements OnInit {
   /** Sessions that can be billed. Read once on init: every one starts checked. */
   readonly pending = input.required<BilledSessionRef[]>();
 
+  /** Message to show on top when the form is re-created after a stale list (see `stale`). */
+  readonly notice = input<string | null>(null);
+
   readonly saved = output<BillingSummary>();
+  /** The pending list was out of date (a session was billed meanwhile): the parent should reload it. */
+  readonly stale = output<void>();
   readonly cancelled = output<void>();
 
   protected readonly today = todayIso();
@@ -72,6 +78,7 @@ export class BillingForm implements OnInit {
 
   ngOnInit(): void {
     this.selected.set(new Set(this.pending().map((session) => session.followUpId)));
+    this.error.set(this.notice());
   }
 
   protected isSelected(session: BilledSessionRef): boolean {
@@ -124,6 +131,10 @@ export class BillingForm implements OnInit {
     switch (apiErrorCode(err)) {
       case BILLING_ERROR_CODES.sessionsRequired:
         this.serverErrors.set({ sessions: message ?? SESSIONS_REQUIRED });
+        return;
+      case BILLING_ERROR_CODES.sessionInvalid:
+        this.error.set(message ?? SESSION_INVALID);
+        this.stale.emit();
         return;
       case BILLING_ERROR_CODES.amountInvalid:
         this.serverErrors.set({ amount: message ?? AMOUNT_NOT_POSITIVE });

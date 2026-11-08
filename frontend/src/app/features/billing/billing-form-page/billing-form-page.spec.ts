@@ -1,7 +1,8 @@
 import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 import { BillingFormPage } from './billing-form-page';
 import { BillingService } from '../billing.service';
 import { BillingSummary } from '../billing.models';
@@ -25,12 +26,17 @@ describe('BillingFormPage', () => {
     billings: [],
   };
 
+  let register: ReturnType<typeof vi.fn>;
+  let summaryCall: ReturnType<typeof vi.fn>;
+
   function setup(initial: BillingSummary = summary) {
+    register = vi.fn(() => of(initial));
+    summaryCall = vi.fn(() => of(initial));
     TestBed.configureTestingModule({
       imports: [BillingFormPage],
       providers: [
         provideRouter([]),
-        { provide: BillingService, useValue: { summary: vi.fn(() => of(initial)), register: vi.fn(() => of(initial)) } },
+        { provide: BillingService, useValue: { summary: summaryCall, register } },
         { provide: DiagnosesService, useValue: { get: vi.fn(() => of(diagnosis)) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7', diagnosisId: '3' }) } } },
       ],
@@ -60,5 +66,22 @@ describe('BillingFormPage', () => {
     const { el } = setup({ ...summary, pendingSessions: 0, pending: [] });
     expect(el.textContent).toContain('Todavía no hay sesiones para facturar.');
     expect(el.querySelector('app-billing-form')).toBeNull();
+  });
+
+  it('re-fetches the summary on a stale 422 and re-renders the form with the fresh list and the message', () => {
+    const { fixture, el } = setup();
+    summaryCall.mockReturnValue(of({ ...summary, pendingSessions: 1, pending: [summary.pending[1]] }));
+    register.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 422, error: { code: 'BILLING_SESSION_INVALID', message: 'Hay sesiones ya facturadas.' },
+    })));
+    const amount = el.querySelector<HTMLInputElement>('#billing-amount')!;
+    amount.value = '20000';
+    amount.dispatchEvent(new Event('input'));
+    el.querySelector<HTMLFormElement>('.billing-form')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(summaryCall).toHaveBeenCalledTimes(2);
+    expect(el.querySelectorAll('input[type="checkbox"]').length).toBe(1);
+    expect(el.querySelector('.billing-form__body > [role="alert"]')?.textContent).toContain('ya estaban facturadas');
   });
 });

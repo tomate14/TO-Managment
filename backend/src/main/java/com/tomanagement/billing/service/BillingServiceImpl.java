@@ -19,17 +19,14 @@ import com.tomanagement.billing.entity.Billing;
 import com.tomanagement.billing.entity.BillingFollowUp;
 import com.tomanagement.billing.repository.BillingFollowUpRepository;
 import com.tomanagement.billing.repository.BillingRepository;
-import com.tomanagement.common.exception.ApplicationException;
 import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
-import com.tomanagement.common.exception.InternalSystemException;
 import com.tomanagement.common.exception.ResourceNotFoundException;
 import com.tomanagement.diagnosis.entity.Diagnosis;
 import com.tomanagement.diagnosis.repository.DiagnosisRepository;
 import com.tomanagement.followup.entity.FollowUp;
 import com.tomanagement.followup.repository.FollowUpRepository;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,28 +77,9 @@ public class BillingServiceImpl implements BillingService {
             billingRepository.saveAndFlush(
                     new Billing(diagnosis, request.billedOn(), request.amount(), Instant.now(clock), sessions));
         } catch (DataIntegrityViolationException violation) {
-            throw translate(violation);
+            throw BillingIntegrityTranslator.translate(violation);
         }
         return summaryOf(diagnosis);
-    }
-
-    /** Only the race on the active-link index is a session error; any other integrity failure is internal. */
-    private static ApplicationException translate(DataIntegrityViolationException violation) {
-        for (BillingConstraint constraint : BillingConstraint.values()) {
-            if (violates(violation, constraint)) {
-                return new BusinessRuleException(constraint.getErrorCode());
-            }
-        }
-        return new InternalSystemException(violation);
-    }
-
-    private static boolean violates(DataIntegrityViolationException violation, BillingConstraint constraint) {
-        if (violation.getCause() instanceof ConstraintViolationException hibernate
-                && constraint.getIndexName().equals(hibernate.getConstraintName())) {
-            return true;
-        }
-        String message = violation.getMostSpecificCause().getMessage();
-        return message != null && message.contains(constraint.getIndexName());
     }
 
     @Override

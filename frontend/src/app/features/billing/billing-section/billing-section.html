@@ -94,8 +94,8 @@
       </button>
     </div>
     @for (opening of panelTargets(); track opening) {
-      <app-billing-form [diagnosisId]="diagnosisId()" [pending]="summary()?.pending ?? []"
-                        (saved)="onSaved($event)" (cancelled)="closePanel()" />
+      <app-billing-form [diagnosisId]="diagnosisId()" [pending]="summary()?.pending ?? []" [notice]="staleNotice()"
+                        (saved)="onSaved($event)" (stale)="onStale()" (cancelled)="closePanel()" />
     }
   </aside>
 }
