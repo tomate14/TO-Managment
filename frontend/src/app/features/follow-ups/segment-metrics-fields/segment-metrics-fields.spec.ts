@@ -66,6 +66,24 @@ describe('SegmentMetricsFields', () => {
     expect(firm.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('clears an optional Sí/No when the chosen option is tapped again, but a required one keeps its value', () => {
+    const required = metric({ id: 11, name: 'Estable', answerType: 'YES_NO', required: true });
+    const { el, values, fixture } = render([metrics[1], required]);
+    const groups = el.querySelectorAll('.segmented');
+    const optionalYes = groups[0].querySelectorAll<HTMLButtonElement>('.segmented__option')[0];
+    const requiredYes = groups[1].querySelectorAll<HTMLButtonElement>('.segmented__option')[0];
+    optionalYes.click();
+    requiredYes.click();
+    fixture.detectChanges();
+    expect(values.getRawValue()).toEqual({ '8': 'true', '11': 'true' });
+    optionalYes.click();
+    requiredYes.click();
+    fixture.detectChanges();
+    expect(values.getRawValue()).toEqual({ '8': '', '11': 'true' });
+    expect(optionalYes.getAttribute('aria-checked')).toBe('false');
+    expect(requiredYes.getAttribute('aria-checked')).toBe('true');
+  });
+
   it('shows the problem under its metric', () => {
     const { el } = render(metrics, { problems: { 7: 'Completá esta métrica.' } });
     expect(el.querySelector('#evaluation-0-m7')?.getAttribute('aria-invalid')).toBe('true');

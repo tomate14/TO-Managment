@@ -72,6 +72,7 @@ export class SegmentEvaluationEditor implements OnInit {
   /** Server messages win over client ones: they describe the last attempt to save. */
   protected readonly metricProblems = computed(() => ({ ...this.problems().metrics, ...this.serverErrors().metrics }));
 
+  private templatesRequest?: Subscription;
   private templateRequest?: Subscription;
   private metricsRequest?: Subscription;
 
@@ -104,12 +105,13 @@ export class SegmentEvaluationEditor implements OnInit {
   }
 
   private loadTemplates(segmentId: number | null): void {
+    this.templatesRequest?.unsubscribe();
     this.templates.set([]);
     this.templatesError.set(null);
     if (segmentId === null) {
       return;
     }
-    this.templatesService.listForSegment(segmentId).subscribe({
+    this.templatesRequest = this.templatesService.listForSegment(segmentId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (templates) => this.templates.set(templates.filter((template) => template.active)),
       error: () => this.templatesError.set(TEMPLATES_ERROR),
     });
@@ -121,7 +123,7 @@ export class SegmentEvaluationEditor implements OnInit {
     if (templateId === null) {
       return;
     }
-    this.templateRequest = this.templatesService.get(templateId).subscribe({
+    this.templateRequest = this.templatesService.get(templateId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (template) => this.applyTemplate(template),
       error: () => this.templatesError.set(TEMPLATES_ERROR),
     });
@@ -141,7 +143,7 @@ export class SegmentEvaluationEditor implements OnInit {
     if (segmentId === null) {
       return;
     }
-    this.metricsRequest = this.segmentMetricsService.list(segmentId).subscribe({
+    this.metricsRequest = this.segmentMetricsService.list(segmentId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (metrics) => this.applyMetrics(
         metrics.filter((metric) => metric.active).sort((a, b) => a.displayOrder - b.displayOrder)),
       error: () => this.metricsError.set(METRICS_ERROR),

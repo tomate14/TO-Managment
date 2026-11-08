@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { SegmentMetricsPage } from './segment-metrics-page';
 import { SegmentMetricsService } from '../segment-metrics.service';
 import { SegmentMetric } from '../segment-metrics.models';
@@ -109,6 +109,33 @@ describe('SegmentMetricsPage', () => {
     expect(panel?.getAttribute('aria-labelledby')).toBe('metric-panel-title');
     expect(el.querySelector('#metric-panel-title')?.textContent).toContain('Nueva métrica');
     expect(panel?.querySelector('app-segment-metric-form')).toBeTruthy();
+  });
+
+  it('keeps the panel target while it is open and shows the new target after reopening', () => {
+    const { fixture, el, button } = setup([flexion, sensacion], true);
+    button('Editar Flexión').click();
+    fixture.detectChanges();
+    button('Editar Sensación final').click();
+    el.querySelector<HTMLButtonElement>('.metrics-header__new')!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('#metric-panel-title')?.textContent).toContain('Editar métrica');
+    expect(el.querySelector<HTMLInputElement>('#metric-name')?.value).toBe('Flexión');
+
+    el.querySelector<HTMLButtonElement>('[aria-label="Cerrar"]')!.click();
+    fixture.detectChanges();
+    button('Editar Sensación final').click();
+    fixture.detectChanges();
+    expect(el.querySelector<HTMLInputElement>('#metric-name')?.value).toBe('Sensación final');
+  });
+
+  it('disables the active switches while a reorder is in flight', () => {
+    const { fixture, button } = setup([flexion, sensacion]);
+    service.reorder.mockReturnValue(new Subject<SegmentMetric[]>());
+    expect(button('Activa: Flexión').disabled).toBe(false);
+    button('Bajar Flexión').click();
+    fixture.detectChanges();
+    expect(button('Activa: Flexión').disabled).toBe(true);
+    expect(button('Activa: Sensación final').disabled).toBe(true);
   });
 
   it('adds the saved metric to the list and closes the panel on desktop', () => {

@@ -43,6 +43,9 @@ export class SegmentMetricsPage {
     return state?.mode === 'edit' ? state.metric : null;
   });
 
+  /** One entry, so the form is re-created for each target instead of reading its metric only once. */
+  protected readonly panelTargets = computed(() => [this.panelMetric()]);
+
   constructor() {
     this.catalogsService.list(SEGMENTS_SLUG).subscribe({
       next: (segments) => this.segmentName.set(segments.find((segment) => segment.id === this.segmentId)?.name ?? null),
@@ -60,6 +63,9 @@ export class SegmentMetricsPage {
 
   protected openNew(): void {
     if (this.isDesktop()) {
+      if (this.panelOpen()) {
+        return;
+      }
       this.panel.set({ mode: 'new' });
     } else {
       void this.router.navigate(['/catalogos/segmentos', this.segmentId, 'metricas', 'nueva']);
@@ -68,6 +74,9 @@ export class SegmentMetricsPage {
 
   protected openEdit(metric: SegmentMetric): void {
     if (this.isDesktop()) {
+      if (this.panelOpen()) {
+        return;
+      }
       this.panel.set({ mode: 'edit', metric });
     } else {
       void this.router.navigate(['/catalogos/segmentos', this.segmentId, 'metricas', metric.id]);

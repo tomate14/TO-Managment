@@ -14,6 +14,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class NumericRules implements AnswerTypeRules {
 
+    /** Storage is numeric(12,3): nine integer digits and three decimals. */
+    private static final int MAX_INTEGER_DIGITS = 9;
+    private static final int MAX_FRACTION_DIGITS = 3;
+
     @Override
     public AnswerType type() {
         return AnswerType.NUMERIC;
@@ -45,7 +49,10 @@ public class NumericRules implements AnswerTypeRules {
         if (!raw.carriesOnly(AnswerType.NUMERIC)) {
             return Optional.empty();
         }
-        BigDecimal value = raw.numericValue();
+        BigDecimal value = raw.numericValue().stripTrailingZeros();
+        if (value.precision() - value.scale() > MAX_INTEGER_DIGITS || value.scale() > MAX_FRACTION_DIGITS) {
+            return Optional.empty();
+        }
         boolean aboveMinimum = constraints.getMinValue() == null || value.compareTo(constraints.getMinValue()) >= 0;
         boolean belowMaximum = constraints.getMaxValue() == null || value.compareTo(constraints.getMaxValue()) <= 0;
         return aboveMinimum && belowMaximum ? Optional.of(AnswerValue.ofNumber(value)) : Optional.empty();

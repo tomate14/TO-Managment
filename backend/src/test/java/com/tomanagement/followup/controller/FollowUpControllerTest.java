@@ -322,6 +322,15 @@ class FollowUpControllerTest {
     }
 
     @Test
+    void metricValueBeyondTheStoredPrecisionIsInvalid() throws Exception {
+        perform(post(followUps(surgical)).contentType(MediaType.APPLICATION_JSON)
+                .content(json(followUp("2026-10-28", normotrophic.getId(),
+                        evaluation(wrist.getId(), null, 3, "14", List.of(metric(flexion.getId(), 10000000000L)))))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value(ErrorCode.METRIC_VALUE_INVALID.name()));
+    }
+
+    @Test
     void metricOfAnotherSegmentOrInactiveIsRejected() throws Exception {
         expectError(surgical, followUp("2026-10-28", normotrophic.getId(), evaluation(wrist.getId(), null, 3, "14",
                 List.of(metric(flexion.getId(), "130"), metric(handOpening.getId(), "40")))),

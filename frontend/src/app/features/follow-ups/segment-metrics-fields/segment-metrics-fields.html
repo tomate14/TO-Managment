@@ -33,7 +33,7 @@
                 @for (option of yesNoOptions; track option.value) {
                   <button type="button" class="segmented__option" role="radio"
                           [attr.aria-checked]="value(metric) === option.value"
-                          (click)="choose(metric, option.value, false)">{{ option.label }}</button>
+                          (click)="choose(metric, option.value, !metric.required)">{{ option.label }}</button>
                 }
               </div>
             }

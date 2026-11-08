@@ -129,6 +129,17 @@ class AnswerTypeRulesTest {
     }
 
     @Test
+    void numericValuesBeyondTheStoredPrecisionAreInvalid() {
+        Limits limits = new Limits(null, null, List.of());
+        AnswerTypeRules numeric = factory.forType(AnswerType.NUMERIC);
+
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("1234567890"), null, null, null), limits)).isEmpty();
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("1.2345"), null, null, null), limits)).isEmpty();
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("123456789.123"), null, null, null), limits)).isPresent();
+        assertThat(numeric.read(new RawAnswer(new BigDecimal("1.5"), null, null, null), limits)).isPresent();
+    }
+
+    @Test
     void numericRulesWithoutLimitsAcceptAnyNumber() {
         Limits limits = new Limits(null, null, List.of());
         assertThat(factory.forType(AnswerType.NUMERIC)

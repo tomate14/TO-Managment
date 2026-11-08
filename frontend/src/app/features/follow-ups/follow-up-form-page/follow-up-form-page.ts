@@ -144,6 +144,18 @@ export class FollowUpFormPage implements OnInit {
       metrics.delete(group);
     }
     this.metrics.set(metrics);
+    this.dropServerErrors(group);
+  }
+
+  /** Messages about the metrics of the previous segment no longer apply once the evaluation's metrics change. */
+  private dropServerErrors(group: EvaluationGroup): void {
+    const index = this.evaluations.controls.indexOf(group);
+    if (index < 0 || !this.serverErrors().has(index)) {
+      return;
+    }
+    const errors = new Map(this.serverErrors());
+    errors.delete(index);
+    this.serverErrors.set(errors);
   }
 
   protected serverErrorsAt(index: number): EvaluationServerErrors {
