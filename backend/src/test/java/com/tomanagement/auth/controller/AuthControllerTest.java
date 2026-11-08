@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -83,7 +84,8 @@ class AuthControllerTest {
     void seedUsers() {
         testTables.truncate(TestTable.APP_USER, TestTable.ESTABLISHMENT);
         Establishment north = new Establishment("Consultorio Norte", EstablishmentKind.INSTITUTION, CREATED_AT);
-        north.approve(CREATED_AT);
+        north.approve(CREATED_AT, Duration.ofDays(7));
+        north.changeTrialEnd(null);
         northId = establishmentRepository.save(north).getId();
         userRepository.save(user("terapeuta@consultorio.com", "Ana Pérez", Role.TERAPEUTA, true));
         userRepository.save(user("inactiva@consultorio.com", "Inés Baja", Role.TERAPEUTA, false));
@@ -99,6 +101,41 @@ class AuthControllerTest {
 
     @Test
     void usersOfAnInactiveEstablishmentCannotLogIn() throws Exception {
+        deactivateNorth();
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ESTABLISHMENT_INACTIVE.name()));
+    }
+
+    @Test
+    void anExpiredTrialCannotLogIn() throws Exception {
+        endNorthTrialAt(Instant.now().minusSeconds(60));
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.TRIAL_EXPIRED.name()));
+    }
+
+    @Test
+    void aRunningTrialLogsIn() throws Exception {
+        endNorthTrialAt(Instant.now().plus(Duration.ofDays(2)));
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void noExpiryLogsIn() throws Exception {
+        endNorthTrialAt(null);
+
+        mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void inactiveWinsOverExpired() throws Exception {
+        endNorthTrialAt(Instant.now().minusSeconds(60));
         deactivateNorth();
 
         mockMvc.perform(login("terapeuta@consultorio.com", PASSWORD))
@@ -341,6 +378,12 @@ class AuthControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(body));
+    }
+
+    private void endNorthTrialAt(Instant end) {
+        Establishment north = establishmentRepository.findById(northId).orElseThrow();
+        north.changeTrialEnd(end);
+        establishmentRepository.save(north);
     }
 
     private void deactivateNorth() {

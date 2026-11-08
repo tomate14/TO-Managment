@@ -62,6 +62,20 @@
     }
   </ng-template>
 
+  <ng-template #calendarIcon>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+  </ng-template>
+
+  <ng-template #trialButton let-item>
+    @if (!item.rejected) {
+      <button type="button" class="est-trial-button" [attr.aria-label]="'Vencimiento de ' + item.name"
+              [disabled]="isPending(item)" (click)="openTrial(item)">
+        <ng-container [ngTemplateOutlet]="calendarIcon" />
+        Vencimiento
+      </button>
+    }
+  </ng-template>
+
   @if (pendingRequests().length > 0) {
     <app-pending-requests [requests]="pendingRequests()" [busyIds]="pendingIds()" [confirmingId]="confirmingRejectId()"
                           (approve)="approve($event)" (askReject)="askReject($event)" (cancelReject)="cancelReject()"
@@ -84,6 +98,7 @@
             <th scope="col">Admin</th>
             <th scope="col">Usuarios</th>
             <th scope="col">Estado</th>
+            <th scope="col">Prueba</th>
             <th scope="col" class="est-table__right">Acciones</th>
           </tr>
         </thead>
@@ -107,8 +122,22 @@
               <td>
                 <ng-container [ngTemplateOutlet]="statusBadge" [ngTemplateOutletContext]="{ $implicit: item }" />
               </td>
+              <td>
+                @if (!item.rejected) {
+                  @if (trialDate(item); as lastDay) {
+                    @if (item.trialExpired) {
+                      <span class="badge badge--expired">Vencida</span> <span class="est-muted">el {{ lastDay }}</span>
+                    } @else {
+                      <span class="est-trial"><ng-container [ngTemplateOutlet]="calendarIcon" /> Hasta el {{ lastDay }}</span>
+                    }
+                  } @else {
+                    <span class="badge badge--inactive">Sin vencimiento</span>
+                  }
+                }
+              </td>
               <td class="est-table__right">
                 <span class="est-actions">
+                  <ng-container [ngTemplateOutlet]="trialButton" [ngTemplateOutletContext]="{ $implicit: item }" />
                   <ng-container [ngTemplateOutlet]="editButton" [ngTemplateOutletContext]="{ $implicit: item }" />
                   <ng-container [ngTemplateOutlet]="activeSwitch" [ngTemplateOutletContext]="{ $implicit: item }" />
                   <button type="button" class="est-enter" [disabled]="!item.active || isPending(item)"
@@ -135,6 +164,9 @@
                       Sin admin
                     }
                   </span>
+                  @if (!item.rejected) {
+                    <span class="est-trial est-trial--card"><ng-container [ngTemplateOutlet]="calendarIcon" /> {{ trialLabel(item) }}</span>
+                  }
                 }
               </span>
               <ng-container [ngTemplateOutlet]="editButton" [ngTemplateOutletContext]="{ $implicit: item }" />
@@ -142,6 +174,9 @@
             <div class="est-card__footer">
               <span class="est-card__badges">
                 <ng-container [ngTemplateOutlet]="statusBadge" [ngTemplateOutletContext]="{ $implicit: item }" />
+                @if (item.trialExpired) {
+                  <span class="badge badge--expired">Vencida</span>
+                }
                 @if (item.kind === 'INDIVIDUAL') {
                   <span class="badge badge--users">Independiente</span>
                 }
@@ -149,6 +184,7 @@
               </span>
               <span class="est-card__controls">
                 <ng-container [ngTemplateOutlet]="activeSwitch" [ngTemplateOutletContext]="{ $implicit: item }" />
+                <ng-container [ngTemplateOutlet]="trialButton" [ngTemplateOutletContext]="{ $implicit: item }" />
                 @if (item.active) {
                   <button type="button" class="est-enter" [disabled]="isPending(item)"
                           [attr.aria-label]="'Entrar a ' + item.name" (click)="enter(item)">Entrar</button>
@@ -177,4 +213,9 @@
     </div>
     <app-establishment-form (created)="onCreated($event)" (cancelled)="closePanel()" />
   </aside>
+}
+
+@if (trialEditing(); as item) {
+  <app-trial-dialog [establishment]="item" [busy]="isPending(item)" [error]="trialError()" [desktop]="isDesktop()"
+                    (save)="saveTrial($event)" (remove)="removeTrial()" (cancel)="closeTrial()" />
 }

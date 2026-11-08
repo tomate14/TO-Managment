@@ -212,6 +212,38 @@ describe('LoginPage', () => {
     expect(el.querySelector('[role="alert"] svg path[d="M12 7v5l3 2"]')).toBeNull();
   });
 
+  it('explains an expired trial', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'TRIAL_EXPIRED', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    const alert = el.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain('Tu período de prueba venció');
+    expect(alert?.textContent).toContain('Contactá al administrador de la plataforma.');
+    expect(alert?.classList).toContain('alert--error');
+  });
+
+  it('the expired-trial banner shows an hourglass icon', () => {
+    const { fixture, login, el } = setup();
+    login.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403, error: { code: 'TRIAL_EXPIRED', message: 'x' } })),
+    );
+    type(el, '#email', 'ana@consultorio.com');
+    type(el, '#password', 'secreta');
+    submit(fixture);
+    expect(el.querySelector('[role="alert"] svg')?.getAttribute('data-icon')).toBe('hourglass');
+  });
+
+  it('opening /login?prueba=vencida shows the expired-trial banner', () => {
+    const { el } = setup({ prueba: 'vencida' });
+    const alert = el.querySelector('[role="alert"]');
+    expect(alert?.textContent).toContain('Tu período de prueba venció');
+    expect(alert?.querySelector('svg')?.getAttribute('data-icon')).toBe('hourglass');
+  });
+
   it('links to the registration', () => {
     const { el } = setup();
     const link = el.querySelector<HTMLAnchorElement>('a[href="/registro"]');

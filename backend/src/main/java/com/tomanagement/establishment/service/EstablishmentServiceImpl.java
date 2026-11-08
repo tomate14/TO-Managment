@@ -2,12 +2,15 @@ package com.tomanagement.establishment.service;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
+import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.DuplicateResourceException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.common.exception.ResourceNotFoundException;
+import com.tomanagement.establishment.config.TrialProperties;
 import com.tomanagement.establishment.dto.CreateEstablishmentRequest;
 import com.tomanagement.establishment.dto.EstablishmentAdminRequest;
 import com.tomanagement.establishment.dto.EstablishmentSummaryResponse;
@@ -30,13 +33,15 @@ public class EstablishmentServiceImpl implements EstablishmentService {
     private final UserRepository userRepository;
     private final EstablishmentCreator establishmentCreator;
     private final Clock clock;
+    private final TrialProperties trialProperties;
 
     public EstablishmentServiceImpl(EstablishmentRepository establishmentRepository, UserRepository userRepository,
-            EstablishmentCreator establishmentCreator, Clock clock) {
+            EstablishmentCreator establishmentCreator, Clock clock, TrialProperties trialProperties) {
         this.establishmentRepository = establishmentRepository;
         this.userRepository = userRepository;
         this.establishmentCreator = establishmentCreator;
         this.clock = clock;
+        this.trialProperties = trialProperties;
     }
 
     @Override
@@ -65,7 +70,23 @@ public class EstablishmentServiceImpl implements EstablishmentService {
     @Transactional
     public EstablishmentSummaryResponse approve(Long id) {
         Establishment establishment = find(id);
-        establishment.approve(Instant.now(clock));
+        establishment.approve(Instant.now(clock), trialProperties.trial());
+        return summarize(establishment);
+    }
+
+    @Override
+    @Transactional
+    public EstablishmentSummaryResponse changeTrialEnd(Long id, LocalDate lastDay) {
+        Establishment establishment = find(id);
+        if (lastDay == null) {
+            establishment.changeTrialEnd(null);
+        } else {
+            if (lastDay.isBefore(LocalDate.now(clock))) {
+                throw new BusinessRuleException(ErrorCode.TRIAL_END_IN_PAST);
+            }
+            // The chosen date is the last usable day: the account blocks at the next midnight in APP_TIME_ZONE.
+            establishment.changeTrialEnd(lastDay.plusDays(1).atStartOfDay(clock.getZone()).toInstant());
+        }
         return summarize(establishment);
     }
 
@@ -106,6 +127,7 @@ public class EstablishmentServiceImpl implements EstablishmentService {
         long activeUsers = userRepository.countByEstablishmentIdAndActiveTrue(establishment.getId());
         return new EstablishmentSummaryResponse(establishment.getId(), establishment.getName(),
                 establishment.getKind(), establishment.isActive(), establishment.isPendingApproval(),
-                establishment.isRejected(), establishment.getCreatedAt(), activeUsers, admins);
+                establishment.isRejected(), establishment.getCreatedAt(), establishment.getTrialEndsAt(),
+                establishment.isTrialExpired(Instant.now(clock)), activeUsers, admins);
     }
 }

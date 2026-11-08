@@ -1,5 +1,7 @@
 package com.tomanagement.auth.service;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,15 +36,17 @@ public class AuthServiceImpl implements AuthService {
     private final EstablishmentRepository establishmentRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
+    private final Clock clock;
     /** Hash compared when the email is unknown, so response time does not reveal which accounts exist. */
     private final String unknownUserHash;
 
     public AuthServiceImpl(UserRepository userRepository, EstablishmentRepository establishmentRepository,
-            PasswordEncoder passwordEncoder, TokenProvider tokenProvider) {
+            PasswordEncoder passwordEncoder, TokenProvider tokenProvider, Clock clock) {
         this.userRepository = userRepository;
         this.establishmentRepository = establishmentRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
+        this.clock = clock;
         this.unknownUserHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
@@ -66,6 +70,9 @@ public class AuthServiceImpl implements AuthService {
             }
             if (establishment.isPendingApproval()) {
                 throw new AccessDeniedApplicationException(ErrorCode.ESTABLISHMENT_PENDING_APPROVAL);
+            }
+            if (establishment.isTrialExpired(Instant.now(clock))) {
+                throw new AccessDeniedApplicationException(ErrorCode.TRIAL_EXPIRED);
             }
         }
         return session(user, establishment);

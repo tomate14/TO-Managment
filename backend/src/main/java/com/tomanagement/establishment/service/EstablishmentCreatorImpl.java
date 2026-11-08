@@ -6,6 +6,7 @@ import java.time.Instant;
 import com.tomanagement.common.exception.DuplicateResourceException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.establishment.catalog.DefaultCatalogSeeder;
+import com.tomanagement.establishment.config.TrialProperties;
 import com.tomanagement.establishment.entity.Establishment;
 import com.tomanagement.establishment.repository.EstablishmentRepository;
 import com.tomanagement.user.entity.Role;
@@ -25,14 +26,17 @@ public class EstablishmentCreatorImpl implements EstablishmentCreator {
     private final DefaultCatalogSeeder catalogSeeder;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final TrialProperties trialProperties;
 
     public EstablishmentCreatorImpl(EstablishmentRepository establishmentRepository, UserRepository userRepository,
-            DefaultCatalogSeeder catalogSeeder, PasswordEncoder passwordEncoder, Clock clock) {
+            DefaultCatalogSeeder catalogSeeder, PasswordEncoder passwordEncoder, Clock clock,
+            TrialProperties trialProperties) {
         this.establishmentRepository = establishmentRepository;
         this.userRepository = userRepository;
         this.catalogSeeder = catalogSeeder;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
+        this.trialProperties = trialProperties;
     }
 
     @Override
@@ -42,9 +46,10 @@ public class EstablishmentCreatorImpl implements EstablishmentCreator {
             throw new DuplicateResourceException(ErrorCode.USER_EMAIL_TAKEN);
         }
         try {
-            Establishment establishment = new Establishment(request.name(), request.kind(), Instant.now(clock));
+            Instant now = Instant.now(clock);
+            Establishment establishment = new Establishment(request.name(), request.kind(), now);
             if (request.approved()) {
-                establishment.approve(Instant.now(clock));
+                establishment.approve(now, trialProperties.trial());
             }
             establishment = establishmentRepository.saveAndFlush(establishment);
             catalogSeeder.seed(establishment.getId());
@@ -55,7 +60,7 @@ public class EstablishmentCreatorImpl implements EstablishmentCreator {
                     .role(Role.ADMIN)
                     .active(true)
                     .establishmentId(establishment.getId())
-                    .createdAt(Instant.now(clock))
+                    .createdAt(now)
                     .build());
             return establishment;
         } catch (DataIntegrityViolationException race) {

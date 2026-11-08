@@ -1,5 +1,6 @@
 package com.tomanagement.establishment.entity;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -35,6 +36,9 @@ public class Establishment {
 
     @Column(name = "approved_at")
     private Instant approvedAt;
+
+    @Column(name = "trial_ends_at")
+    private Instant trialEndsAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -81,12 +85,31 @@ public class Establishment {
         this.active = active;
     }
 
-    /** Approves a pending practice; approving again keeps the first date. Approval always (re)activates. */
-    public void approve(Instant when) {
+    /**
+     * Approves the establishment. The first approval records the date and starts the trial; approving again keeps
+     * both dates (and an expiry the superadmin removed stays removed). Approval always (re)activates.
+     */
+    public void approve(Instant when, Duration trial) {
+        Objects.requireNonNull(when, "when is required");
+        Objects.requireNonNull(trial, "trial is required");
         if (approvedAt == null) {
-            approvedAt = Objects.requireNonNull(when, "when is required");
+            approvedAt = when;
+            trialEndsAt = when.plus(trial);
         }
         active = true;
+    }
+
+    /** Sets a new trial end; {@code null} removes the expiry (paid account). */
+    public void changeTrialEnd(Instant endsAt) {
+        this.trialEndsAt = endsAt;
+    }
+
+    public boolean isTrialExpired(Instant now) {
+        return trialEndsAt != null && !now.isBefore(trialEndsAt);
+    }
+
+    public Instant getTrialEndsAt() {
+        return trialEndsAt;
     }
 
     public boolean isPendingApproval() {

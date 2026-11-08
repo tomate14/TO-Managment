@@ -6,6 +6,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { EstablishmentsPage } from './establishments-page';
 import { EstablishmentsService } from '../establishments.service';
 import { EstablishmentSummary } from '../establishments.models';
+import { formatDate } from '../../patients/patient-format';
+import { trialLastDay } from '../trial-format';
 import { AuthService } from '../../../core/auth/auth.service';
 
 describe('EstablishmentsPage', () => {
@@ -16,6 +18,8 @@ describe('EstablishmentsPage', () => {
     active: true,
     activeUsers: 4,
     admins: [{ id: 10, fullName: 'Mariana Gómez', email: 'mariana.gomez@cnorte.com' }],
+    trialEndsAt: null,
+    trialExpired: false,
   };
   const mano: EstablishmentSummary = {
     id: 2,
@@ -24,6 +28,8 @@ describe('EstablishmentsPage', () => {
     active: false,
     activeUsers: 3,
     admins: [{ id: 11, fullName: 'Diego Medina', email: 'diego@clinicamano.com' }],
+    trialEndsAt: null,
+    trialExpired: false,
   };
   const ana: EstablishmentSummary = {
     id: 3,
@@ -35,6 +41,8 @@ describe('EstablishmentsPage', () => {
     active: false,
     activeUsers: 1,
     admins: [{ id: 12, fullName: 'Ana Pérez', email: 'ana.perez@gmail.com' }],
+    trialEndsAt: null,
+    trialExpired: false,
   };
   const julieta: EstablishmentSummary = {
     ...ana,
@@ -48,12 +56,13 @@ describe('EstablishmentsPage', () => {
     rename: ReturnType<typeof vi.fn>;
     setActive: ReturnType<typeof vi.fn>;
     approve: ReturnType<typeof vi.fn>;
+    changeTrialEnd: ReturnType<typeof vi.fn>;
     setPendingCount: ReturnType<typeof vi.fn>;
   };
   let auth: { enterEstablishment: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    service = { list: vi.fn(() => of([norte, mano])), rename: vi.fn(), setActive: vi.fn(), approve: vi.fn(), setPendingCount: vi.fn() };
+    service = { list: vi.fn(() => of([norte, mano])), rename: vi.fn(), setActive: vi.fn(), approve: vi.fn(), changeTrialEnd: vi.fn(), setPendingCount: vi.fn() };
     auth = { enterEstablishment: vi.fn(() => of(undefined)) };
     TestBed.configureTestingModule({
       imports: [EstablishmentsPage],
@@ -244,6 +253,163 @@ describe('EstablishmentsPage', () => {
       fixture.detectChanges();
       expect(el.querySelector('.alert--error')!.textContent).toContain('No se pudo rechazar.');
       expect(request(el, 'Julieta Ríos').textContent).toContain('¿Rechazar la solicitud? No va a poder ingresar.');
+    });
+  });
+
+  describe('trial period', () => {
+    const lucia: EstablishmentSummary = {
+      ...norte,
+      id: 5,
+      name: 'Lucía Fernández',
+      kind: 'INDIVIDUAL',
+      admins: [{ id: 15, fullName: 'Lucía Fernández', email: 'lucia.fernandez@gmail.com' }],
+      trialEndsAt: '2099-11-15T03:00:00Z',
+      trialExpired: false,
+    };
+    const expired: EstablishmentSummary = { ...norte, trialEndsAt: '2026-11-06T03:00:00Z', trialExpired: true };
+    const sur: EstablishmentSummary = { ...mano, id: 6, name: 'Centro Sur', active: true };
+    const lastDay = (item: EstablishmentSummary) => formatDate(trialLastDay(item.trialEndsAt!));
+
+    beforeEach(() => service.list.mockReturnValue(of([expired, lucia, sur])));
+    afterEach(() => vi.unstubAllGlobals());
+
+    function renderDesktop() {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
+      return render();
+    }
+
+    function row(el: HTMLElement, name: string): HTMLElement {
+      return Array.from(el.querySelectorAll<HTMLElement>('.est-row')).find((r) => r.textContent?.includes(name))!;
+    }
+
+    function trialButton(root: HTMLElement, name: string): HTMLButtonElement | null {
+      return root.querySelector<HTMLButtonElement>(`[aria-label="Vencimiento de ${name}"]`);
+    }
+
+    function button(root: HTMLElement, label: string): HTMLButtonElement {
+      return Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((b) => b.textContent?.trim() === label)!;
+    }
+
+    function dialog(el: HTMLElement): HTMLElement | null {
+      return el.querySelector<HTMLElement>('app-trial-dialog');
+    }
+
+    function openDialog(el: HTMLElement, name: string, fixture: { detectChanges(): void }): HTMLElement {
+      trialButton(el, name)!.click();
+      fixture.detectChanges();
+      return dialog(el)!;
+    }
+
+    it('shows the Prueba column on desktop', () => {
+      const { el } = renderDesktop();
+      const headers = Array.from(el.querySelectorAll('th')).map((th) => th.textContent?.trim());
+      expect(headers.indexOf('Prueba')).toBe(headers.indexOf('Estado') + 1);
+      const expiredRow = row(el, 'Consultorio Norte');
+      expect(expiredRow.querySelector('.badge--expired')!.textContent).toContain('Vencida');
+      expect(expiredRow.textContent).toContain(`el ${lastDay(expired)}`);
+      expect(row(el, 'Lucía Fernández').textContent).toContain(`Hasta el ${lastDay(lucia)}`);
+      expect(row(el, 'Centro Sur').querySelector('.badge--inactive.badge')).toBeTruthy();
+      expect(row(el, 'Centro Sur').textContent).toContain('Sin vencimiento');
+      expect(trialButton(row(el, 'Centro Sur'), 'Centro Sur')).toBeTruthy();
+    });
+
+    it('shows the trial line under the name on mobile', () => {
+      const { el } = render();
+      expect(card(el, 'Consultorio Norte').querySelector('.est-trial')!.textContent).toContain(`Venció el ${lastDay(expired)}`);
+      expect(card(el, 'Consultorio Norte').textContent).toContain('Vencida');
+      expect(card(el, 'Lucía Fernández').querySelector('.est-trial')!.textContent).toContain(`Prueba hasta el ${lastDay(lucia)}`);
+      expect(card(el, 'Centro Sur').querySelector('.est-trial')!.textContent).toContain('Sin vencimiento');
+      expect(trialButton(card(el, 'Centro Sur'), 'Centro Sur')).toBeTruthy();
+    });
+
+    it('has no trial controls for pending requests', () => {
+      service.list.mockReturnValue(of([ana, norte]));
+      const { el } = render();
+      expect(trialButton(el, 'Ana Pérez')).toBeNull();
+      expect(el.querySelector('.est-pending .est-trial')).toBeNull();
+    });
+
+    it('has no trial UI for a rejected request', () => {
+      const rejected: EstablishmentSummary = { ...sur, id: 7, name: 'Centro Rechazado', pendingApproval: false, rejected: true, active: false };
+      service.list.mockReturnValue(of([rejected, lucia]));
+      const { el } = render();
+      expect(trialButton(card(el, 'Centro Rechazado'), 'Centro Rechazado')).toBeNull();
+      expect(card(el, 'Centro Rechazado').querySelector('.est-trial')).toBeNull();
+      expect(card(el, 'Centro Rechazado').textContent).not.toContain('Sin vencimiento');
+    });
+
+    it('has no trial UI for a rejected request on desktop', () => {
+      const rejected: EstablishmentSummary = { ...sur, id: 7, name: 'Centro Rechazado', pendingApproval: false, rejected: true, active: false };
+      service.list.mockReturnValue(of([rejected, lucia]));
+      const { el } = renderDesktop();
+      expect(trialButton(row(el, 'Centro Rechazado'), 'Centro Rechazado')).toBeNull();
+      expect(row(el, 'Centro Rechazado').textContent).not.toContain('Sin vencimiento');
+    });
+
+    it('focuses the date input on open and returns focus to the trigger on close', () => {
+      const { fixture, el } = render();
+      const trigger = trialButton(el, 'Lucía Fernández')!;
+      trigger.focus();
+      const opened = openDialog(el, 'Lucía Fernández', fixture);
+      expect(document.activeElement).toBe(opened.querySelector('input[type="date"]'));
+      button(opened, 'Cancelar').click();
+      fixture.detectChanges();
+      expect(dialog(el)).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('saves a new last day from the dialog', () => {
+      service.changeTrialEnd.mockReturnValue(of({ ...lucia, trialEndsAt: '2099-12-01T03:00:00Z' }));
+      const { fixture, el } = render();
+      const opened = openDialog(el, 'Lucía Fernández', fixture);
+      expect(opened.textContent).toContain('Vencimiento de la prueba');
+      const input = opened.querySelector<HTMLInputElement>('input[type="date"]')!;
+      input.value = '2099-11-30';
+      input.dispatchEvent(new Event('input'));
+      button(opened, 'Guardar').click();
+      fixture.detectChanges();
+      expect(service.changeTrialEnd).toHaveBeenCalledWith(5, '2099-11-30');
+      expect(dialog(el)).toBeNull();
+      expect(card(el, 'Lucía Fernández').textContent).toContain(`Prueba hasta el ${formatDate(trialLastDay('2099-12-01T03:00:00Z'))}`);
+    });
+
+    it('keeps the dialog open with the message when the day is in the past', () => {
+      const pastError = new HttpErrorResponse({
+        status: 422,
+        error: { code: 'TRIAL_END_IN_PAST', message: 'La fecha de vencimiento no puede ser anterior a hoy.' },
+      });
+      service.changeTrialEnd.mockReturnValue(throwError(() => pastError));
+      const { fixture, el } = render();
+      button(openDialog(el, 'Lucía Fernández', fixture), 'Guardar').click();
+      fixture.detectChanges();
+      expect(dialog(el)).not.toBeNull();
+      expect(dialog(el)!.querySelector('.field__error')!.textContent).toContain('La fecha de vencimiento no puede ser anterior a hoy.');
+    });
+
+    it('shows the generic message on any other error', () => {
+      service.changeTrialEnd.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const { fixture, el } = render();
+      button(openDialog(el, 'Lucía Fernández', fixture), 'Guardar').click();
+      fixture.detectChanges();
+      expect(dialog(el)!.querySelector('.field__error')!.textContent).toContain('No pudimos guardar el cambio. Intentá de nuevo.');
+    });
+
+    it('removes the expiry', () => {
+      service.changeTrialEnd.mockReturnValue(of({ ...lucia, trialEndsAt: null }));
+      const { fixture, el } = render();
+      button(openDialog(el, 'Lucía Fernández', fixture), 'Quitar vencimiento').click();
+      fixture.detectChanges();
+      expect(service.changeTrialEnd).toHaveBeenCalledWith(5, null);
+      expect(dialog(el)).toBeNull();
+      expect(card(el, 'Lucía Fernández').querySelector('.est-trial')!.textContent).toContain('Sin vencimiento');
+    });
+
+    it('closes the dialog on Cancelar without saving', () => {
+      const { fixture, el } = render();
+      button(openDialog(el, 'Lucía Fernández', fixture), 'Cancelar').click();
+      fixture.detectChanges();
+      expect(dialog(el)).toBeNull();
+      expect(service.changeTrialEnd).not.toHaveBeenCalled();
     });
   });
 });

@@ -5,8 +5,9 @@ import { AuthService, LOGIN_URL, REGISTER_URL } from './auth.service';
 import { apiErrorCode } from '../api/api-error';
 
 const API_PREFIX = '/api/';
+const TRIAL_EXPIRED_CODE = 'TRIAL_EXPIRED';
 
-/** Adds the bearer token to API calls and ends the session on 401 (expired → login with notice). */
+/** Adds the bearer token to API calls and ends the session on 401 (expired → login with notice) and on 403 TRIAL_EXPIRED (→ login with the trial notice). */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const token = auth.token();
@@ -18,6 +19,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       if (sendsToken && error instanceof HttpErrorResponse && error.status === 401) {
         auth.endSession(apiErrorCode(error) === 'TOKEN_EXPIRED' ? 'expired' : 'invalid');
+      }
+      if (sendsToken && error instanceof HttpErrorResponse && error.status === 403 && apiErrorCode(error) === TRIAL_EXPIRED_CODE) {
+        auth.endSession('trialExpired');
       }
       return throwError(() => error);
     }),
