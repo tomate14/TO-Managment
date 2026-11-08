@@ -1,0 +1,67 @@
+<form class="billing-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="billing-form__body">
+    @if (error(); as message) {
+      <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+    }
+
+    <fieldset class="billing-form__sessions" [attr.aria-describedby]="fieldError('sessions') ? 'billing-sessions-error' : null">
+      <legend class="visually-hidden">Sesiones pendientes</legend>
+      <div class="billing-form__sessions-head" aria-hidden="true">
+        <span class="billing-form__sessions-title">Sesiones pendientes</span>
+        <span class="billing-form__count">{{ selectedLabel() }}</span>
+      </div>
+      <span class="visually-hidden" aria-live="polite">{{ selectedLabel() }}</span>
+      <ul class="billing-form__list" [class.billing-form__list--invalid]="fieldError('sessions')">
+        @for (session of pending(); track session.followUpId) {
+          <li>
+            <label class="session-option">
+              <input type="checkbox" class="session-option__check" [checked]="isSelected(session)" (change)="toggle(session)">
+              <span class="session-option__text">
+                <span class="session-option__date">{{ formatDate(session.date) }}</span>
+                @if (session.segments.length > 0) {
+                  <span class="session-option__segments">{{ session.segments.join(', ') }}</span>
+                }
+              </span>
+            </label>
+          </li>
+        }
+      </ul>
+      @if (fieldError('sessions'); as message) {
+        <p id="billing-sessions-error" class="field__error billing-form__sessions-error">{{ message }}</p>
+      }
+    </fieldset>
+
+    <section class="billing-form__card">
+      <div class="field">
+        <label class="field__label" for="billing-date">Fecha de facturación</label>
+        <input id="billing-date" type="date" class="field__input" formControlName="billedOn" [attr.max]="today"
+               [class.field__input--invalid]="fieldError('billedOn')" [attr.aria-invalid]="!!fieldError('billedOn')"
+               [attr.aria-describedby]="fieldError('billedOn') ? 'billing-date-error' : null">
+        @if (fieldError('billedOn'); as message) {
+          <p id="billing-date-error" class="field__error">{{ message }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="billing-amount">Monto</label>
+        <div class="amount-input">
+          <span class="amount-input__prefix" aria-hidden="true">$</span>
+          <input id="billing-amount" class="field__input amount-input__control" formControlName="amount" inputmode="decimal"
+                 autocomplete="off" placeholder="0,00"
+                 [class.field__input--invalid]="fieldError('amount')" [attr.aria-invalid]="!!fieldError('amount')"
+                 [attr.aria-describedby]="fieldError('amount') ? 'billing-amount-error' : null">
+        </div>
+        @if (fieldError('amount'); as message) {
+          <p id="billing-amount-error" class="field__error">{{ message }}</p>
+        }
+      </div>
+    </section>
+  </div>
+
+  <div class="billing-form__actions">
+    <button type="button" class="billing-form__cancel" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn-primary billing-form__submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+      Registrar facturación
+    </button>
+  </div>
+</form>
