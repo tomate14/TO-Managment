@@ -6,11 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +21,6 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
-import com.tomanagement.billing.entity.Billing;
-import com.tomanagement.billing.repository.BillingRepository;
 import com.tomanagement.catalog.entity.SurgeryType;
 import com.tomanagement.catalog.repository.SurgeryTypeRepository;
 import com.tomanagement.common.exception.ErrorCode;
@@ -75,9 +73,6 @@ class DiagnosisControllerTest {
 
     @Autowired
     private FollowUpRepository followUpRepository;
-
-    @Autowired
-    private BillingRepository billingRepository;
 
     @Autowired
     private TestTenancy tenancy;
@@ -213,14 +208,20 @@ class DiagnosisControllerTest {
     @Test
     void listShowsPendingBillingCount() throws Exception {
         long diagnosisId = create(conservative("Esguince", true, "2026-08-02"));
+        List<Long> followUpIds = new ArrayList<>();
         tenancy.runAs(establishmentId, () -> {
             var diagnosis = diagnosisRepository.findById(diagnosisId).orElseThrow();
-            FollowUp billed = followUpRepository.save(
-                    FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 6)).build());
+            followUpIds.add(followUpRepository.save(
+                    FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 6)).build()).getId());
             followUpRepository.save(FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 13)).build());
-            billingRepository.save(new Billing(diagnosis, LocalDate.of(2026, 10, 20), new BigDecimal("25000.00"),
-                    Instant.parse("2026-10-20T12:00:00Z"), List.of(billed)));
         });
+        Map<String, Object> billing = new HashMap<>();
+        billing.put("billedOn", "2026-10-20");
+        billing.put("amount", 25000);
+        billing.put("followUpIds", followUpIds);
+        perform(post("/api/diagnoses/" + diagnosisId + "/billings").contentType(MediaType.APPLICATION_JSON)
+                .content(json(billing)))
+                .andExpect(status().isCreated());
 
         perform(get(diagnoses()))
                 .andExpect(status().isOk())
