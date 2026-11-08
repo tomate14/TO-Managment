@@ -23,7 +23,7 @@ describe('DiagnosisPage', () => {
     id: 9, diagnosisId: 3, date: '2026-10-28', scarType: { id: 1, name: 'Normotrófica', active: true },
     evaluations: [{
       id: 11, segment: { id: 3, name: 'Muñeca', active: true }, edema: 1.5, pain: 3, rom: 55, strength: 14,
-      template: { id: 5, name: 'Fractura de muñeca' },
+      template: { id: 5, name: 'Fractura de muñeca' }, metrics: [],
       answers: [
         { questionId: 1, questionText: '¿Usa férula?', depth: 0, answerType: 'YES_NO', numericValue: null,
           booleanValue: true, optionValue: null, textValue: null },

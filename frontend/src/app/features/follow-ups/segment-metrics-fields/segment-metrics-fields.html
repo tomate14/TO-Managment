@@ -1,0 +1,70 @@
+<section class="rom" [attr.aria-labelledby]="idPrefix() + '-rom-title'">
+  <h4 class="rom__title" [id]="idPrefix() + '-rom-title'">ROM</h4>
+
+  @if (metrics().length === 0) {
+    <div class="rom__empty">
+      <p class="rom__empty-text">Este segmento no tiene métricas ROM definidas.</p>
+      @if (canDefine() && segmentId() !== null) {
+        <a class="rom__define" [routerLink]="['/catalogos/segmentos', segmentId()]">Definir en Catálogos</a>
+      }
+    </div>
+  } @else {
+    <div class="rom__grid">
+      @for (metric of metrics(); track metric.id) {
+        <div class="metric" [class.metric--wide]="metric.answerType === 'YES_NO' || metric.answerType === 'OPTION'"
+             [class.metric--full]="metric.answerType === 'TEXT'">
+          @switch (metric.answerType) {
+            @case ('NUMERIC') {
+              <label class="metric__label" [for]="inputId(metric)">
+                {{ metric.name }}
+                @if (!metric.required) { <span class="metric__optional">(opc.)</span> }
+              </label>
+              <input class="field__input" type="text" inputmode="decimal" autocomplete="off"
+                     [id]="inputId(metric)" [formControl]="control(metric)"
+                     [class.field__input--invalid]="problem(metric)" [attr.aria-invalid]="!!problem(metric)">
+            }
+            @case ('YES_NO') {
+              <span class="metric__label" [id]="inputId(metric)">
+                {{ metric.name }}
+                @if (!metric.required) { <span class="metric__optional">(opc.)</span> }
+              </span>
+              <div class="segmented" role="radiogroup" [attr.aria-labelledby]="inputId(metric)"
+                   [class.segmented--invalid]="problem(metric)">
+                @for (option of yesNoOptions; track option.value) {
+                  <button type="button" class="segmented__option" role="radio"
+                          [attr.aria-checked]="value(metric) === option.value"
+                          (click)="choose(metric, option.value, false)">{{ option.label }}</button>
+                }
+              </div>
+            }
+            @case ('OPTION') {
+              <span class="metric__label" [id]="inputId(metric)">
+                {{ metric.name }}
+                @if (!metric.required) { <span class="metric__optional">(opc.)</span> }
+              </span>
+              <div class="option-chips" role="group" [attr.aria-labelledby]="inputId(metric)">
+                @for (option of metric.options; track option) {
+                  <button type="button" class="option-chip" [class.option-chip--invalid]="problem(metric)"
+                          [attr.aria-pressed]="value(metric) === option"
+                          (click)="choose(metric, option, true)">{{ option }}</button>
+                }
+              </div>
+            }
+            @case ('TEXT') {
+              <label class="metric__label" [for]="inputId(metric)">
+                {{ metric.name }}
+                @if (!metric.required) { <span class="metric__optional">(opc.)</span> }
+              </label>
+              <textarea class="field__input metric__text" rows="3" maxlength="2000"
+                        [id]="inputId(metric)" [formControl]="control(metric)"
+                        [class.field__input--invalid]="problem(metric)" [attr.aria-invalid]="!!problem(metric)"></textarea>
+            }
+          }
+          @if (problem(metric); as message) {
+            <p class="field__error">{{ message }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>

@@ -15,12 +15,28 @@
   @for (evaluation of followUp().evaluations; track evaluation.id) {
     <section class="segment" [attr.aria-label]="evaluation.segment.name">
       <h3 class="segment__name">{{ evaluation.segment.name }}</h3>
-      <dl class="segment__metrics">
+      <dl class="segment__metrics" [class.segment__metrics--legacy]="evaluation.rom !== null">
         <div class="segment__metric"><dt>Edema</dt><dd>{{ metric(evaluation.edema) }}</dd></div>
         <div class="segment__metric"><dt>Dolor</dt><dd>{{ evaluation.pain }}</dd></div>
-        <div class="segment__metric"><dt>ROM</dt><dd>{{ metric(evaluation.rom) }}</dd></div>
+        @if (evaluation.rom !== null) {
+          <div class="segment__metric"><dt>ROM</dt><dd>{{ metric(evaluation.rom) }}</dd></div>
+        }
         <div class="segment__metric"><dt>Fuerza</dt><dd>{{ metric(evaluation.strength) }}</dd></div>
       </dl>
+
+      @if (evaluation.metrics.length > 0) {
+        <div class="segment__rom" [attr.aria-labelledby]="'rom-' + evaluation.id" role="group">
+          <h4 class="segment__rom-title" [id]="'rom-' + evaluation.id">ROM</h4>
+          <dl class="segment__rom-values">
+            @for (value of evaluation.metrics; track value.metricId) {
+              <div class="segment__rom-value">
+                <dt>{{ value.name }}<span class="segment__rom-colon">: </span></dt>
+                <dd>{{ formatAnswer(value) }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+      }
 
       @if (evaluation.template; as template) {
         @if (evaluation.answers.length > 0) {

@@ -9,17 +9,21 @@ import { CatalogsService } from '../../catalogs/catalogs.service';
 import { Diagnosis, treatmentLabel } from '../../diagnoses/diagnoses.models';
 import { DiagnosesService } from '../../diagnoses/diagnoses.service';
 import { fullName, todayIso } from '../../patients/patient-format';
+import { SegmentMetric } from '../../segment-metrics/segment-metrics.models';
 import { TemplateDetail } from '../../templates/templates.models';
 import {
   EvaluationGroup,
   EvaluationProblems,
+  EvaluationServerErrors,
   createEvaluationGroup,
+  emptyProblems,
+  emptyServerErrors,
   evaluationPayload,
   evaluationProblems,
   hasProblems,
   metricErrorsByEvaluation,
 } from '../follow-up-form';
-import { CreateFollowUpPayload, Metric } from '../follow-ups.models';
+import { CreateFollowUpPayload } from '../follow-ups.models';
 import { FollowUpsService } from '../follow-ups.service';
 import { SegmentEvaluationEditor } from '../segment-evaluation-editor/segment-evaluation-editor';
 
@@ -30,6 +34,9 @@ interface HeaderProblems {
 
 const SAVE_ERROR = 'No pudimos guardar el seguimiento. Intentá de nuevo.';
 const LOAD_ERROR = 'No pudimos cargar el diagnóstico. Intentá de nuevo en unos minutos.';
+/** Shared fallbacks: the template binds them, so they must keep their identity between change detection runs. */
+const NO_PROBLEMS = emptyProblems();
+const NO_SERVER_ERRORS = emptyServerErrors();
 
 /**
  * H6.1–H6.3 new follow-up (`/pacientes/:id/diagnosticos/:diagnosisId/seguimientos/nuevo`): date, scar type for
@@ -65,8 +72,10 @@ export class FollowUpFormPage implements OnInit {
   protected readonly submitted = signal(false);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly serverErrors = signal(new Map<number, Partial<Record<Metric, string>>>());
+  protected readonly serverErrors = signal(new Map<number, EvaluationServerErrors>());
   private readonly templates = signal(new Map<EvaluationGroup, TemplateDetail>());
+  /** Active ROM metrics of each evaluation's segment. */
+  private readonly metrics = signal(new Map<EvaluationGroup, SegmentMetric[]>());
 
   private readonly value = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())),
     { initialValue: this.form.getRawValue() });
@@ -84,7 +93,9 @@ export class FollowUpFormPage implements OnInit {
   protected readonly evaluationProblems = computed(() => {
     this.value();
     const templates = this.templates();
-    return this.evaluations.controls.map((group) => evaluationProblems(group.getRawValue(), templates.get(group) ?? null));
+    const metrics = this.metrics();
+    return this.evaluations.controls.map((group) =>
+      evaluationProblems(group.getRawValue(), templates.get(group) ?? null, metrics.get(group) ?? []));
   });
   /** Each evaluation offers the active segments that no other evaluation took. */
   protected readonly segmentChoices = computed(() => {
@@ -111,6 +122,7 @@ export class FollowUpFormPage implements OnInit {
     const group = this.evaluations.at(index);
     this.evaluations.removeAt(index);
     this.setTemplate(group, null);
+    this.setMetrics(group, []);
     this.serverErrors.set(new Map());
   }
 
@@ -124,12 +136,26 @@ export class FollowUpFormPage implements OnInit {
     this.templates.set(templates);
   }
 
+  protected setMetrics(group: EvaluationGroup, list: SegmentMetric[]): void {
+    const metrics = new Map(this.metrics());
+    if (list.length > 0) {
+      metrics.set(group, list);
+    } else {
+      metrics.delete(group);
+    }
+    this.metrics.set(metrics);
+  }
+
+  protected serverErrorsAt(index: number): EvaluationServerErrors {
+    return this.serverErrors().get(index) ?? NO_SERVER_ERRORS;
+  }
+
   protected segmentsAt(index: number): CatalogItem[] {
     return this.segmentChoices().at(index) ?? [];
   }
 
   protected problemsAt(index: number): EvaluationProblems {
-    return this.evaluationProblems()[index] ?? { answers: {} };
+    return this.evaluationProblems()[index] ?? NO_PROBLEMS;
   }
 
   protected submit(): void {
@@ -172,11 +198,12 @@ export class FollowUpFormPage implements OnInit {
   private payload(): CreateFollowUpPayload {
     const value = this.form.getRawValue();
     const templates = this.templates();
+    const metrics = this.metrics();
     return {
       date: value.date,
       scarTypeId: this.requiresScarType() ? Number(value.scarTypeId) : null,
       evaluations: this.evaluations.controls.map((group) =>
-        evaluationPayload(group.getRawValue(), templates.get(group) ?? null)),
+        evaluationPayload(group.getRawValue(), templates.get(group) ?? null, metrics.get(group) ?? [])),
     };
   }
 }
