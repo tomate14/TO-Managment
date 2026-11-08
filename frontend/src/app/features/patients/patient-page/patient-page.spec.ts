@@ -42,10 +42,10 @@ describe('PatientPage', () => {
     const diagnoses: Diagnosis[] = [
       { id: 2, patient: patientRef, description: 'Fractura distal de radio izquierdo', createdDate: '2026-10-12',
         treatment: { type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
-          surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true }, followUpCount: 2 },
+          surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true }, followUpCount: 2 },
       { id: 1, patient: patientRef, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
         treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-          immobilizationDate: '2026-08-02', requiresScarType: false }, followUpCount: 0 },
+          hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false }, followUpCount: 0 },
     ];
     listForPatient.mockReturnValue(of(diagnoses));
     const el = render();

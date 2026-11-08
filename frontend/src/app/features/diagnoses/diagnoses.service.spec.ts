@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { DiagnosesService } from './diagnoses.service';
-import { treatmentLabel } from './diagnoses.models';
+import { immobilizationLabel, treatmentLabel } from './diagnoses.models';
 
 describe('DiagnosesService', () => {
   let service: DiagnosesService;
@@ -22,7 +22,7 @@ describe('DiagnosesService', () => {
 
     const payload = {
       description: 'Fractura', treatment: {
-        type: 'CONSERVATIVE' as const, surgeryDate: null, stitchesRemovalDate: null, surgeryTypeId: null, immobilizationDate: '2026-08-02',
+        type: 'CONSERVATIVE' as const, surgeryDate: null, stitchesRemovalDate: null, surgeryTypeId: null, immobilizationDate: '2026-08-02', hasImmobilization: true,
       },
     };
     service.create(7, payload).subscribe();
@@ -32,6 +32,13 @@ describe('DiagnosesService', () => {
 
     service.get(3).subscribe();
     expect(http.expectOne('/api/diagnoses/3').request.method).toBe('GET');
+  });
+
+  it('labels the immobilization, with "Sin inmovilización" when there is none', () => {
+    const base = { type: 'CONSERVATIVE' as const, surgeryDate: null, stitchesRemovalDate: null, surgeryType: null, requiresScarType: false };
+    const format = (iso: string) => `fecha ${iso}`;
+    expect(immobilizationLabel({ ...base, hasImmobilization: true, immobilizationDate: '2026-08-02' }, format)).toBe('fecha 2026-08-02');
+    expect(immobilizationLabel({ ...base, hasImmobilization: false, immobilizationDate: null }, format)).toBe('Sin inmovilización');
   });
 
   it('labels treatments as in the mockups', () => {

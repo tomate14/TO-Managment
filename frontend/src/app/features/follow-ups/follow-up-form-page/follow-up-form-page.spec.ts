@@ -21,13 +21,13 @@ describe('FollowUpFormPage', () => {
     description: 'Fractura distal de radio', createdDate: '2026-10-12', followUpCount: 0,
     treatment: {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
-      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true,
+      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
   };
   const conservative: Diagnosis = {
     ...surgical,
     treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-      immobilizationDate: '2026-10-01', requiresScarType: false },
+      hasImmobilization: true, immobilizationDate: '2026-10-01', requiresScarType: false },
   };
   const flexion: SegmentMetric = {
     id: 7, segmentId: 3, name: 'Flexión', answerType: 'NUMERIC', required: true, active: true, displayOrder: 1, options: [],

@@ -15,7 +15,7 @@ describe('DiagnosisPage', () => {
     description: 'Fractura distal de radio izquierdo', createdDate: '2026-10-12',
     treatment: {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
-      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, immobilizationDate: null, requiresScarType: true,
+      surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
     followUpCount: 0,
   };
@@ -72,12 +72,22 @@ describe('DiagnosisPage', () => {
     get.mockReturnValue(of({
       ...surgical,
       treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-        immobilizationDate: '2026-08-02', requiresScarType: false },
+        hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false },
     }));
     const el = render();
     expect(el.textContent).toContain('Conservador');
     expect(el.textContent).toContain('Inmovilización');
     expect(el.textContent).not.toContain('Retiro de puntos');
+  });
+
+  it('shows "Sin inmovilización" when the conservative diagnosis has none', () => {
+    get.mockReturnValue(of({
+      ...surgical,
+      treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
+        hasImmobilization: false, immobilizationDate: null, requiresScarType: false },
+    }));
+    const el = render();
+    expect(el.querySelector('.diagnosis-summary__data')?.textContent).toContain('Sin inmovilización');
   });
 
   it('has the follow-ups section, the new follow-up link and a way back to the patient', () => {
