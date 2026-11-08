@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Checks every metric against its {@link ClinicalRange} (H6.2) and reports all the failures at once, one per field
- * ({@code evaluations[i].rom}).
+ * ({@code evaluations[i].strength}).
  */
 @Component
 public class ClinicalRangeStep extends FollowUpValidationStep {
@@ -28,7 +28,6 @@ public class ClinicalRangeStep extends FollowUpValidationStep {
                 checkRange(index, ClinicalRange.EDEMA, evaluation.edema(), errors);
             }
             checkRange(index, ClinicalRange.PAIN, BigDecimal.valueOf(evaluation.pain()), errors);
-            checkRange(index, ClinicalRange.ROM, evaluation.rom(), errors);
             checkRange(index, ClinicalRange.STRENGTH, evaluation.strength(), errors);
         }
         if (!errors.isEmpty()) {

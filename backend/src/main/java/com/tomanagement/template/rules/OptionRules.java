@@ -11,7 +11,6 @@ import com.tomanagement.common.exception.BusinessRuleException;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
-import com.tomanagement.template.entity.Question;
 
 import org.springframework.stereotype.Component;
 
@@ -45,19 +44,19 @@ public class OptionRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<String> canonicalExpectedValue(String rawValue, Question parent) {
+    public Optional<String> canonicalExpectedValue(String rawValue, AnswerConstraints constraints) {
         String value = rawValue.trim();
-        return parent.getOptionLabels().stream().filter(label -> label.equalsIgnoreCase(value)).findFirst();
+        return constraints.getOptionLabels().stream().filter(label -> label.equalsIgnoreCase(value)).findFirst();
     }
 
     /**
      * The answer is stored with the option's own label (its canonical spelling).
      */
     @Override
-    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+    public Optional<AnswerValue> read(RawAnswer raw, AnswerConstraints constraints) {
         if (!raw.carriesOnly(AnswerType.OPTION)) {
             return Optional.empty();
         }
-        return canonicalExpectedValue(raw.optionValue(), question).map(AnswerValue::ofOption);
+        return canonicalExpectedValue(raw.optionValue(), constraints).map(AnswerValue::ofOption);
     }
 }

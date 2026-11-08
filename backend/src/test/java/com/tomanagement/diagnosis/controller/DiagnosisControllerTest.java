@@ -121,12 +121,28 @@ class DiagnosisControllerTest {
 
     @Test
     void createsAConservativeDiagnosis() throws Exception {
-        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Tenosinovitis de De Quervain", "2026-08-02"))))
+        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Tenosinovitis de De Quervain", true, "2026-08-02"))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.treatment.type").value("CONSERVATIVE"))
+                .andExpect(jsonPath("$.treatment.hasImmobilization").value(true))
                 .andExpect(jsonPath("$.treatment.immobilizationDate").value("2026-08-02"))
                 .andExpect(jsonPath("$.treatment.requiresScarType").value(false))
                 .andExpect(jsonPath("$.treatment.surgeryType").doesNotExist());
+    }
+
+    @Test
+    void conservativeWithoutImmobilization() throws Exception {
+        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Esguince", false, "2026-08-02"))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.treatment.hasImmobilization").value(false))
+                .andExpect(jsonPath("$.treatment.immobilizationDate").doesNotExist());
+    }
+
+    @Test
+    void conservativeWithoutAnswerIs422() throws Exception {
+        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Esguince", null, "2026-08-02"))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value(ErrorCode.IMMOBILIZATION_ANSWER_REQUIRED.name()));
     }
 
     @Test
@@ -145,7 +161,7 @@ class DiagnosisControllerTest {
 
     @Test
     void conservativeNeedsTheImmobilizationDate() throws Exception {
-        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Esguince", null))))
+        perform(post(diagnoses()).contentType(MediaType.APPLICATION_JSON).content(json(conservative("Esguince", true, null))))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value(ErrorCode.IMMOBILIZATION_DATE_REQUIRED.name()));
     }
@@ -163,7 +179,7 @@ class DiagnosisControllerTest {
 
     @Test
     void listsNewestFirstAndReadsOneById() throws Exception {
-        long first = create(conservative("Tenosinovitis de De Quervain", "2026-08-02"));
+        long first = create(conservative("Tenosinovitis de De Quervain", true, "2026-08-02"));
         long second = create(surgical("Fractura distal de radio izquierdo", "2026-10-14", "2026-10-28", plate.getId()));
 
         perform(get(diagnoses()))
@@ -212,9 +228,10 @@ class DiagnosisControllerTest {
         return Map.of("description", description, "treatment", treatment);
     }
 
-    private static Map<String, Object> conservative(String description, String immobilization) {
+    private static Map<String, Object> conservative(String description, Boolean hasImmobilization, String immobilization) {
         Map<String, Object> treatment = new HashMap<>();
         treatment.put("type", "CONSERVATIVE");
+        treatment.put("hasImmobilization", hasImmobilization);
         treatment.put("immobilizationDate", immobilization);
         return Map.of("description", description, "treatment", treatment);
     }

@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
-import com.tomanagement.template.entity.Question;
 
 /**
  * Strategy with the rules that depend on a question's answer type: which extra fields it uses, how they are
@@ -34,10 +33,10 @@ public interface AnswerTypeRules {
     }
 
     /**
-     * @param parent a question of this type
+     * @param constraints the limits of this type
      * @return the canonical form of a child condition's expected value, or empty when it is not a valid answer
      */
-    Optional<String> canonicalExpectedValue(String rawValue, Question parent);
+    Optional<String> canonicalExpectedValue(String rawValue, AnswerConstraints constraints);
 
     /**
      * Reads an answer to a question of this type (H6.3): it must carry only the value of this type, and that value
@@ -45,5 +44,5 @@ public interface AnswerTypeRules {
      *
      * @return the typed answer, or empty when the value is not a valid answer
      */
-    Optional<AnswerValue> read(RawAnswer raw, Question question);
+    Optional<AnswerValue> read(RawAnswer raw, AnswerConstraints constraints);
 }

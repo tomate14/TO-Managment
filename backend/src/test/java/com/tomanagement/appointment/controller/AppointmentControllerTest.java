@@ -121,7 +121,7 @@ class AppointmentControllerTest {
             lucia = patient("30123456", "Lucía", "Fernández");
             diego = patient("28999888", "Diego", "Suárez");
             luciasDiagnosis = diagnosisRepository.save(new Diagnosis(lucia, "Esguince", LocalDate.of(2026, 10, 12),
-                    new ConservativeTreatment(LocalDate.of(2026, 10, 1))));
+                    new ConservativeTreatment(true, LocalDate.of(2026, 10, 1))));
         });
     }
 

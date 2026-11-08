@@ -40,7 +40,7 @@ class TreatmentFactoryTest {
 
     @Test
     void buildsASurgicalTreatmentThatRequiresAScarType() {
-        Treatment treatment = factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 1L, null));
+        Treatment treatment = factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 1L, null, null));
 
         assertThat(treatment).isInstanceOf(SurgicalTreatment.class);
         assertThat(treatment.getType()).isEqualTo(TreatmentType.SURGICAL);
@@ -51,7 +51,7 @@ class TreatmentFactoryTest {
     @Test
     void buildsAConservativeTreatmentWithoutScarType() {
         Treatment treatment = factory.create(
-                new TreatmentRequest(TreatmentType.CONSERVATIVE, SURGERY, null, 1L, LocalDate.of(2026, 8, 2)));
+                new TreatmentRequest(TreatmentType.CONSERVATIVE, SURGERY, null, 1L, LocalDate.of(2026, 8, 2), true));
 
         assertThat(treatment).isInstanceOf(ConservativeTreatment.class);
         assertThat(treatment.requiresScarType()).isFalse();
@@ -59,28 +59,53 @@ class TreatmentFactoryTest {
 
     @Test
     void stitchesRemovalCanBeTheSameDayButNotBeforeTheSurgery() {
-        assertThat(factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, SURGERY, 1L, null))).isNotNull();
+        assertThat(factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, SURGERY, 1L, null, null))).isNotNull();
         assertThatThrownBy(() -> factory.create(
-                new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, SURGERY.minusDays(1), 1L, null)))
+                new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, SURGERY.minusDays(1), 1L, null, null)))
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.STITCHES_BEFORE_SURGERY);
     }
 
     @Test
     void surgicalDataIsRequired() {
-        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, null, STITCHES, 1L, null)))
+        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, null, STITCHES, 1L, null, null)))
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.SURGERY_DATA_REQUIRED);
-        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, null, null)))
+        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, null, null, null)))
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.SURGERY_DATA_REQUIRED);
     }
 
     @Test
     void conservativeNeedsTheImmobilizationDate() {
-        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.CONSERVATIVE, null, null, null, null)))
+        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.CONSERVATIVE, null, null, null, null, true)))
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.IMMOBILIZATION_DATE_REQUIRED);
+    }
+
+    @Test
+    void conservativeWithoutAnswerIsRejected() {
+        assertThatThrownBy(() -> factory.create(
+                new TreatmentRequest(TreatmentType.CONSERVATIVE, null, null, null, LocalDate.of(2026, 8, 2), null)))
+                .extracting(error -> ((ApplicationException) error).getErrorCode())
+                .isEqualTo(ErrorCode.IMMOBILIZATION_ANSWER_REQUIRED);
+    }
+
+    @Test
+    void conservativeWithImmobilizationNeedsTheDate() {
+        assertThatThrownBy(() -> factory.create(
+                new TreatmentRequest(TreatmentType.CONSERVATIVE, null, null, null, null, true)))
+                .extracting(error -> ((ApplicationException) error).getErrorCode())
+                .isEqualTo(ErrorCode.IMMOBILIZATION_DATE_REQUIRED);
+    }
+
+    @Test
+    void conservativeWithoutImmobilizationIgnoresTheDate() {
+        ConservativeTreatment treatment = (ConservativeTreatment) factory.create(new TreatmentRequest(
+                TreatmentType.CONSERVATIVE, null, null, null, LocalDate.of(2026, 8, 2), false));
+
+        assertThat(treatment.getImmobilizationDate()).isNull();
+        assertThat(treatment.hasImmobilization()).isFalse();
     }
 
     @Test
@@ -90,10 +115,10 @@ class TreatmentFactoryTest {
         when(surgeryTypes.findById(2L)).thenReturn(Optional.of(retired));
         when(surgeryTypes.findById(3L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 2L, null)))
+        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 2L, null, null)))
                 .extracting(error -> ((ApplicationException) error).getErrorCode())
                 .isEqualTo(ErrorCode.SURGERY_TYPE_INACTIVE);
-        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 3L, null)))
+        assertThatThrownBy(() -> factory.create(new TreatmentRequest(TreatmentType.SURGICAL, SURGERY, STITCHES, 3L, null, null)))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }

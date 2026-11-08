@@ -1,0 +1,173 @@
+:host {
+  display: block;
+}
+
+.rom {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg);
+}
+
+.rom__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+}
+
+.rom__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+}
+
+.rom__empty-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.rom__define {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-primary);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+  }
+}
+
+/* Mobile: numbers two per row; Yes/No, options and text take the whole row. */
+.rom__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 10px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+
+  &--wide,
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.metric__label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.metric__optional {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.metric__text {
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* Same patterns as the template questions (component-scoped there). */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 320px;
+  padding: 4px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--color-neutral-bg);
+
+  &--invalid {
+    border-color: var(--color-error);
+  }
+}
+
+.segmented__option {
+  height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[aria-checked='true'] {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: 0 1px 3px rgba(14, 41, 68, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+  }
+}
+
+.option-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &--invalid {
+    border-color: var(--color-error);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+  }
+}
+
+/* Wider screens: the metrics share one row, as many as fit; text still takes the whole row. */
+@media (min-width: 768px) {
+  .rom {
+    padding: 18px 20px;
+  }
+
+  .rom__grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+  }
+
+  .metric--wide {
+    grid-column: auto;
+  }
+}

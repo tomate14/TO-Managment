@@ -1,0 +1,215 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.metric-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.metric-form__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 16px;
+}
+
+.metric-form__card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.metric-form__fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.type-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.type-chip {
+  height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    color: var(--color-primary-dark);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.metric-form__locked {
+  position: relative;
+}
+
+.metric-form__locked-input {
+  width: 100%;
+  padding-right: 44px;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.metric-form__lock {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: var(--color-text-muted);
+  transform: translateY(-50%);
+}
+
+.metric-form__muted {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.metric-form__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-form__option {
+  display: flex;
+  gap: 8px;
+
+  .field__input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.metric-form__remove {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.metric-form__add-option {
+  align-self: flex-start;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.metric-form__required {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-form__switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-form__switch-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.metric-form__actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px 20px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.metric-form__cancel {
+  flex: none;
+  height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.metric-form__submit {
+  flex: 1;
+  height: 52px;
+  box-shadow: none;
+}
+
+@media (min-width: 1024px) {
+  /* Inside the side panel the card chrome is dropped: fields sit directly on the white panel. */
+  .metric-form__body {
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .metric-form__card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .metric-form__required {
+    padding-top: 18px;
+    border-top: 1px solid var(--color-divider);
+  }
+
+  .metric-form__actions {
+    justify-content: flex-end;
+    padding: 16px 24px;
+  }
+
+  .metric-form__submit {
+    flex: none;
+    padding: 0 24px;
+  }
+}

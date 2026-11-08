@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { formatDate, formatDni, fullName } from '../../patients/patient-format';
-import { Diagnosis, treatmentLabel } from '../diagnoses.models';
+import { Diagnosis, immobilizationLabel, treatmentLabel } from '../diagnoses.models';
 import { DiagnosesService } from '../diagnoses.service';
 import { FollowUpCard } from '../../follow-ups/follow-up-card/follow-up-card';
 import { FollowUp } from '../../follow-ups/follow-ups.models';
@@ -42,6 +42,7 @@ export class DiagnosisPage implements OnInit {
     return diagnosis ? treatmentLabel(diagnosis.treatment.type) : '';
   });
   protected readonly formatDate = formatDate;
+  protected readonly immobilizationLabel = immobilizationLabel;
 
   ngOnInit(): void {
     this.diagnosesService.get(this.diagnosisId).subscribe({

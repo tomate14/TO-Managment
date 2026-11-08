@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.tomanagement.template.rules.AnswerConstraints;
+
 import org.hibernate.annotations.TenantId;
 
 import jakarta.persistence.CascadeType;
@@ -30,7 +32,7 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "question")
-public class Question {
+public class Question implements AnswerConstraints {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -138,10 +140,12 @@ public class Question {
         return active;
     }
 
+    @Override
     public BigDecimal getMinValue() {
         return minValue;
     }
 
+    @Override
     public BigDecimal getMaxValue() {
         return maxValue;
     }
@@ -154,6 +158,7 @@ public class Question {
         return Optional.ofNullable(condition);
     }
 
+    @Override
     public List<String> getOptionLabels() {
         return options.stream().map(QuestionOption::getLabel).toList();
     }

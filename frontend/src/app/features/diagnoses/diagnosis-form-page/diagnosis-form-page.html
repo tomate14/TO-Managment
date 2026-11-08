@@ -79,12 +79,27 @@
   } @else {
     <section class="diagnosis-form__card">
       <div class="field">
-        <label class="field__label" for="immobilization-date">Fecha de inmovilización</label>
-        <input id="immobilization-date" class="field__input" type="date" formControlName="immobilizationDate"
-               [class.field__input--invalid]="submitted() && problems().immobilizationDate"
-               [attr.aria-invalid]="submitted() && !!problems().immobilizationDate">
-        @if (submitted() && problems().immobilizationDate; as message) { <p class="field__error">{{ message }}</p> }
+        <span id="immobilization-question" class="field__label">¿Lleva inmovilización?</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="immobilization-question"
+             [class.segmented--invalid]="submitted() && problems().hasImmobilization">
+          @for (option of immobilizationOptions; track option.value) {
+            <button type="button" class="segmented__option" role="radio"
+                    [attr.aria-checked]="hasImmobilization() === option.value"
+                    (click)="selectImmobilization(option.value)">{{ option.label }}</button>
+          }
+        </div>
+        @if (submitted() && problems().hasImmobilization; as message) { <p class="field__error">{{ message }}</p> }
+        @if (hasImmobilization() === false) { <p class="field__hint">Sin inmovilización: no se pide fecha.</p> }
       </div>
+      @if (hasImmobilization() === true) {
+        <div class="field">
+          <label class="field__label" for="immobilization-date">Fecha de inmovilización</label>
+          <input id="immobilization-date" class="field__input" type="date" formControlName="immobilizationDate"
+                 [class.field__input--invalid]="submitted() && problems().immobilizationDate"
+                 [attr.aria-invalid]="submitted() && !!problems().immobilizationDate">
+          @if (submitted() && problems().immobilizationDate; as message) { <p class="field__error">{{ message }}</p> }
+        </div>
+      }
     </section>
   }
 

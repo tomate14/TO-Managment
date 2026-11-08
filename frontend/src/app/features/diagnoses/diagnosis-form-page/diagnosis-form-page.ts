@@ -16,6 +16,7 @@ interface Problems {
   surgeryDate?: string;
   stitchesRemovalDate?: string;
   surgeryTypeId?: string;
+  hasImmobilization?: string;
   immobilizationDate?: string;
 }
 
@@ -43,6 +44,7 @@ export class DiagnosisFormPage implements OnInit {
     surgeryDate: [''],
     stitchesRemovalDate: [''],
     surgeryTypeId: [null as number | null],
+    hasImmobilization: [null as boolean | null],
     immobilizationDate: [''],
   });
 
@@ -54,6 +56,11 @@ export class DiagnosisFormPage implements OnInit {
 
   private readonly value = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   protected readonly type = computed(() => this.value().type ?? 'SURGICAL');
+  protected readonly hasImmobilization = computed(() => this.value().hasImmobilization ?? null);
+  protected readonly immobilizationOptions = [
+    { value: true, label: 'Sí' },
+    { value: false, label: 'No' },
+  ] as const;
   protected readonly problems = computed(() => this.validate());
   protected readonly subtitle = computed(() => {
     const patient = this.patient();
@@ -70,6 +77,10 @@ export class DiagnosisFormPage implements OnInit {
 
   protected selectType(type: TreatmentType): void {
     this.form.controls.type.setValue(type);
+  }
+
+  protected selectImmobilization(value: boolean): void {
+    this.form.controls.hasImmobilization.setValue(value);
   }
 
   protected submit(): void {
@@ -114,7 +125,9 @@ export class DiagnosisFormPage implements OnInit {
       if (value.surgeryTypeId === null || value.surgeryTypeId === undefined) {
         problems.surgeryTypeId = 'Elegí el tipo de cirugía.';
       }
-    } else if ((value.immobilizationDate ?? '') === '') {
+    } else if (value.hasImmobilization === null || value.hasImmobilization === undefined) {
+      problems.hasImmobilization = 'Indicá si lleva inmovilización.';
+    } else if (value.hasImmobilization && (value.immobilizationDate ?? '') === '') {
       problems.immobilizationDate = 'Ingresá la fecha de inmovilización.';
     }
     return problems;
@@ -123,6 +136,7 @@ export class DiagnosisFormPage implements OnInit {
   private payload(): CreateDiagnosisPayload {
     const value = this.form.getRawValue();
     const surgical = value.type === 'SURGICAL';
+    const withImmobilization = !surgical && value.hasImmobilization === true;
     return {
       description: value.description.trim(),
       treatment: {
@@ -130,7 +144,8 @@ export class DiagnosisFormPage implements OnInit {
         surgeryDate: surgical ? value.surgeryDate : null,
         stitchesRemovalDate: surgical ? value.stitchesRemovalDate : null,
         surgeryTypeId: surgical ? Number(value.surgeryTypeId) : null,
-        immobilizationDate: surgical ? null : value.immobilizationDate,
+        immobilizationDate: withImmobilization ? value.immobilizationDate : null,
+        hasImmobilization: surgical ? null : value.hasImmobilization,
       },
     };
   }

@@ -1,5 +1,8 @@
 import { FollowUpAnswer } from './follow-ups.models';
 
+/** A recorded answer or ROM metric value: one typed value according to its answer type. */
+export type RecordedValue = Pick<FollowUpAnswer, 'answerType' | 'numericValue' | 'booleanValue' | 'optionValue' | 'textValue'>;
+
 const NUMBER_FORMAT = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 3 });
 const MONTH_FORMAT = new Intl.DateTimeFormat('es-AR', { month: 'short', timeZone: 'UTC' });
 
@@ -24,8 +27,8 @@ export function dateChip(isoDate: string): { day: string; month: string } {
   return { day: String(day), month: monthLabel };
 }
 
-/** Value of an answer as shown in the history. */
-export function formatAnswer(answer: FollowUpAnswer): string {
+/** Value of an answer (or of a ROM metric) as shown in the history. */
+export function formatAnswer(answer: RecordedValue): string {
   switch (answer.answerType) {
     case 'NUMERIC':
       return answer.numericValue === null ? '' : formatNumber(answer.numericValue);

@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import com.tomanagement.template.condition.AnswerValue;
 import com.tomanagement.template.entity.AnswerType;
-import com.tomanagement.template.entity.Question;
 
 import org.springframework.stereotype.Component;
 
@@ -21,7 +20,7 @@ public class YesNoRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<String> canonicalExpectedValue(String rawValue, Question parent) {
+    public Optional<String> canonicalExpectedValue(String rawValue, AnswerConstraints constraints) {
         String value = rawValue.trim().toLowerCase(Locale.ROOT);
         return Boolean.TRUE.toString().equals(value) || Boolean.FALSE.toString().equals(value)
                 ? Optional.of(value)
@@ -29,7 +28,7 @@ public class YesNoRules implements AnswerTypeRules {
     }
 
     @Override
-    public Optional<AnswerValue> read(RawAnswer raw, Question question) {
+    public Optional<AnswerValue> read(RawAnswer raw, AnswerConstraints constraints) {
         return raw.carriesOnly(AnswerType.YES_NO) ? Optional.of(AnswerValue.ofYesNo(raw.booleanValue())) : Optional.empty();
     }
 }

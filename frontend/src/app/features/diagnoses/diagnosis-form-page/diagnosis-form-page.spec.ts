@@ -49,11 +49,15 @@ describe('DiagnosisFormPage', () => {
       Array.from(el.querySelectorAll<HTMLButtonElement>('.treatment-option')).find((b) => b.textContent?.includes(label))!.click();
       fixture.detectChanges();
     };
+    const answer = (label: string) => {
+      Array.from(el.querySelectorAll<HTMLButtonElement>('.segmented__option')).find((b) => b.textContent?.trim() === label)!.click();
+      fixture.detectChanges();
+    };
     const submit = () => {
       el.querySelector('form')!.dispatchEvent(new Event('submit'));
       fixture.detectChanges();
     };
-    return { el, navigate, type, choose, pick, submit };
+    return { el, navigate, type, choose, pick, answer, submit };
   }
 
   it('shows the patient, the automatic date note and surgical data by default', () => {
@@ -76,7 +80,7 @@ describe('DiagnosisFormPage', () => {
 
     expect(create).toHaveBeenCalledWith(7, {
       description: 'Fractura distal de radio izquierdo',
-      treatment: { type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28', surgeryTypeId: 1, immobilizationDate: null },
+      treatment: { type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28', surgeryTypeId: 1, immobilizationDate: null, hasImmobilization: null },
     });
     expect(navigate).toHaveBeenCalledWith(['/pacientes', 7, 'diagnosticos', 3], { replaceUrl: true });
   });
@@ -92,19 +96,55 @@ describe('DiagnosisFormPage', () => {
     expect(el.querySelector('.field__error')?.textContent).toContain('El retiro de puntos no puede ser anterior a la cirugía.');
   });
 
-  it('switches to conservative and only asks for the immobilization date', () => {
+  it('switches to conservative and asks whether it has immobilization', () => {
     const { el, type, pick, submit } = setup();
     pick('Conservador');
     expect(el.textContent).not.toContain('Datos de la cirugía');
+    expect(el.textContent).toContain('¿Lleva inmovilización?');
+    expect(el.querySelector('#immobilization-date')).toBeNull();
     type('#diagnosis-description', 'Tenosinovitis de De Quervain');
     submit();
+    expect(el.textContent).toContain('Indicá si lleva inmovilización.');
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('with Sí requires the immobilization date and sends it', () => {
+    const { el, type, pick, answer, submit } = setup();
+    pick('Conservador');
+    type('#diagnosis-description', 'Tenosinovitis de De Quervain');
+    answer('Sí');
+    expect(el.textContent).toContain('Fecha de inmovilización');
+    submit();
     expect(el.textContent).toContain('Ingresá la fecha de inmovilización.');
+    expect(create).not.toHaveBeenCalled();
 
     type('#immobilization-date', '2026-08-02');
     submit();
     expect(create).toHaveBeenCalledWith(7, {
       description: 'Tenosinovitis de De Quervain',
-      treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryTypeId: null, immobilizationDate: '2026-08-02' },
+      treatment: {
+        type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryTypeId: null,
+        immobilizationDate: '2026-08-02', hasImmobilization: true,
+      },
+    });
+  });
+
+  it('with No hides the date and sends no date, even if one was typed before', () => {
+    const { el, type, pick, answer, submit } = setup();
+    pick('Conservador');
+    type('#diagnosis-description', 'Tenosinovitis de De Quervain');
+    answer('Sí');
+    type('#immobilization-date', '2026-08-02');
+    answer('No');
+    expect(el.querySelector('#immobilization-date')).toBeNull();
+    expect(el.textContent).toContain('Sin inmovilización: no se pide fecha.');
+    submit();
+    expect(create).toHaveBeenCalledWith(7, {
+      description: 'Tenosinovitis de De Quervain',
+      treatment: {
+        type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryTypeId: null,
+        immobilizationDate: null, hasImmobilization: false,
+      },
     });
   });
 

@@ -1,0 +1,97 @@
+<header class="page-header metrics-header">
+  <a class="page-header__back page-header__back--mobile-only" routerLink="/catalogos" [queryParams]="{ tipo: 'segmentos' }" aria-label="Volver">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+  </a>
+  <div class="metrics-header__titles">
+    <nav class="metrics-header__crumbs" aria-label="Ubicación">
+      <a routerLink="/catalogos">Catálogos</a> ›
+      <a routerLink="/catalogos" [queryParams]="{ tipo: 'segmentos' }">Segmentos</a>
+    </nav>
+    <h1 class="page-header__title">Métricas ROM@if (segmentName(); as name) {<span class="metrics-header__desktop"> · {{ name }}</span>}</h1>
+    @if (segmentName(); as name) {
+      <span class="metrics-header__subtitle">Segmento: {{ name }}</span>
+    }
+  </div>
+  <button type="button" class="page-header__action metrics-header__new" (click)="openNew()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    <span class="metrics-header__mobile">Nueva</span>
+    <span class="metrics-header__desktop">Nueva métrica</span>
+  </button>
+</header>
+
+<div class="page-body metrics">
+  @if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  }
+
+  @if (metrics(); as list) {
+    @if (list.length === 0) {
+      <section class="metrics-empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h16M7 20v-8M12 20V5M17 20v-5"></path></svg>
+        <h2 class="metrics-empty__title">Todavía no hay métricas ROM para este segmento</h2>
+        <p class="metrics-empty__text">Creá la primera con “Nueva métrica”. Por ejemplo: Flexión, Extensión o Desviación radial.</p>
+        <button type="button" class="btn-primary metrics-empty__button" (click)="openNew()">+ Nueva métrica</button>
+      </section>
+    } @else {
+      @if (segmentName(); as name) {
+        <p class="metrics-intro">
+          <span class="metrics-header__mobile">Estas métricas se piden al evaluar <strong>{{ name }}</strong> en un seguimiento. Las obligatorias no se pueden dejar vacías.</span>
+          <span class="metrics-header__desktop">Se piden al evaluar {{ name }} en un seguimiento. Las obligatorias no se pueden dejar vacías.</span>
+        </p>
+      }
+      <ul class="metrics__list">
+        @for (metric of list; track metric.id; let i = $index, first = $first, last = $last) {
+          <li class="metric-row">
+            <span class="metric-row__order">
+              <button type="button" class="metric-row__arrow" [attr.aria-label]="'Subir ' + metric.name"
+                      [disabled]="first || reordering()" (click)="move(i, -1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+              </button>
+              <button type="button" class="metric-row__arrow" [attr.aria-label]="'Bajar ' + metric.name"
+                      [disabled]="last || reordering()" (click)="move(i, 1)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+              </button>
+            </span>
+            <span class="metric-row__text">
+              <span class="metric-row__name" [class.metric-row__name--inactive]="!metric.active">{{ metric.name }}</span>
+              <span class="metric-row__chips">
+                <span class="chip">{{ typeChip(metric) }}</span>
+                @if (metric.required) {
+                  <span class="chip chip--required">Obligatoria</span>
+                }
+                @if (!metric.active) {
+                  <span class="chip">Inactiva</span>
+                }
+              </span>
+            </span>
+            <button type="button" class="metric-row__edit" [attr.aria-label]="'Editar ' + metric.name" (click)="openEdit(metric)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path><path d="M14 6l4 4"></path></svg>
+            </button>
+            <button type="button" class="switch" role="switch" [attr.aria-checked]="metric.active"
+                    [attr.aria-label]="'Activa: ' + metric.name" [disabled]="isPending(metric) || reordering()" (click)="toggle(metric)">
+              <span class="switch__thumb"></span>
+            </button>
+          </li>
+        }
+      </ul>
+      <p class="metrics__note">Las inactivas no se piden en seguimientos nuevos, pero los seguimientos ya cargados las siguen mostrando.</p>
+    }
+  } @else if (!error()) {
+    <p class="metrics__note" role="status">Cargando…</p>
+  }
+</div>
+
+@if (panelOpen() && isDesktop()) {
+  <div class="metrics-overlay" (click)="closePanel()" aria-hidden="true"></div>
+  <aside class="metrics-panel" role="dialog" aria-modal="true" aria-labelledby="metric-panel-title">
+    <div class="metrics-panel__header">
+      <h2 id="metric-panel-title" class="metrics-panel__title">{{ panelMetric() ? 'Editar métrica' : 'Nueva métrica' }}</h2>
+      <button type="button" class="metric-row__edit" aria-label="Cerrar" (click)="closePanel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    @for (target of panelTargets(); track target?.id ?? 'new') {
+      <app-segment-metric-form [segmentId]="segmentId" [metric]="target" (saved)="onSaved($event)" (cancelled)="closePanel()" />
+    }
+  </aside>
+}
