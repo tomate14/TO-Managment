@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 public enum ClinicalRange {
     EDEMA("edema", "Edema", BigDecimal.ZERO, BigDecimal.valueOf(50)),
     PAIN("pain", "Dolor", BigDecimal.ZERO, BigDecimal.TEN),
-    ROM("rom", "ROM", BigDecimal.ZERO, BigDecimal.valueOf(360)),
     STRENGTH("strength", "Fuerza", BigDecimal.ZERO, BigDecimal.valueOf(100));
 
     private final String fieldName;

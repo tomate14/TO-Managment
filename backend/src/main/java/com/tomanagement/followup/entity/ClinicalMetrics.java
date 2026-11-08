@@ -7,8 +7,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 /**
- * The fixed metrics of a segment evaluation (H6.2). Edema may be omitted; the rest are required. Ranges are checked
- * before building it (see {@code ClinicalRange}).
+ * The fixed metrics of a segment evaluation (H6.2). Edema may be omitted; pain and strength are required. Ranges are
+ * checked before building it (see {@code ClinicalRange}). rom: legacy fixed ROM (before É11); null for new
+ * evaluations, whose ROM is recorded as segment metric values.
  */
 @Embeddable
 public class ClinicalMetrics {
@@ -19,7 +20,7 @@ public class ClinicalMetrics {
     @Column(nullable = false)
     private int pain;
 
-    @Column(nullable = false, precision = 6, scale = 2)
+    @Column(precision = 6, scale = 2)
     private BigDecimal rom;
 
     @Column(nullable = false, precision = 6, scale = 2)
@@ -29,10 +30,17 @@ public class ClinicalMetrics {
         // Required by JPA.
     }
 
+    public ClinicalMetrics(BigDecimal edema, int pain, BigDecimal strength) {
+        this(edema, pain, null, strength);
+    }
+
+    /**
+     * Keeps a legacy fixed ROM (evaluations recorded before É11).
+     */
     public ClinicalMetrics(BigDecimal edema, int pain, BigDecimal rom, BigDecimal strength) {
         this.edema = edema;
         this.pain = pain;
-        this.rom = Objects.requireNonNull(rom, "rom is required");
+        this.rom = rom;
         this.strength = Objects.requireNonNull(strength, "strength is required");
     }
 
@@ -47,6 +55,9 @@ public class ClinicalMetrics {
         return pain;
     }
 
+    /**
+     * @return the legacy fixed ROM, or null for evaluations recorded with segment metrics
+     */
     public BigDecimal getRom() {
         return rom;
     }

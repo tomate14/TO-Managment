@@ -82,6 +82,9 @@ public enum ErrorCode {
             "Las opciones tienen que ser al menos 2 y no repetirse."),
     SEGMENT_METRIC_ORDER_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
             "El orden tiene que incluir todas las métricas del segmento."),
+    METRIC_VALUE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Completá las métricas obligatorias."),
+    METRIC_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas con un valor que no es válido para su tipo."),
+    METRIC_NOT_OF_SEGMENT(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas que no corresponden al segmento evaluado."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

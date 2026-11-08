@@ -367,7 +367,6 @@ class CrossEstablishmentIsolationTest {
         Map<String, Object> evaluation = new HashMap<>();
         evaluation.put("segmentId", segmentId);
         evaluation.put("pain", 3);
-        evaluation.put("rom", 55);
         evaluation.put("strength", 14);
         Map<String, Object> body = new HashMap<>();
         body.put("date", LocalDate.now(clock).toString());

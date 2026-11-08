@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS segment_evaluation (
     body_segment_id BIGINT        NOT NULL REFERENCES body_segment (id),
     edema           NUMERIC(6, 2),
     pain            INTEGER       NOT NULL CHECK (pain BETWEEN 0 AND 10),
-    rom             NUMERIC(6, 2) NOT NULL,
+    rom             NUMERIC(6, 2),
     strength        NUMERIC(6, 2) NOT NULL,
     template_id     BIGINT        REFERENCES evaluation_template (id),
     establishment_id BIGINT NOT NULL REFERENCES establishment (id),
@@ -207,6 +207,21 @@ CREATE TABLE IF NOT EXISTS answer (
     CONSTRAINT ck_answer_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
 );
 CREATE INDEX IF NOT EXISTS ix_answer_question ON answer (question_id);
+
+-- É11: valores de las métricas ROM de cada evaluación de segmento (reemplazan el ROM fijo, que queda como historia).
+CREATE TABLE IF NOT EXISTS metric_value (
+    id                    BIGSERIAL      PRIMARY KEY,
+    establishment_id      BIGINT         NOT NULL REFERENCES establishment (id),
+    segment_evaluation_id BIGINT         NOT NULL REFERENCES segment_evaluation (id),
+    segment_metric_id     BIGINT         NOT NULL REFERENCES segment_metric (id),
+    numeric_value         NUMERIC(12, 3),
+    boolean_value         BOOLEAN,
+    option_value          VARCHAR(120),
+    text_value            TEXT,
+    CONSTRAINT uq_metric_value_metric UNIQUE (segment_evaluation_id, segment_metric_id),
+    CONSTRAINT ck_metric_value_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
+);
+CREATE INDEX IF NOT EXISTS ix_metric_value_metric ON metric_value (segment_metric_id);
 
 -- É7: turnos. Las restricciones de exclusión impiden solapamientos por terapeuta y por paciente.
 CREATE EXTENSION IF NOT EXISTS btree_gist;
