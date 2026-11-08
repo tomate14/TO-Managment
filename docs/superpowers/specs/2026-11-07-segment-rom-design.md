@@ -70,7 +70,7 @@ Migración `V13__segment_rom.sql`. Es V13 porque V11 y V12 ya existen en ramas q
   - `segment_metric_id references segment_metric`;
   - `label varchar(120) not null`;
   - `display_order`;
-  - un índice único sobre `(segment_metric_id, lower(label))`.
+  - sin índice único en la base: la unicidad de las etiquetas (sin distinguir mayúsculas) la controla la aplicación, como en `question_option`, porque las opciones se editan en el lugar.
 - `metric_value`:
   - `id`;
   - `segment_evaluation_id references segment_evaluation`;
@@ -96,6 +96,7 @@ Migración `V13__segment_rom.sql`. Es V13 porque V11 y V12 ya existen en ramas q
   - `PUT /api/segments/{segmentId}/metrics/{id}`: cambia el nombre, la marca y las opciones.
   - `PATCH /api/segments/{segmentId}/metrics/{id}/active`: activa o desactiva.
   - `PUT /api/segments/{segmentId}/metrics/order`: recibe `{ ids: [...] }` con el orden completo.
+  - `GET /api/segment-metrics/counts`: devuelve la cantidad de métricas activas por segmento, para el botón "Métricas ROM · n" de Catálogos.
 - **Errores (`ErrorCode`):**
   - `SEGMENT_METRIC_NOT_FOUND` (404);
   - `SEGMENT_METRIC_NAME_TAKEN` (409, "Ya hay una métrica con ese nombre en este segmento.");
