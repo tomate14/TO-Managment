@@ -1,0 +1,26 @@
+<header class="page-header">
+  <a class="page-header__back" [routerLink]="['/pacientes', patientId, 'diagnosticos', diagnosisId]" aria-label="Cerrar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </a>
+  <div class="billing-page__titles">
+    <h1 class="page-header__title">Registrar facturación</h1>
+    @if (subtitle()) {
+      <span class="billing-page__subtitle">{{ subtitle() }}</span>
+    }
+  </div>
+</header>
+
+@if (error(); as message) {
+  <div class="billing-page__message alert alert--error" role="alert"><div>{{ message }}</div></div>
+} @else if (summary(); as s) {
+  @if (s.pending.length === 0) {
+    <p class="billing-page__message billing-page__empty">Todavía no hay sesiones para facturar.</p>
+  } @else {
+    @for (key of formKeys(); track key) {
+      <app-billing-form [diagnosisId]="diagnosisId" [pending]="s.pending" [notice]="staleNotice()"
+                        (saved)="backToDiagnosis()" (cancelled)="backToDiagnosis()" (stale)="onStale()" />
+    }
+  }
+} @else {
+  <p class="billing-page__message billing-page__empty" role="status">Cargando…</p>
+}

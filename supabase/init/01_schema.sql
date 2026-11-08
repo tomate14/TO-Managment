@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V13).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V14).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -249,6 +249,27 @@ CREATE TABLE IF NOT EXISTS metric_value (
     CONSTRAINT ck_metric_value_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
 );
 CREATE INDEX IF NOT EXISTS ix_metric_value_metric ON metric_value (segment_metric_id);
+
+-- Facturación de sesiones (É12)
+CREATE TABLE IF NOT EXISTS billing (
+    id               BIGSERIAL      PRIMARY KEY,
+    establishment_id BIGINT         NOT NULL REFERENCES establishment (id),
+    diagnosis_id     BIGINT         NOT NULL REFERENCES diagnosis (id),
+    billed_on        DATE           NOT NULL,
+    amount           NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    created_at       TIMESTAMPTZ    NOT NULL,
+    voided_at        TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS ix_billing_diagnosis ON billing (diagnosis_id, billed_on DESC);
+
+CREATE TABLE IF NOT EXISTS billing_follow_up (
+    billing_id       BIGINT  NOT NULL REFERENCES billing (id),
+    follow_up_id     BIGINT  NOT NULL REFERENCES follow_up (id),
+    establishment_id BIGINT  NOT NULL REFERENCES establishment (id),
+    active           BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (billing_id, follow_up_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_billing_follow_up_active ON billing_follow_up (follow_up_id) WHERE active;
 
 -- É7: turnos. Las restricciones de exclusión impiden solapamientos por terapeuta y por paciente.
 CREATE EXTENSION IF NOT EXISTS btree_gist;

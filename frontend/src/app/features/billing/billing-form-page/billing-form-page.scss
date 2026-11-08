@@ -1,0 +1,32 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  max-width: 720px;
+  min-height: 100%;
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+.billing-page__titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.billing-page__subtitle {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.billing-page__message {
+  margin: 20px 16px;
+}
+
+.billing-page__empty {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}

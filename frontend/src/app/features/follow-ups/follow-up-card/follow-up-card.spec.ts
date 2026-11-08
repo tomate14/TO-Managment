@@ -12,8 +12,8 @@ describe('FollowUpCard', () => {
     template: null, answers: [], metrics: [],
   };
 
-  function render(evaluation: SegmentEvaluation) {
-    const followUp: FollowUp = { id: 9, diagnosisId: 3, date: '2026-11-07', scarType: null, evaluations: [evaluation] };
+  function render(evaluation: SegmentEvaluation, billed = false) {
+    const followUp: FollowUp = { id: 9, diagnosisId: 3, date: '2026-11-07', scarType: null, evaluations: [evaluation], billed };
     const fixture = TestBed.createComponent(FollowUpCard);
     fixture.componentRef.setInput('followUp', followUp);
     fixture.detectChanges();
@@ -48,5 +48,11 @@ describe('FollowUpCard', () => {
     const el = render({ ...base, rom: 90 });
     expect(tiles(el)).toEqual(['Edema 1,5', 'Dolor 3', 'ROM 90', 'Fuerza 14']);
     expect(el.querySelector('.segment__rom')).toBeNull();
+  });
+
+  it('shows the "Facturada" badge only when the follow-up is billed', () => {
+    expect(render(base, true).querySelector('.follow-up__billed')?.textContent?.trim()).toBe('Facturada');
+    TestBed.resetTestingModule();
+    expect(render(base, false).querySelector('.follow-up__billed')).toBeNull();
   });
 });

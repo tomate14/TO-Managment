@@ -1,0 +1,101 @@
+<section class="billing" aria-labelledby="billing-heading">
+  <h2 id="billing-heading" class="billing__title">Facturación</h2>
+
+  @if (summary(); as s) {
+    <dl class="billing__counters">
+      <div class="counter"><dt class="counter__label">sesiones</dt><dd class="counter__value">{{ s.totalSessions }}</dd></div>
+      <div class="counter counter--billed"><dt class="counter__label">facturadas</dt><dd class="counter__value">{{ s.billedSessions }}</dd></div>
+      <div class="counter counter--pending"><dt class="counter__label">pendientes</dt><dd class="counter__value">{{ s.pendingSessions }}</dd></div>
+    </dl>
+
+    @if (s.pendingSessions > 0) {
+      <button type="button" class="btn-primary billing__register" (click)="openRegister()">Registrar facturación</button>
+    }
+
+    @if (error(); as message) {
+      <div class="alert alert--error billing__full" role="alert"><div>{{ message }}</div></div>
+    }
+
+    @if (s.totalSessions === 0) {
+      <p class="billing__empty">Todavía no hay sesiones para facturar.</p>
+    }
+
+    @if (s.billings.length > 0) {
+      <h3 class="billing__history-title">Facturaciones anteriores</h3>
+      <ul class="billing__list">
+        @for (billing of s.billings; track billing.id) {
+          <li class="billing-row" [class.billing-row--voided]="billing.voided">
+            <span class="billing-row__text">
+              <span class="billing-row__count">{{ sessionCountLabel(billing.sessionCount) }}</span>
+              <span class="billing-row__date">Facturado el {{ formatLongDate(billing.billedOn) }}</span>
+            </span>
+            @if (billing.voided) {
+              <span class="badge billing-row__voided">Anulada</span>
+            } @else {
+              <span class="billing-row__amount">{{ formatAmount(billing.amount) }}</span>
+            }
+
+            @if (confirmingVoidId() !== billing.id) {
+              <span class="billing-row__actions">
+                <button type="button" class="billing-row__link billing-row__toggle" [attr.aria-expanded]="isExpanded(billing)"
+                        [attr.aria-controls]="'billing-sessions-' + billing.id" (click)="toggleSessions(billing)">
+                  {{ isExpanded(billing) ? 'Ocultar sesiones' : 'Ver sesiones' }}
+                </button>
+                @if (!billing.voided) {
+                  <button type="button" class="billing-row__link billing-row__void" (click)="askVoid(billing)">Anular</button>
+                }
+              </span>
+            }
+
+            @if (isExpanded(billing)) {
+              <ul [id]="'billing-sessions-' + billing.id" class="billing-row__sessions">
+                @for (session of billing.sessions; track session.followUpId) {
+                  <li class="billing-session">
+                    <span class="billing-session__date">{{ formatDate(session.date) }}</span>
+                    <span class="billing-session__segments">{{ session.segments.join(', ') }}</span>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (confirmingVoidId() === billing.id) {
+              <div class="billing-row__confirm" role="group" [attr.aria-labelledby]="'billing-void-' + billing.id">
+                <p [id]="'billing-void-' + billing.id" class="billing-row__confirm-text">¿Anular esta facturación? Sus sesiones vuelven a quedar pendientes.</p>
+                <div class="billing-row__confirm-actions">
+                  <button type="button" class="billing-row__cancel" (click)="cancelVoid()">Cancelar</button>
+                  <button type="button" class="billing-row__confirm-void" [disabled]="voidingId() === billing.id"
+                          [attr.aria-busy]="voidingId() === billing.id" (click)="confirmVoid(billing)">Sí, anular</button>
+                </div>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else if (error(); as message) {
+    <div class="alert alert--error" role="alert"><div>{{ message }}</div></div>
+  } @else {
+    <p class="billing__empty" role="status">Cargando facturación…</p>
+  }
+</section>
+
+@if (panelOpen() && isDesktop()) {
+  <div class="billing-overlay" (click)="closePanel()" aria-hidden="true"></div>
+  <aside class="billing-panel" role="dialog" aria-modal="true" aria-labelledby="billing-panel-title">
+    <div class="billing-panel__header">
+      <div class="billing-panel__titles">
+        <h2 id="billing-panel-title" class="billing-panel__title">Registrar facturación</h2>
+        @if (description()) {
+          <span class="billing-panel__subtitle">{{ description() }}</span>
+        }
+      </div>
+      <button type="button" class="billing-panel__close" aria-label="Cerrar" (click)="closePanel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+    @for (opening of panelTargets(); track opening) {
+      <app-billing-form [diagnosisId]="diagnosisId()" [pending]="summary()?.pending ?? []" [notice]="staleNotice()"
+                        (saved)="onSaved($event)" (stale)="onStale()" (cancelled)="closePanel()" />
+    }
+  </aside>
+}

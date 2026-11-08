@@ -1,6 +1,7 @@
 package com.tomanagement.followup.service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.tomanagement.catalog.entity.BodySegment;
 import com.tomanagement.catalog.entity.ScarType;
@@ -71,7 +72,8 @@ public class FollowUpRegistrationServiceImpl implements FollowUpRegistrationServ
             addEvaluation(followUp, index, evaluations.get(index));
         }
         FollowUp saved = followUpRepository.saveAndFlush(followUp);
-        return mapper.toResponse(saved, questionsLoader.questionsByTemplate(List.of(saved)));
+        // A new follow-up cannot be in a billing yet.
+        return mapper.toResponse(saved, questionsLoader.questionsByTemplate(List.of(saved)), Set.of());
     }
 
     private void addEvaluation(FollowUp followUp, int index, SegmentEvaluationRequest request) {

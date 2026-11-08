@@ -7,16 +7,17 @@ import { DiagnosesService } from '../diagnoses.service';
 import { FollowUpCard } from '../../follow-ups/follow-up-card/follow-up-card';
 import { FollowUp } from '../../follow-ups/follow-ups.models';
 import { FollowUpsService } from '../../follow-ups/follow-ups.service';
+import { BillingSection } from '../../billing/billing-section/billing-section';
 
 const NOT_FOUND = 'Este diagnóstico no existe.';
 const LOAD_ERROR = 'No pudimos cargar el diagnóstico. Intentá de nuevo en unos minutos.';
 const FOLLOW_UPS_ERROR = 'No pudimos cargar los seguimientos. Intentá de nuevo en unos minutos.';
 const NOT_FOUND_STATUS = 404;
 
-/** H5.2 / H6.4 diagnosis detail (`/pacientes/:id/diagnosticos/:diagnosisId`) with its follow-up history. */
+/** H5.2 / H6.4 / H12.1 diagnosis detail (`/pacientes/:id/diagnosticos/:diagnosisId`) with its billing and follow-up history. */
 @Component({
   selector: 'app-diagnosis-page',
-  imports: [RouterLink, FollowUpCard],
+  imports: [RouterLink, FollowUpCard, BillingSection],
   templateUrl: './diagnosis-page.html',
   styleUrl: './diagnosis-page.scss',
 })
@@ -50,8 +51,16 @@ export class DiagnosisPage implements OnInit {
       error: (err: unknown) =>
         this.error.set(err instanceof HttpErrorResponse && err.status === NOT_FOUND_STATUS ? NOT_FOUND : LOAD_ERROR),
     });
+    this.loadFollowUps();
+  }
+
+  /** Also called when a billing is registered or voided, so the follow-ups show their current billed mark. */
+  protected loadFollowUps(): void {
     this.followUpsService.listForDiagnosis(this.diagnosisId).subscribe({
-      next: (followUps) => this.followUps.set(followUps),
+      next: (followUps) => {
+        this.followUpsError.set(null);
+        this.followUps.set(followUps);
+      },
       error: () => this.followUpsError.set(FOLLOW_UPS_ERROR),
     });
   }

@@ -12,3 +12,4 @@ SET search_path TO :"app_schema";
 -- (É5 y É6 no definen datos iniciales.)
 -- (É7 no define datos iniciales.)
 -- (É11 no define datos iniciales.)
+-- (É12 no define datos iniciales.)

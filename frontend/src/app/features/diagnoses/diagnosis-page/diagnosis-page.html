@@ -31,6 +31,8 @@
       </dl>
     </section>
 
+    <app-billing-section [patientId]="patientId" [diagnosisId]="d.id" [description]="d.description" (changed)="loadFollowUps()" />
+
     <section class="follow-ups" aria-labelledby="follow-ups-heading">
       <div class="follow-ups__head">
         <h2 id="follow-ups-heading" class="follow-ups__title">Seguimientos</h2>
