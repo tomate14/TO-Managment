@@ -194,6 +194,23 @@ class CrossEstablishmentIsolationTest {
     }
 
     @Test
+    void billingNeverCrossesEstablishments() throws Exception {
+        Map<String, Object> billing = new HashMap<>();
+        billing.put("billedOn", LocalDate.now(clock).toString());
+        billing.put("amount", 25000);
+        billing.put("followUpIds", List.of(b.followUpId()));
+        Long billingOfB = created(perform(b.adminToken(), post("/api/diagnoses/" + b.diagnosisId() + "/billings")
+                .contentType(JSON).content(json(billing)))).get("billings").get(0).get("id").asLong();
+
+        expectError(perform(a.adminToken(), get("/api/diagnoses/" + b.diagnosisId() + "/billing")),
+                ErrorCode.DIAGNOSIS_NOT_FOUND);
+        expectError(perform(a.adminToken(), post("/api/billings/" + billingOfB + "/void")),
+                ErrorCode.BILLING_NOT_FOUND);
+        read(perform(b.adminToken(), get("/api/diagnoses/" + b.diagnosisId() + "/billing")))
+                .get("billings").forEach(untouched -> assertThat(untouched.get("voided").asBoolean()).isFalse());
+    }
+
+    @Test
     void writesCannotReferenceAnotherEstablishment() throws Exception {
         String date = appointmentDate().toString();
         expectError(perform(a.adminToken(), post("/api/appointments").contentType(JSON)
