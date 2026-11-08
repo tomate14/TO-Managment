@@ -148,6 +148,8 @@
 
     .follow-up-form__submit {
       flex: none;
+      // .btn-primary is width: 100%; inside this content-sized header it would take the whole actions width.
+      width: auto;
       padding: 0 24px;
     }
   }
