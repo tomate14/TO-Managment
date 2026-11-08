@@ -19,6 +19,8 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
+import com.tomanagement.billing.entity.Billing;
+import com.tomanagement.billing.repository.BillingRepository;
 import com.tomanagement.catalog.entity.BodySegment;
 import com.tomanagement.catalog.entity.ScarType;
 import com.tomanagement.catalog.entity.SurgeryType;
@@ -104,6 +106,9 @@ class FollowUpControllerTest {
 
     @Autowired
     private FollowUpRepository followUpRepository;
+
+    @Autowired
+    private BillingRepository billingRepository;
 
     @Autowired
     private TestTenancy tenancy;
@@ -210,6 +215,24 @@ class FollowUpControllerTest {
                 .andExpect(jsonPath("$[0].evaluations[0].answers.length()").value(3));
         perform(get("/api/diagnoses/" + surgical.getId()))
                 .andExpect(jsonPath("$.followUpCount").value(1));
+    }
+
+    @Test
+    void followUpsCarryTheBilledMark() throws Exception {
+        register(followUp("2026-10-21", normotrophic.getId(), evaluation(wrist.getId(), null, 5, "9", flexionOf("40"))));
+        register(followUp("2026-10-28", normotrophic.getId(), evaluation(wrist.getId(), null, 3, "14", flexionOf("55"))));
+        tenancy.runAs(establishmentId, () -> {
+            FollowUp oldest = followUpRepository.findByDiagnosis_IdOrderByDateDescIdDesc(surgical.getId()).get(1);
+            billingRepository.save(new Billing(surgical, LocalDate.of(2026, 11, 2), new BigDecimal("25000.00"),
+                    Instant.parse("2026-11-02T12:00:00Z"), List.of(oldest)));
+        });
+
+        perform(get(followUps(surgical)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].date").value("2026-10-28"))
+                .andExpect(jsonPath("$[0].billed").value(false))
+                .andExpect(jsonPath("$[1].date").value("2026-10-21"))
+                .andExpect(jsonPath("$[1].billed").value(true));
     }
 
     @Test

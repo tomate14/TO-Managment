@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.tomanagement.catalog.dto.CatalogItemResponse;
@@ -33,13 +34,16 @@ public class FollowUpMapper {
 
     /**
      * @param questionsByTemplate every question of the templates the follow-up answered, by template id
+     * @param billedIds           ids of the follow-ups that are in an active billing
      */
-    public FollowUpResponse toResponse(FollowUp followUp, Map<Long, List<Question>> questionsByTemplate) {
+    public FollowUpResponse toResponse(FollowUp followUp, Map<Long, List<Question>> questionsByTemplate,
+            Set<Long> billedIds) {
         List<SegmentEvaluationResponse> evaluations = followUp.getEvaluations().stream()
                 .map(evaluation -> toResponse(evaluation, questionsByTemplate))
                 .toList();
         return new FollowUpResponse(followUp.getId(), followUp.getDiagnosis().getId(), followUp.getDate(),
-                followUp.getScarType().map(CatalogItemResponse::from).orElse(null), evaluations);
+                followUp.getScarType().map(CatalogItemResponse::from).orElse(null), evaluations,
+                billedIds.contains(followUp.getId()));
     }
 
     private SegmentEvaluationResponse toResponse(SegmentEvaluation evaluation,

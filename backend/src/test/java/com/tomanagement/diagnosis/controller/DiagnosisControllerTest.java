@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,9 +21,14 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
+import com.tomanagement.billing.entity.Billing;
+import com.tomanagement.billing.repository.BillingRepository;
 import com.tomanagement.catalog.entity.SurgeryType;
 import com.tomanagement.catalog.repository.SurgeryTypeRepository;
 import com.tomanagement.common.exception.ErrorCode;
+import com.tomanagement.diagnosis.repository.DiagnosisRepository;
+import com.tomanagement.followup.entity.FollowUp;
+import com.tomanagement.followup.repository.FollowUpRepository;
 import com.tomanagement.patient.entity.Dominance;
 import com.tomanagement.patient.entity.Patient;
 import com.tomanagement.patient.entity.PatientData;
@@ -64,6 +71,15 @@ class DiagnosisControllerTest {
     private SurgeryTypeRepository surgeryTypeRepository;
 
     @Autowired
+    private DiagnosisRepository diagnosisRepository;
+
+    @Autowired
+    private FollowUpRepository followUpRepository;
+
+    @Autowired
+    private BillingRepository billingRepository;
+
+    @Autowired
     private TestTenancy tenancy;
 
     @Autowired
@@ -75,13 +91,14 @@ class DiagnosisControllerTest {
     private Patient lucia;
     private SurgeryType plate;
     private SurgeryType retired;
+    private Long establishmentId;
     private AuthenticatedUser therapist;
 
     @BeforeEach
     void seed() {
         testTables.truncate(TestTable.DIAGNOSIS, TestTable.TREATMENT, TestTable.PATIENT, TestTable.SURGERY_TYPE,
                 TestTable.ESTABLISHMENT);
-        Long establishmentId = tenancy.create("Consultorio").getId();
+        establishmentId = tenancy.create("Consultorio").getId();
         therapist = new AuthenticatedUser(2L, "t@c.com", "Terapeuta", Role.TERAPEUTA, establishmentId);
         tenancy.runAs(establishmentId, () -> {
             lucia = patientRepository.save(Patient.builder()
@@ -191,6 +208,24 @@ class DiagnosisControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Tenosinovitis de De Quervain"))
                 .andExpect(jsonPath("$.patient.dni").value("30123456"));
+    }
+
+    @Test
+    void listShowsPendingBillingCount() throws Exception {
+        long diagnosisId = create(conservative("Esguince", true, "2026-08-02"));
+        tenancy.runAs(establishmentId, () -> {
+            var diagnosis = diagnosisRepository.findById(diagnosisId).orElseThrow();
+            FollowUp billed = followUpRepository.save(
+                    FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 6)).build());
+            followUpRepository.save(FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 13)).build());
+            billingRepository.save(new Billing(diagnosis, LocalDate.of(2026, 10, 20), new BigDecimal("25000.00"),
+                    Instant.parse("2026-10-20T12:00:00Z"), List.of(billed)));
+        });
+
+        perform(get(diagnoses()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].followUpCount").value(2))
+                .andExpect(jsonPath("$[0].pendingBillingCount").value(1));
     }
 
     @Test

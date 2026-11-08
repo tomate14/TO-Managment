@@ -32,9 +32,10 @@ public class DiagnosisMapper {
         }
     };
 
-    public DiagnosisResponse toResponse(Diagnosis diagnosis, long followUpCount) {
+    public DiagnosisResponse toResponse(Diagnosis diagnosis, long followUpCount, long pendingBillingCount) {
         return new DiagnosisResponse(diagnosis.getId(), PatientRef.from(diagnosis.getPatient()),
                 diagnosis.getDescription(), diagnosis.getCreatedDate(),
-                diagnosis.getTreatment().accept(TREATMENT_TO_RESPONSE), followUpCount);
+                diagnosis.getTreatment().accept(TREATMENT_TO_RESPONSE), followUpCount,
+                pendingBillingCount);
     }
 }

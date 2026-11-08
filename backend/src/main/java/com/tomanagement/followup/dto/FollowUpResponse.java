@@ -11,13 +11,15 @@ import com.tomanagement.template.entity.AnswerType;
  * A follow-up in the history (H6.4).
  *
  * @param scarType null for conservative treatments
+ * @param billed   whether the follow-up is in an active billing (E12)
  */
 public record FollowUpResponse(
         Long id,
         Long diagnosisId,
         LocalDate date,
         CatalogItemResponse scarType,
-        List<SegmentEvaluationResponse> evaluations) {
+        List<SegmentEvaluationResponse> evaluations,
+        boolean billed) {
 
     /**
      * @param edema    null when it was omitted
