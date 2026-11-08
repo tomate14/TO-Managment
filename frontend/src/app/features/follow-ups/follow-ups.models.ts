@@ -46,6 +46,8 @@ export interface FollowUp {
   date: string;
   scarType: CatalogItem | null;
   evaluations: SegmentEvaluation[];
+  /** Whether the session was billed (E12). */
+  billed: boolean;
 }
 
 export interface AnswerPayload {

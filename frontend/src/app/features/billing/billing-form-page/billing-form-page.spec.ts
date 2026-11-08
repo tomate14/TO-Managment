@@ -14,7 +14,7 @@ describe('BillingFormPage', () => {
     description: 'Tendinitis de muñeca', createdDate: '2026-09-02',
     treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
       hasImmobilization: false, immobilizationDate: null, requiresScarType: false },
-    followUpCount: 2,
+    followUpCount: 2, pendingBillingCount: 2,
   };
   const summary: BillingSummary = {
     totalSessions: 2, billedSessions: 0, pendingSessions: 2,

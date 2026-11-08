@@ -50,3 +50,8 @@ export function followUpCountLabel(count: number): string {
 export function answerCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'respuesta' : 'respuestas'}`;
 }
+
+/** "1 sesión pendiente de facturar" / "3 sesiones pendientes de facturar". */
+export function pendingBillingLabel(count: number): string {
+  return count === 1 ? '1 sesión pendiente de facturar' : `${count} sesiones pendientes de facturar`;
+}

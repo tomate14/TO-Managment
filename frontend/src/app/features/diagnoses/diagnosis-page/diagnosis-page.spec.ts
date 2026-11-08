@@ -19,10 +19,11 @@ describe('DiagnosisPage', () => {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
       surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
-    followUpCount: 0,
+    followUpCount: 0, pendingBillingCount: 0,
   };
   const followUp: FollowUp = {
     id: 9, diagnosisId: 3, date: '2026-10-28', scarType: { id: 1, name: 'Normotrófica', active: true },
+    billed: false,
     evaluations: [{
       id: 11, segment: { id: 3, name: 'Muñeca', active: true }, edema: 1.5, pain: 3, rom: 55, strength: 14,
       template: { id: 5, name: 'Fractura de muñeca' }, metrics: [],
