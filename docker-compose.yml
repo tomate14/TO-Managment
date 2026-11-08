@@ -95,6 +95,7 @@ services:
     environment:
       FRONTEND_PORT: ${FRONTEND_PORT:?FRONTEND_PORT is required}
       API_BASE_URL: ${API_BASE_URL:?API_BASE_URL is required}
+      NGINX_RESOLVER: ${NGINX_RESOLVER:?NGINX_RESOLVER is required}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
 
