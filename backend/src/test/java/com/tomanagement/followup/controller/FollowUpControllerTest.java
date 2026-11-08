@@ -151,7 +151,7 @@ class FollowUpControllerTest {
         surgical = diagnosisRepository.save(new Diagnosis(lucia, "Fractura distal de radio", LocalDate.of(2026, 10, 12),
                 new SurgicalTreatment(LocalDate.of(2026, 10, 14), LocalDate.of(2026, 10, 28), plate)));
         conservative = diagnosisRepository.save(new Diagnosis(lucia, "Esguince", LocalDate.of(2026, 10, 12),
-                new ConservativeTreatment(LocalDate.of(2026, 10, 1))));
+                new ConservativeTreatment(true, LocalDate.of(2026, 10, 1))));
         normotrophic = scarTypeRepository.save(new ScarType("Normotrófica"));
         retiredScar = new ScarType("Queloide");
         retiredScar.changeActive(false);

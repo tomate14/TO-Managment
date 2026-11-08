@@ -29,7 +29,7 @@ public class TreatmentFactory {
         return switch (request.type()) {
             case SURGICAL -> new SurgicalTreatment(request.surgeryDate(), request.stitchesRemovalDate(),
                     activeSurgeryType(request.surgeryTypeId()));
-            case CONSERVATIVE -> new ConservativeTreatment(request.immobilizationDate());
+            case CONSERVATIVE -> new ConservativeTreatment(request.hasImmobilization(), request.immobilizationDate());
         };
     }
 

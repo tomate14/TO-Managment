@@ -50,7 +50,7 @@ public enum ErrorCode {
     SURGERY_DATA_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY,
             "Con cirugía, ingresá la fecha de cirugía, la de retiro de puntos y el tipo de cirugía."),
     STITCHES_BEFORE_SURGERY(HttpStatus.UNPROCESSABLE_ENTITY, "El retiro de puntos no puede ser anterior a la cirugía."),
-    IMMOBILIZATION_DATE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Sin cirugía, ingresá la fecha de inmovilización."),
+    IMMOBILIZATION_DATE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Con inmovilización, ingresá la fecha de inmovilización."),
     SURGERY_TYPE_INACTIVE(HttpStatus.UNPROCESSABLE_ENTITY, "Ese tipo de cirugía está inactivo: elegí uno activo."),
     FOLLOW_UP_OUT_OF_RANGE(HttpStatus.UNPROCESSABLE_ENTITY, "Hay valores fuera del rango permitido."),
     SCAR_TYPE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "El tratamiento es quirúrgico: elegí el tipo de cicatriz."),
@@ -85,6 +85,7 @@ public enum ErrorCode {
     METRIC_VALUE_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Completá las métricas obligatorias."),
     METRIC_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas con un valor que no es válido para su tipo."),
     METRIC_NOT_OF_SEGMENT(HttpStatus.UNPROCESSABLE_ENTITY, "Hay métricas que no corresponden al segmento evaluado."),
+    IMMOBILIZATION_ANSWER_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "Indicá si lleva inmovilización."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

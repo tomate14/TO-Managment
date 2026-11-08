@@ -38,3 +38,10 @@ CREATE TABLE metric_value (
     CONSTRAINT ck_metric_value_single_value CHECK (num_nonnulls(numeric_value, boolean_value, option_value, text_value) = 1)
 );
 CREATE INDEX ix_metric_value_metric ON metric_value (segment_metric_id);
+
+-- A conservative treatment may have no immobilization: then there is no date.
+ALTER TABLE conservative_treatment ADD COLUMN has_immobilization BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE conservative_treatment ALTER COLUMN immobilization_date DROP NOT NULL;
+ALTER TABLE conservative_treatment ADD CONSTRAINT ck_conservative_immobilization
+    CHECK ((has_immobilization AND immobilization_date IS NOT NULL)
+        OR (NOT has_immobilization AND immobilization_date IS NULL));

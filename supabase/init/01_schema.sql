@@ -156,8 +156,12 @@ CREATE TABLE IF NOT EXISTS surgical_treatment (
 );
 
 CREATE TABLE IF NOT EXISTS conservative_treatment (
-    treatment_id        BIGINT PRIMARY KEY REFERENCES treatment (id),
-    immobilization_date DATE   NOT NULL
+    treatment_id        BIGINT  PRIMARY KEY REFERENCES treatment (id),
+    has_immobilization  BOOLEAN NOT NULL DEFAULT TRUE,
+    immobilization_date DATE,
+    CONSTRAINT ck_conservative_immobilization CHECK (
+        (has_immobilization AND immobilization_date IS NOT NULL)
+        OR (NOT has_immobilization AND immobilization_date IS NULL))
 );
 
 CREATE TABLE IF NOT EXISTS diagnosis (
