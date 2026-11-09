@@ -74,7 +74,7 @@ Rutas: POST `/api/appointments/{id}/confirm`, GET `/api/patients/{patientId}/bil
 - [ ] Guardar una referencia del diseño aprobado en `docs/mockups/h15-confirmed-appointment-billing/README.md`, enlazando la spec y mockups h7/h12. No diseñar pantallas nuevas fuera de lo aprobado.
 - [ ] Ejecutar tareas 1 y 2 secuencialmente por compartir entidades; tras fijar sus contratos, las tareas 3 y 4 pueden delegarse por separado. Cada entrega pasa revisión de spec y código antes de integración.
 
-### Tarea 1: Persistencia y confirmación de turnos
+### Task 1: Persistencia y confirmación de turnos
 
 **Archivos:** crear `backend/src/main/resources/db/migration/V15__patient_appointment_billing.sql`; actualizar `supabase/init/01_schema.sql`; modificar entidad/repository/service/controller/mapper/DTO de `backend/src/main/java/com/tomanagement/appointment/`, `common/exception/ErrorCode.java`, y tests existentes de appointment. Crear `backend/src/test/java/com/tomanagement/billing/PatientBillingMigrationTest.java`. Actualizar `TestTable`/`TestTables` para limpiar nuevos vínculos antes de sus padres.
 
@@ -108,7 +108,7 @@ CREATE UNIQUE INDEX ux_billing_appointment_active ON billing_appointment(appoint
 - [ ] Probar migración con una base efímera llevada a V14: facturación vigente y anulada, varias sesiones, turno sin diagnóstico y seguimiento nunca facturado. Migrar a V15 y comprobar conteos y relaciones originales intactos, patient_id correcto y ningún turno confirmado automáticamente.
 - [ ] Ejecutar tests de appointment y migración; revisar y commitear solo archivos de esta tarea.
 
-### Tarea 2: Facturación por paciente e historial compatible
+### Task 2: Facturación por paciente e historial compatible
 
 **Archivos:** `backend/src/main/java/com/tomanagement/billing/` (entity, repository, DTO, service, controller); crear `BillingAppointment.java`, `BillingAppointmentId.java`, `BillingAppointmentRepository.java`, `BillingSessionOrigin.java`; modificar diagnóstico para retirar `PendingBillingCounter` y `pendingBillingCount`; mantener el puerto `BilledFollowUpLookup` solo para marcas históricas. Integrar `billed` de agenda mediante consulta en lote por IDs sin dependencia circular de servicios. Tests: BillingTest, BillingControllerTest, BillingIntegrityTranslatorTest, DiagnosisControllerTest y CrossEstablishmentIsolationTest.
 
@@ -132,7 +132,7 @@ perform(get("/api/patients/{id}/billing", patient.getId()))
 - [ ] Verificar registro parcial (3 → 2 pendientes + 1 facturada), anulación (vuelve a 3 pendientes), re-facturación, historial mixto y carreras de dos registros con el mismo turno. Prueba de carrera con dos transacciones y barrera: solo una facturación vigente; no aceptar dos respuestas exitosas con dos vínculos activos.
 - [ ] Ejecutar pruebas backend afectadas, revisar y commitear.
 
-### Tarea 3: Confirmación y estados en agenda
+### Task 3: Confirmación y estados en agenda
 
 **Archivos:** `frontend/src/app/features/agenda/agenda.models.ts`, `agenda.service.ts`, `appointment-card/`, `appointments-list/`, `agenda-page/` y sus specs.
 
@@ -155,7 +155,7 @@ it('confirms an appointment', () => {
 - [ ] Tests de doble clic (una petición), fallo (conserva acciones y mensaje), éxito (etiqueta y acciones correctas), falta de diagnóstico (sin línea extra), aislamiento de carga entre tarjetas. Validar 360 px sin desborde y teclado.
 - [ ] Ejecutar tests de agenda, revisar y commitear.
 
-### Tarea 4: Facturación en ficha del paciente
+### Task 4: Facturación en ficha del paciente
 
 **Archivos:** `frontend/src/app/features/billing/`, `features/patients/patient-page/`, `features/diagnoses/diagnosis-page/`, `diagnosis-card/`, modelos de diagnósticos, `frontend/src/app/app.routes.ts`; actualizar specs correspondientes.
 
@@ -169,7 +169,7 @@ it('confirms an appointment', () => {
 - [ ] Retirar sección y contador del diagnóstico. Mantener marcas históricas en seguimiento. Página móvil `/pacientes/:id/facturacion/nueva` toma patientId; redirección de ruta antigua `:id/diagnosticos/:diagnosisId/facturacion/nueva` a la nueva usando RedirectFunction y UrlTree que preserve `id` (no usar sustituciones textuales de IDs).
 - [ ] Tests de formulario mixto entre diagnósticos/sin diagnóstico, selección parcial, anulación, errores y recarga; comprobación de ubicación y redirect antiguo. Ejecutar tests frontend y build producción, revisar y commitear.
 
-### Tarea 5: Integración, migración y revisión final
+### Task 5: Integración, migración y revisión final
 
 **Archivos:** tests de integración/concurrencia/migración y documentación de esta función; no modificar credenciales ni infraestructura remota.
 
