@@ -3,6 +3,9 @@ package com.tomanagement.billing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +26,54 @@ class PatientBillingMigrationTest {
     @Container
     private static final PostgreSQLContainer<?> POSTGRES =
             new PostgreSQLContainer<>(TestContainerImage.POSTGRES.getImageName());
+
+    @Test
+    void consolidatedSchemaIsIdempotentAndEquivalentToFlyway() throws Exception {
+        JdbcTemplate admin = new JdbcTemplate(new DriverManagerDataSource(
+                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword()));
+        admin.execute("CREATE DATABASE schema_flyway");
+        admin.execute("CREATE DATABASE schema_consolidated");
+        DriverManagerDataSource flyway = database("schema_flyway");
+        Flyway.configure().dataSource(flyway).schemas("app").load().migrate();
+        JdbcTemplate consolidated = new JdbcTemplate(database("schema_consolidated"));
+        String schema = Files.readString(Path.of("../supabase/init/01_schema.sql"))
+                .replace(":\"app_schema\"", "\"app\"");
+        String seed = Files.readString(Path.of("../supabase/init/02_seed.sql"))
+                .replace(":\"app_schema\"", "\"app\"");
+        for (int execution = 0; execution < 2; execution++) {
+            consolidated.execute(schema);
+            consolidated.execute(seed);
+            assertThat(schemaStructure(consolidated)).as("consolidated execution %s", execution + 1)
+                    .isEqualTo(schemaStructure(new JdbcTemplate(flyway)));
+        }
+    }
+
+    private DriverManagerDataSource database(String name) {
+        return new DriverManagerDataSource(POSTGRES.getJdbcUrl().replace("/" + POSTGRES.getDatabaseName(), "/" + name),
+                POSTGRES.getUsername(), POSTGRES.getPassword());
+    }
+
+    private Map<String, List<Map<String, Object>>> schemaStructure(JdbcTemplate jdbc) {
+        return Map.of(
+                "columns", jdbc.queryForList("""
+                        SELECT table_name, column_name, data_type, udt_name, is_nullable, column_default,
+                               character_maximum_length, numeric_precision, numeric_scale, datetime_precision
+                        FROM information_schema.columns WHERE table_schema = 'app'
+                          AND table_name <> 'flyway_schema_history' ORDER BY table_name, column_name
+                        """),
+                "constraints", jdbc.queryForList("""
+                        SELECT c.relname AS table_name, con.contype, pg_get_constraintdef(con.oid) AS definition
+                        FROM pg_constraint con JOIN pg_class c ON c.oid = con.conrelid
+                        JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE n.nspname = 'app' AND c.relname <> 'flyway_schema_history'
+                        ORDER BY c.relname, con.contype, definition
+                        """),
+                "indexes", jdbc.queryForList("""
+                        SELECT tablename, indexname, indexdef FROM pg_indexes
+                        WHERE schemaname = 'app' AND tablename <> 'flyway_schema_history'
+                        ORDER BY tablename, indexname
+                        """));
+    }
 
     @Test
     void migrationPreservesLegacyHistoryAndDoesNotConfirmAppointments() {
@@ -58,8 +109,12 @@ class PatientBillingMigrationTest {
                 .isInstanceOf(DataIntegrityViolationException.class);
         jdbc.update("UPDATE billing_appointment SET active = false WHERE billing_id = 1");
         jdbc.update("INSERT INTO billing_appointment (billing_id, appointment_id, establishment_id) VALUES (3, 1, 1)");
-        assertThatThrownBy(() -> jdbc.update("INSERT INTO billing (establishment_id, billed_on, amount, created_at) VALUES (1, '2026-11-09', 100, now())"))
-                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM billing WHERE id = 999", Long.class)).isZero();
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO billing (id, establishment_id, billed_on, amount, created_at) VALUES (999, 1, '2026-11-09', 100, now())"))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .rootCause().isInstanceOf(SQLException.class)
+                .satisfies(cause -> assertThat(((SQLException) cause).getSQLState()).isEqualTo("23502"))
+                .hasMessageContaining("patient_id");
     }
 
     private void seedV14(JdbcTemplate jdbc) {

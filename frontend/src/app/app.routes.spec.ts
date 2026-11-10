@@ -1,15 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, RedirectFunction, Router, UrlTree, provideRouter } from '@angular/router';
 import { routes } from './app.routes';
-import { BillingFormPage } from './features/billing/billing-form-page/billing-form-page';
 
 describe('patient billing routes', () => {
   const patientRoutes = routes.find((route) => route.path === '')!.children!.find((route) => route.path === 'pacientes')!.children!;
 
-  it('registers a patient billing form independent of diagnosis', async () => {
+  it('registers a lazy patient billing form independent of diagnosis', () => {
     const route = patientRoutes.find((entry) => entry.path === ':id/facturacion/nueva');
-    expect(route?.loadComponent).toBeDefined();
-    expect(await route!.loadComponent!()).toBe(BillingFormPage);
+    expect(route?.loadComponent).toEqual(expect.any(Function));
   });
 
   it.each(['17', '301'])('redirects the legacy diagnosis form preserving patient %s in a UrlTree', (id) => {

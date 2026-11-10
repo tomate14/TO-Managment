@@ -1,0 +1,354 @@
+[
+  {
+    "width": 360,
+    "passed": [
+      "book without diagnosis",
+      "confirm with keyboard",
+      "patient pending",
+      "select keyboard space",
+      "bill",
+      "agenda billed",
+      "void restores pending",
+      "legacy sessions and void preserve count",
+      "old route redirect",
+      "follow-up preserves billing counters",
+      "viewport fits"
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "POST",
+        "path": "/api/patients/7/billings"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "POST",
+        "path": "/api/billings/99/void"
+      },
+      {
+        "method": "POST",
+        "path": "/api/billings/88/void"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3"
+      },
+      {
+        "method": "GET",
+        "path": "/api/catalogs/scar-types"
+      },
+      {
+        "method": "GET",
+        "path": "/api/catalogs/body-segments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/templates"
+      },
+      {
+        "method": "GET",
+        "path": "/api/segments/4/metrics"
+      },
+      {
+        "method": "POST",
+        "path": "/api/diagnoses/3/follow-ups"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3/follow-ups"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      }
+    ]
+  },
+  {
+    "width": 1366,
+    "passed": [
+      "book without diagnosis",
+      "confirm with keyboard",
+      "patient pending",
+      "select keyboard space",
+      "bill",
+      "agenda billed",
+      "void restores pending",
+      "legacy sessions and void preserve count",
+      "old route redirect",
+      "follow-up preserves billing counters",
+      "viewport fits"
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "POST",
+        "path": "/api/patients/7/billings"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "POST",
+        "path": "/api/billings/99/void"
+      },
+      {
+        "method": "POST",
+        "path": "/api/billings/88/void"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3"
+      },
+      {
+        "method": "GET",
+        "path": "/api/catalogs/scar-types"
+      },
+      {
+        "method": "GET",
+        "path": "/api/catalogs/body-segments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/templates"
+      },
+      {
+        "method": "GET",
+        "path": "/api/segments/4/metrics"
+      },
+      {
+        "method": "POST",
+        "path": "/api/diagnoses/3/follow-ups"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3"
+      },
+      {
+        "method": "GET",
+        "path": "/api/diagnoses/3/follow-ups"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      }
+    ]
+  }
+]

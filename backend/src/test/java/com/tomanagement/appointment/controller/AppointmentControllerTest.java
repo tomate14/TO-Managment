@@ -15,6 +15,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tomanagement.TestTable;
@@ -22,6 +26,7 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.appointment.repository.AppointmentRepository;
+import com.tomanagement.appointment.service.AppointmentService;
 import com.tomanagement.auth.security.AuthenticatedUser;
 import com.tomanagement.common.exception.ErrorCode;
 import com.tomanagement.diagnosis.entity.ConservativeTreatment;
@@ -51,6 +56,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Agenda appointments (É7) against a real Postgres; "now" is fixed at 2026-11-05 11:40 (Buenos Aires).
@@ -69,12 +76,27 @@ class AppointmentControllerTest {
         @Bean
         @Primary
         Clock fixedClock() {
-            return new MutableClock(Instant.parse("2026-11-05T14:40:00Z")) {
-                @Override
-                public ZoneId getZone() {
-                    return ZoneId.of("America/Argentina/Buenos_Aires");
-                }
-            };
+            return new RequestClock();
+        }
+    }
+
+    /** Different request instants expose a lost update that a shared fixed clock would hide. */
+    static class RequestClock extends MutableClock {
+        private final ThreadLocal<Instant> requestInstant = new ThreadLocal<>();
+
+        RequestClock() {
+            super(Instant.parse("2026-11-05T14:40:00Z"));
+        }
+
+        @Override
+        public Instant instant() {
+            Instant request = requestInstant.get();
+            return request == null ? super.instant() : request;
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneId.of("America/Argentina/Buenos_Aires");
         }
     }
 
@@ -104,6 +126,12 @@ class AppointmentControllerTest {
 
     @Autowired
     private Clock clock;
+
+    @Autowired
+    private AppointmentService appointmentService;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private Long establishmentId;
     private User admin;
@@ -210,6 +238,50 @@ class AppointmentControllerTest {
         performAs(carlaActor, get("/api/appointments/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.confirmedAt").value(confirmedAt));
+    }
+
+    @Test
+    void concurrentConfirmationsKeepOneTimestampAndOnePendingSession() throws Exception {
+        long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
+        CyclicBarrier barrier = new CyclicBarrier(2);
+        RequestClock requestClock = (RequestClock) clock;
+        Instant firstInstant = Instant.parse("2026-11-05T15:00:00Z");
+        Instant secondInstant = Instant.parse("2026-11-05T15:01:00Z");
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            Callable<Instant> first = confirmation(id, firstInstant, barrier, requestClock);
+            Callable<Instant> second = confirmation(id, secondInstant, barrier, requestClock);
+            var firstResult = executor.submit(first);
+            var secondResult = executor.submit(second);
+            Instant saved = firstResult.get(20, TimeUnit.SECONDS);
+            assertThat(saved).isIn(firstInstant, secondInstant);
+            assertThat(secondResult.get(20, TimeUnit.SECONDS)).isEqualTo(saved);
+            assertThat(tenancy.callAs(establishmentId,
+                    () -> appointmentRepository.findById(id).orElseThrow().getConfirmedAt())).isEqualTo(saved);
+        }
+        performAs(carlaActor, get("/api/patients/" + lucia.getId() + "/billing"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSessions").value(1))
+                .andExpect(jsonPath("$.pendingSessions").value(1))
+                .andExpect(jsonPath("$.pending.length()").value(1))
+                .andExpect(jsonPath("$.pending[0].appointmentId").value(id));
+    }
+
+    private Callable<Instant> confirmation(long id, Instant instant, CyclicBarrier barrier, RequestClock requestClock) {
+        return () -> tenancy.callAs(establishmentId, () -> {
+            requestClock.requestInstant.set(instant);
+            try {
+                return new TransactionTemplate(transactionManager).execute(transaction -> {
+                    try {
+                        barrier.await(10, TimeUnit.SECONDS);
+                    } catch (Exception exception) {
+                        throw new AssertionError(exception);
+                    }
+                    return appointmentService.confirm(carlaActor, id).confirmedAt();
+                });
+            } finally {
+                requestClock.requestInstant.remove();
+            }
+        });
     }
 
     @Test
