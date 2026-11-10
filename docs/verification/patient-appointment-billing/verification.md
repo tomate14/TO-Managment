@@ -126,4 +126,4 @@ During execution, the ignored handoff directory `.superpowers/sdd/2026-11-09-pat
 
 Final calendar-entry evidence: `final-fix-report.md`, `final-fix-red-corrected.log`, `final-fix-booking-red.log`, `final-fix-final-tests.log`, `final-fix-final-build.log`, and `final-fix-final-browser.log` in the same ignored handoff directory. The final browser run still intercepts every API request using synthetic fixtures; it does not constitute live full-stack integration.
 
-The temporary handoff directory is removed after review. Committed verification, decisions, screenshots and the reproducible browser harness remain the delivery evidence.
+Automatic approval review rejected removal of the temporary handoff directory as blocked by policy, so it remains preserved. Committed verification, decisions, screenshots and the reproducible browser harness remain the delivery evidence.
