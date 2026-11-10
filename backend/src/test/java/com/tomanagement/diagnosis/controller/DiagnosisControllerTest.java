@@ -206,7 +206,7 @@ class DiagnosisControllerTest {
     }
 
     @Test
-    void listShowsPendingBillingCount() throws Exception {
+    void clinicalFollowUpsAreCountedWithoutBillingCounters() throws Exception {
         long diagnosisId = create(conservative("Esguince", true, "2026-08-02"));
         List<Long> followUpIds = new ArrayList<>();
         tenancy.runAs(establishmentId, () -> {
@@ -215,18 +215,10 @@ class DiagnosisControllerTest {
                     FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 6)).build()).getId());
             followUpRepository.save(FollowUp.builder().diagnosis(diagnosis).date(LocalDate.of(2026, 10, 13)).build());
         });
-        Map<String, Object> billing = new HashMap<>();
-        billing.put("billedOn", "2026-10-20");
-        billing.put("amount", 25000);
-        billing.put("followUpIds", followUpIds);
-        perform(post("/api/diagnoses/" + diagnosisId + "/billings").contentType(MediaType.APPLICATION_JSON)
-                .content(json(billing)))
-                .andExpect(status().isCreated());
-
         perform(get(diagnoses()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].followUpCount").value(2))
-                .andExpect(jsonPath("$[0].pendingBillingCount").value(1));
+                .andExpect(jsonPath("$[0].pendingBillingCount").doesNotExist());
     }
 
     @Test

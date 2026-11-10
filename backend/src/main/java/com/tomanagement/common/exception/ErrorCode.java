@@ -97,7 +97,7 @@ public enum ErrorCode {
     BILLING_AMOUNT_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "El monto tiene que ser mayor a cero."),
     BILLING_DATE_IN_FUTURE(HttpStatus.UNPROCESSABLE_ENTITY, "La fecha no puede ser futura."),
     BILLING_SESSION_INVALID(HttpStatus.UNPROCESSABLE_ENTITY,
-            "Hay sesiones que no son de este diagnóstico o ya están facturadas."),
+            "Hay sesiones que no son de este paciente, no están confirmadas o ya están facturadas."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Intentá nuevamente.");
 
     private static final List<ErrorCode> CONTAINER_LEVEL_CODES = List.of(

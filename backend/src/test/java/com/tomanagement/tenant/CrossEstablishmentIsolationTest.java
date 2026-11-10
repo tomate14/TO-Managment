@@ -195,19 +195,29 @@ class CrossEstablishmentIsolationTest {
 
     @Test
     void billingNeverCrossesEstablishments() throws Exception {
+        perform(b.adminToken(), post("/api/appointments/" + b.appointmentId() + "/confirm"))
+                .andExpect(status().isOk());
         Map<String, Object> billing = new HashMap<>();
         billing.put("billedOn", LocalDate.now(clock).toString());
         billing.put("amount", 25000);
-        billing.put("followUpIds", List.of(b.followUpId()));
-        Long billingOfB = created(perform(b.adminToken(), post("/api/diagnoses/" + b.diagnosisId() + "/billings")
+        billing.put("appointmentIds", List.of(b.appointmentId()));
+        expectError(perform(a.adminToken(), post("/api/patients/" + a.patientId() + "/billings")
+                .contentType(JSON).content(json(billing))), ErrorCode.BILLING_SESSION_INVALID);
+        expectError(perform(a.adminToken(), post("/api/patients/" + b.patientId() + "/billings")
+                .contentType(JSON).content(json(billing))), ErrorCode.PATIENT_NOT_FOUND);
+        Long billingOfB = created(perform(b.adminToken(), post("/api/patients/" + b.patientId() + "/billings")
                 .contentType(JSON).content(json(billing)))).get("billings").get(0).get("id").asLong();
-
-        expectError(perform(a.adminToken(), get("/api/diagnoses/" + b.diagnosisId() + "/billing")),
-                ErrorCode.DIAGNOSIS_NOT_FOUND);
+        expectError(perform(a.adminToken(), get("/api/patients/" + b.patientId() + "/billing")),
+                ErrorCode.PATIENT_NOT_FOUND);
         expectError(perform(a.adminToken(), post("/api/billings/" + billingOfB + "/void")),
                 ErrorCode.BILLING_NOT_FOUND);
-        read(perform(b.adminToken(), get("/api/diagnoses/" + b.diagnosisId() + "/billing")))
+        read(perform(b.adminToken(), get("/api/patients/" + b.patientId() + "/billing")))
                 .get("billings").forEach(untouched -> assertThat(untouched.get("voided").asBoolean()).isFalse());
+        perform(b.adminToken(), get("/api/appointments/" + b.appointmentId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.billed").value(true));
+        perform(a.adminToken(), get("/api/patients/" + a.patientId() + "/billing"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.billedSessions").value(0))
+                .andExpect(jsonPath("$.billings.length()").value(0));
     }
 
     @Test

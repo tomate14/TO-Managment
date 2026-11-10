@@ -25,6 +25,14 @@ class BillingIntegrityTranslatorTest {
     }
 
     @Test
+    void appointmentActiveLinkIndexIsASessionError() {
+        DataIntegrityViolationException violation = new DataIntegrityViolationException("could not execute",
+                new ConstraintViolationException("dup", null, "ux_billing_appointment_active"));
+        assertThat(BillingIntegrityTranslator.translate(violation).getErrorCode())
+                .isEqualTo(ErrorCode.BILLING_SESSION_INVALID);
+    }
+
+    @Test
     void anotherConstraintIsInternal() {
         DataIntegrityViolationException violation = new DataIntegrityViolationException("could not execute",
                 new ConstraintViolationException("dup", null, "some_other_constraint"));

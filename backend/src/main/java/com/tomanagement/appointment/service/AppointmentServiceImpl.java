@@ -84,8 +84,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (visible.isPresent()) {
             specification = specification.and(AppointmentSpecifications.ofTherapists(visible.get()));
         }
-        return appointmentRepository.findAll(specification, Sort.by("startAt", "id")).stream()
-                .map(mapper::toResponse).toList();
+        return mapper.toResponses(appointmentRepository.findAll(specification, Sort.by("startAt", "id")));
     }
 
     @Override
