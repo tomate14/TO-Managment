@@ -29,8 +29,6 @@ export interface Diagnosis {
   createdDate: string;
   treatment: Treatment;
   followUpCount: number;
-  /** Sessions (follow-ups) of this diagnosis not yet billed. */
-  pendingBillingCount: number;
 }
 
 export interface CreateDiagnosisPayload {

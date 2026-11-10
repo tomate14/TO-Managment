@@ -7,16 +7,16 @@ import { BillingSummary, CreateBillingPayload } from './billing.models';
 export class BillingService {
   private readonly http = inject(HttpClient);
 
-  summary(diagnosisId: number): Observable<BillingSummary> {
-    return this.http.get<BillingSummary>(`/api/diagnoses/${diagnosisId}/billing`);
+  summary(patientId: number): Observable<BillingSummary> {
+    return this.http.get<BillingSummary>(`/api/patients/${patientId}/billing`);
   }
 
   /** Registers a billing and answers with the updated summary. */
-  register(diagnosisId: number, payload: CreateBillingPayload): Observable<BillingSummary> {
-    return this.http.post<BillingSummary>(`/api/diagnoses/${diagnosisId}/billings`, payload);
+  register(patientId: number, payload: CreateBillingPayload): Observable<BillingSummary> {
+    return this.http.post<BillingSummary>(`/api/patients/${patientId}/billings`, payload);
   }
 
-  /** Voids a billing (its sessions become pending again) and answers with the updated summary. */
+  /** Voids a billing (only appointment sessions become pending again) and answers with the updated summary. */
   voidBilling(billingId: number): Observable<BillingSummary> {
     return this.http.post<BillingSummary>(`/api/billings/${billingId}/void`, {});
   }

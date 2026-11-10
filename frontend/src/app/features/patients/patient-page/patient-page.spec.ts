@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { BillingService } from '../../billing/billing.service';
 import { PatientPage } from './patient-page';
 import { PatientsService } from '../patients.service';
 import { Patient } from '../patients.models';
@@ -22,6 +23,7 @@ describe('PatientPage', () => {
       imports: [PatientPage],
       providers: [
         provideRouter([]),
+        { provide: BillingService, useValue: { summary: () => of({ totalSessions: 0, billedSessions: 0, pendingSessions: 0, pending: [], billings: [] }) } },
         { provide: PatientsService, useValue: { get } },
         { provide: DiagnosesService, useValue: { listForPatient } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
@@ -42,10 +44,10 @@ describe('PatientPage', () => {
     const diagnoses: Diagnosis[] = [
       { id: 2, patient: patientRef, description: 'Fractura distal de radio izquierdo', createdDate: '2026-10-12',
         treatment: { type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
-          surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true }, followUpCount: 2, pendingBillingCount: 0 },
+          surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true }, followUpCount: 2 },
       { id: 1, patient: patientRef, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
         treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-          hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false }, followUpCount: 0, pendingBillingCount: 0 },
+          hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false }, followUpCount: 0 },
     ];
     listForPatient.mockReturnValue(of(diagnoses));
     const el = render();
@@ -55,6 +57,15 @@ describe('PatientPage', () => {
     expect(cards.length).toBe(2);
     expect(cards[0].textContent).toContain('Fractura distal de radio izquierdo');
     expect(el.querySelector('a.diagnoses__new')?.getAttribute('href')).toBe('/pacientes/7/diagnosticos/nuevo');
+  });
+
+  it('shows patient billing before diagnoses in the same content column', () => {
+    const el = render();
+    const content = el.querySelector('.patient-content')!;
+    const billing = content?.querySelector('app-billing-section');
+    const diagnoses = content?.querySelector('.diagnoses');
+    expect(billing?.textContent).toContain('Facturación');
+    expect(billing!.compareDocumentPosition(diagnoses!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows the name, DNI, age and dominance', () => {

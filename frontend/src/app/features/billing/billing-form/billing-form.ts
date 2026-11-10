@@ -5,7 +5,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { apiErrorCode, apiErrorMessage } from '../../../core/api/api-error';
 import { formatDate, todayIso } from '../../patients/patient-format';
 import { amountFitsLimit, parseAmount } from '../billing-format';
-import { BILLING_ERROR_CODES, BilledSessionRef, BillingSummary, CreateBillingPayload } from '../billing.models';
+import { BILLING_ERROR_CODES, AppointmentSessionRef, BilledSessionRef, BillingSummary, CreateBillingPayload } from '../billing.models';
 import { BillingService } from '../billing.service';
 
 interface Problems {
@@ -20,11 +20,11 @@ const DATE_IN_FUTURE = 'La fecha no puede ser futura.';
 const AMOUNT_REQUIRED = 'Ingresá el monto.';
 const AMOUNT_NOT_POSITIVE = 'El monto tiene que ser mayor a cero.';
 const AMOUNT_INVALID = 'El monto no es válido.';
-const SESSION_INVALID = 'Hay sesiones que no son de este diagnóstico o ya están facturadas.';
+const SESSION_INVALID = 'Hay sesiones que no son de este paciente, no están confirmadas o ya están facturadas.';
 const SAVE_ERROR = 'No pudimos registrar la facturación. Intentá de nuevo.';
 
 /** Backend field names of a 400 VALIDATION_ERROR, mapped to the form field that shows them. */
-const SERVER_FIELDS = new Map<string, keyof Problems>([['amount', 'amount'], ['billedOn', 'billedOn'], ['followUpIds', 'sessions']]);
+const SERVER_FIELDS = new Map<string, keyof Problems>([['amount', 'amount'], ['billedOn', 'billedOn'], ['appointmentIds', 'sessions']]);
 
 /**
  * H12.2 billing form shared by the mobile page and the desktop side panel:
@@ -40,7 +40,7 @@ export class BillingForm implements OnInit {
   private readonly billingService = inject(BillingService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
-  readonly diagnosisId = input.required<number>();
+  readonly patientId = input.required<number>();
   /** Sessions that can be billed. Read once on init: every one starts checked. */
   readonly pending = input.required<BilledSessionRef[]>();
 
@@ -68,7 +68,10 @@ export class BillingForm implements OnInit {
 
   private readonly value = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
 
-  protected readonly selectedLabel = computed(() => `${this.selected().size} de ${this.pending().length} elegidas`);
+  protected readonly appointments = computed(() => this.pending().filter((session): session is AppointmentSessionRef =>
+    session.origin === 'APPOINTMENT' && session.appointmentId !== null));
+
+  protected readonly selectedLabel = computed(() => `${this.selected().size} de ${this.appointments().length} elegidas`);
   protected readonly problems = computed(() => this.validate());
 
   constructor() {
@@ -77,21 +80,21 @@ export class BillingForm implements OnInit {
   }
 
   ngOnInit(): void {
-    this.selected.set(new Set(this.pending().map((session) => session.followUpId)));
+    this.selected.set(new Set(this.appointments().map((session) => session.appointmentId)));
     this.error.set(this.notice());
   }
 
-  protected isSelected(session: BilledSessionRef): boolean {
-    return this.selected().has(session.followUpId);
+  protected isSelected(session: AppointmentSessionRef): boolean {
+    return this.selected().has(session.appointmentId);
   }
 
-  protected toggle(session: BilledSessionRef): void {
+  protected toggle(session: AppointmentSessionRef): void {
     this.selected.update((ids) => {
       const next = new Set(ids);
-      if (next.has(session.followUpId)) {
-        next.delete(session.followUpId);
+      if (next.has(session.appointmentId)) {
+        next.delete(session.appointmentId);
       } else {
-        next.add(session.followUpId);
+        next.add(session.appointmentId);
       }
       return next;
     });
@@ -114,7 +117,7 @@ export class BillingForm implements OnInit {
       return;
     }
     this.saving.set(true);
-    this.billingService.register(this.diagnosisId(), this.payload()).subscribe({
+    this.billingService.register(this.patientId(), this.payload()).subscribe({
       next: (summary) => {
         this.saving.set(false);
         this.saved.emit(summary);
@@ -188,12 +191,12 @@ export class BillingForm implements OnInit {
     return {
       billedOn: value.billedOn,
       amount: parseAmount(value.amount) ?? 0,
-      followUpIds: this.pending().map((session) => session.followUpId).filter((id) => this.selected().has(id)),
+      appointmentIds: this.appointments().map((session) => session.appointmentId).filter((id) => this.selected().has(id)),
     };
   }
 }
 
-/** Per-field messages of a 400 VALIDATION_ERROR (`amount`, `billedOn`, `followUpIds[0]`). */
+/** Per-field messages of a 400 VALIDATION_ERROR (`amount`, `billedOn`, `appointmentIds[0]`). */
 function serverFieldErrors(error: unknown): Problems {
   const problems: Problems = {};
   const fieldErrors: unknown = error instanceof HttpErrorResponse ? error.error?.fieldErrors : null;

@@ -6,22 +6,16 @@ import { of, throwError } from 'rxjs';
 import { BillingFormPage } from './billing-form-page';
 import { BillingService } from '../billing.service';
 import { BillingSummary } from '../billing.models';
-import { DiagnosesService } from '../../diagnoses/diagnoses.service';
-import { Diagnosis } from '../../diagnoses/diagnoses.models';
+import { PatientsService } from '../../patients/patients.service';
+import { Patient } from '../../patients/patients.models';
 
 describe('BillingFormPage', () => {
-  const diagnosis: Diagnosis = {
-    id: 3, patient: { id: 7, firstName: 'Lucía', lastName: 'Fernández', dni: '30123456' },
-    description: 'Tendinitis de muñeca', createdDate: '2026-09-02',
-    treatment: { type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
-      hasImmobilization: false, immobilizationDate: null, requiresScarType: false },
-    followUpCount: 2, pendingBillingCount: 2,
-  };
+  const patient: Patient = { id: 7, firstName: 'Lucía', lastName: 'Fernández', dni: '30123456', birthDate: '1990-01-01', phone: '1234', occupation: 'Docente', healthInsurance: '', healthInsuranceNumber: '', dominance: 'RIGHT' };
   const summary: BillingSummary = {
     totalSessions: 2, billedSessions: 0, pendingSessions: 2,
     pending: [
-      { followUpId: 21, date: '2026-11-05', segments: ['Muñeca'] },
-      { followUpId: 22, date: '2026-11-06', segments: ['Muñeca'] },
+      { origin: 'APPOINTMENT', appointmentId: 21, followUpId: null, date: '2026-11-05', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: null, segments: [] },
+      { origin: 'APPOINTMENT', appointmentId: 22, followUpId: null, date: '2026-11-06', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 3, description: 'Diagnóstico de ejemplo' }, segments: [] },
     ],
     billings: [],
   };
@@ -37,8 +31,8 @@ describe('BillingFormPage', () => {
       providers: [
         provideRouter([]),
         { provide: BillingService, useValue: { summary: summaryCall, register } },
-        { provide: DiagnosesService, useValue: { get: vi.fn(() => of(diagnosis)) } },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7', diagnosisId: '3' }) } } },
+        { provide: PatientsService, useValue: { get: vi.fn(() => of(patient)) } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '7' }) } } },
       ],
     });
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -47,24 +41,36 @@ describe('BillingFormPage', () => {
     return { fixture, el: fixture.nativeElement as HTMLElement, navigate };
   }
 
-  it('shows the title, the diagnosis and patient, and the pending sessions checked', () => {
+  it('shows the title, the patient, and the pending sessions checked', () => {
     const { el } = setup();
+    expect(summaryCall).toHaveBeenCalledWith(7);
     expect(el.querySelector('h1')?.textContent).toContain('Registrar facturación');
-    expect(el.textContent).toContain('Tendinitis de muñeca · Lucía Fernández');
+    expect(el.textContent).toContain('Lucía Fernández');
     const boxes = Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
     expect(boxes.map((box) => box.checked)).toEqual([true, true]);
-    expect(el.querySelector('a.page-header__back')?.getAttribute('href')).toBe('/pacientes/7/diagnosticos/3');
+    expect(el.querySelector('a.page-header__back')?.getAttribute('href')).toBe('/pacientes/7');
   });
 
-  it('returns to the diagnosis when cancelled', () => {
+  it('returns to the patient when cancelled', () => {
     const { el, navigate } = setup();
     el.querySelector<HTMLButtonElement>('.billing-form__cancel')!.click();
-    expect(navigate).toHaveBeenCalledWith(['/pacientes', 7, 'diagnosticos', 3]);
+    expect(navigate).toHaveBeenCalledWith(['/pacientes', 7]);
+  });
+
+  it('returns to the patient after registering its selected appointments', () => {
+    const { fixture, el, navigate } = setup();
+    const amount = el.querySelector<HTMLInputElement>('#billing-amount')!;
+    amount.value = '1000';
+    amount.dispatchEvent(new Event('input'));
+    el.querySelector<HTMLFormElement>('.billing-form')!.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+    expect(register).toHaveBeenCalledWith(7, expect.objectContaining({ appointmentIds: [21, 22], amount: 1000 }));
+    expect(navigate).toHaveBeenCalledWith(['/pacientes', 7]);
   });
 
   it('says so when there is nothing to bill', () => {
     const { el } = setup({ ...summary, pendingSessions: 0, pending: [] });
-    expect(el.textContent).toContain('Todavía no hay sesiones para facturar.');
+    expect(el.textContent).toContain('Todavía no hay turnos confirmados para facturar.');
     expect(el.querySelector('app-billing-form')).toBeNull();
   });
 

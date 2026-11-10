@@ -9,22 +9,22 @@ import { Billing, BillingSummary } from '../billing.models';
 
 describe('BillingSection', () => {
   const active: Billing = {
-    id: 12, billedOn: '2026-11-02', amount: 25000, sessionCount: 2, voided: false, voidedAt: null,
+    origin: 'APPOINTMENT', id: 12, billedOn: '2026-11-02', amount: 25000, sessionCount: 2, voided: false, voidedAt: null,
     createdAt: '2026-11-02T13:00:00Z',
     sessions: [
-      { followUpId: 1, date: '2026-10-01', segments: ['Muñeca'] },
-      { followUpId: 2, date: '2026-10-15', segments: ['Muñeca', 'Mano'] },
+      { origin: 'APPOINTMENT', appointmentId: 1, followUpId: null, date: '2026-10-01', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: null, segments: [] },
+      { origin: 'APPOINTMENT', appointmentId: 2, followUpId: null, date: '2026-10-15', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 3, description: 'Diagnóstico de ejemplo' }, segments: [] },
     ],
-  };
+  } as Billing;
   const voided: Billing = {
-    id: 11, billedOn: '2026-09-28', amount: 15000, sessionCount: 3, voided: true, voidedAt: '2026-09-29T10:00:00Z',
+    origin: 'LEGACY_FOLLOW_UP', id: 11, billedOn: '2026-09-28', amount: 15000, sessionCount: 3, voided: true, voidedAt: '2026-09-29T10:00:00Z',
     createdAt: '2026-09-28T10:00:00Z', sessions: [],
-  };
+  } as Billing;
   const summary: BillingSummary = {
     totalSessions: 4, billedSessions: 2, pendingSessions: 2,
     pending: [
-      { followUpId: 3, date: '2026-11-05', segments: ['Muñeca'] },
-      { followUpId: 4, date: '2026-11-06', segments: ['Muñeca'] },
+      { origin: 'APPOINTMENT', appointmentId: 3, followUpId: null, date: '2026-11-05', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: null, segments: [] },
+      { origin: 'APPOINTMENT', appointmentId: 4, followUpId: null, date: '2026-11-06', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 3, description: 'Diagnóstico de ejemplo' }, segments: [] },
     ],
     billings: [active, voided],
   };
@@ -40,8 +40,7 @@ describe('BillingSection', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(BillingSection);
     fixture.componentRef.setInput('patientId', 7);
-    fixture.componentRef.setInput('diagnosisId', 3);
-    fixture.componentRef.setInput('description', 'Tendinitis de muñeca');
+    fixture.componentRef.setInput('description', 'Lucía Fernández');
     const changed = vi.fn();
     fixture.componentInstance.changed.subscribe(changed);
     fixture.detectChanges();
@@ -54,11 +53,11 @@ describe('BillingSection', () => {
 
   it('loads the summary and shows the counters', () => {
     const { el } = setup();
-    expect(service.summary).toHaveBeenCalledWith(3);
+    expect(service.summary).toHaveBeenCalledWith(7);
     expect(el.querySelector('#billing-heading')?.textContent).toContain('Facturación');
     const counters = Array.from(el.querySelectorAll('.counter')).map((counter) =>
       `${counter.querySelector('.counter__value')?.textContent?.trim()} ${counter.querySelector('.counter__label')?.textContent?.trim()}`);
-    expect(counters).toEqual(['4 sesiones', '2 facturadas', '2 pendientes']);
+    expect(counters).toEqual(['4 turnos confirmados', '2 facturados', '2 pendientes']);
   });
 
   it('shows the register button only with pending sessions', () => {
@@ -70,7 +69,7 @@ describe('BillingSection', () => {
 
   it('says so when there are no sessions', () => {
     const { el } = setup({ totalSessions: 0, billedSessions: 0, pendingSessions: 0, pending: [], billings: [] });
-    expect(el.textContent).toContain('Todavía no hay sesiones para facturar.');
+    expect(el.textContent).toContain('Todavía no hay turnos confirmados para facturar.');
     expect(el.textContent).not.toContain('Facturaciones anteriores');
   });
 
@@ -94,12 +93,41 @@ describe('BillingSection', () => {
     expect(toggle.textContent).toContain('Ocultar sesiones');
     const sessions = rows()[0].querySelector('.billing-row__sessions')!.textContent ?? '';
     expect(sessions).toContain('01/10/2026');
-    expect(sessions).toContain('Muñeca, Mano');
+    expect(sessions).toContain('09:00');
+    expect(sessions).toContain('Confirmado');
+    expect(sessions).toContain('Diagnóstico de ejemplo');
 
     toggle.click();
     fixture.detectChanges();
     expect(toggle.textContent).toContain('Ver sesiones');
     expect(rows()[0].querySelector('.billing-row__sessions')).toBeNull();
+  });
+
+  it('preserves previous records and their segments without adding them to appointment counters', () => {
+    const legacy: Billing = {
+      ...active, id: 19, origin: 'LEGACY_FOLLOW_UP', sessionCount: 1,
+      sessions: [{ origin: 'LEGACY_FOLLOW_UP', appointmentId: null, followUpId: 3,
+        date: '2026-10-01', startTime: null, confirmedAt: null, diagnosis: null, segments: ['Muñeca', 'Mano'] }],
+    };
+    const { fixture, el, rows } = setup({ ...summary, billings: [legacy, active] });
+    expect(rows()[0].textContent).toContain('Registro anterior');
+    expect(rows()[1].textContent).not.toContain('Registro anterior');
+    expect(el.querySelector('.counter--pending .counter__value')?.textContent).toBe('2');
+    rows()[0].querySelector<HTMLButtonElement>('.billing-row__toggle')!.click();
+    fixture.detectChanges();
+    expect(rows()[0].querySelector('.billing-row__sessions')?.textContent).toContain('01/10/2026');
+    expect(rows()[0].querySelector('.billing-row__sessions')?.textContent).toContain('Muñeca, Mano');
+    expect(rows()[0].querySelector('.billing-row__sessions')?.textContent).not.toContain('Confirmado');
+    rows()[0].querySelector<HTMLButtonElement>('.billing-row__void')!.click();
+    fixture.detectChanges();
+    expect(rows()[0].querySelector('.billing-row__confirm')?.textContent).not.toContain('vuelven a quedar pendientes');
+    service.voidBilling.mockReturnValue(of({ ...summary, billings: [{ ...legacy, voided: true }, active] }));
+    rows()[0].querySelector<HTMLButtonElement>('.billing-row__confirm-void')!.click();
+    fixture.detectChanges();
+    expect(service.voidBilling).toHaveBeenCalledWith(19);
+    expect(rows()[0].textContent).toContain('Anulada');
+    expect(rows()[0].querySelector('.billing-row__sessions')?.textContent).toContain('Muñeca, Mano');
+    expect(el.querySelector('.counter--pending .counter__value')?.textContent).toBe('2');
   });
 
   it('voids a billing after the inline confirmation', () => {
@@ -119,6 +147,20 @@ describe('BillingSection', () => {
     expect(changed).toHaveBeenCalled();
     expect(rows()[0].querySelector('.billing-row__confirm')).toBeNull();
     expect(rows()[0].textContent).toContain('Anulada');
+  });
+
+  it('keeps the record and allows retry after a failed void', () => {
+    const { fixture, el, rows, changed } = setup();
+    service.voidBilling.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    rows()[0].querySelector<HTMLButtonElement>('.billing-row__void')!.click();
+    fixture.detectChanges();
+    rows()[0].querySelector<HTMLButtonElement>('.billing-row__confirm-void')!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('[role="alert"]')?.textContent).toContain('No pudimos anular');
+    expect(rows()[0].querySelector('.billing-row__voided')).toBeNull();
+    expect(rows()[0].querySelector<HTMLButtonElement>('.billing-row__confirm-void')?.disabled).toBe(false);
+    expect(changed).not.toHaveBeenCalled();
+    expect(el.querySelector('.counter--pending .counter__value')?.textContent).toBe('2');
   });
 
   it('cancels the void confirmation', () => {
@@ -144,7 +186,7 @@ describe('BillingSection', () => {
   it('navigates to the form page on mobile', () => {
     const { el, navigate } = setup();
     el.querySelector<HTMLButtonElement>('.billing__register')!.click();
-    expect(navigate).toHaveBeenCalledWith(['/pacientes', 7, 'diagnosticos', 3, 'facturacion', 'nueva']);
+    expect(navigate).toHaveBeenCalledWith(['/pacientes', 7, 'facturacion', 'nueva']);
     expect(el.querySelector('[role="dialog"]')).toBeNull();
   });
 
@@ -156,7 +198,7 @@ describe('BillingSection', () => {
     expect(navigate).not.toHaveBeenCalled();
     expect(panel.getAttribute('aria-modal')).toBe('true');
     expect(panel.textContent).toContain('Registrar facturación');
-    expect(panel.textContent).toContain('Tendinitis de muñeca');
+    expect(panel.textContent).toContain('Lucía Fernández');
     const boxes = Array.from(panel.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
     expect(boxes.map((box) => box.checked)).toEqual([true, true]);
   });
@@ -183,7 +225,7 @@ describe('BillingSection', () => {
     amount.dispatchEvent(new Event('input'));
     el.querySelector<HTMLFormElement>('.billing-form')!.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
-    expect(service.register).toHaveBeenCalledWith(3, expect.objectContaining({ amount: 20000, followUpIds: [3, 4] }));
+    expect(service.register).toHaveBeenCalledWith(7, expect.objectContaining({ amount: 20000, appointmentIds: [3, 4] }));
     expect(el.querySelector('[role="dialog"]')).toBeNull();
     expect(changed).toHaveBeenCalled();
     expect(el.querySelector('.billing__register')).toBeNull();
@@ -192,7 +234,7 @@ describe('BillingSection', () => {
   it('re-fetches the summary on a stale 422 and re-creates the form with the fresh pending list and the message', () => {
     const fresh: BillingSummary = {
       ...summary, billedSessions: 3, pendingSessions: 1,
-      pending: [{ followUpId: 4, date: '2026-11-06', segments: ['Muñeca'] }],
+      pending: [{ origin: 'APPOINTMENT', appointmentId: 4, followUpId: null, date: '2026-11-06', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 3, description: 'Diagnóstico de ejemplo' }, segments: [] }],
     };
     const { fixture, el, changed } = setup(summary, true);
     el.querySelector<HTMLButtonElement>('.billing__register')!.click();

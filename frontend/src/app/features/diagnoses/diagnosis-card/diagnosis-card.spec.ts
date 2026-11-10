@@ -11,7 +11,7 @@ describe('DiagnosisCard', () => {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
       surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
-    followUpCount: 3, pendingBillingCount: 4,
+    followUpCount: 3,
   };
   const conservative: Diagnosis = {
     id: 4, patient, description: 'Tenosinovitis de De Quervain', createdDate: '2026-08-01',
@@ -19,7 +19,7 @@ describe('DiagnosisCard', () => {
       type: 'CONSERVATIVE', surgeryDate: null, stitchesRemovalDate: null, surgeryType: null,
       hasImmobilization: true, immobilizationDate: '2026-08-02', requiresScarType: false,
     },
-    followUpCount: 1, pendingBillingCount: 1,
+    followUpCount: 1,
   };
 
   function render(diagnosis: Diagnosis): HTMLElement {
@@ -57,19 +57,10 @@ describe('DiagnosisCard', () => {
     expect(el.textContent).toContain('02/08/2026');
   });
 
-  it('shows the pending billing count in plural', () => {
+  it('keeps clinical summary without a diagnosis billing counter', () => {
     const el = render(surgical);
-    expect(el.querySelector('.pending-badge')?.textContent?.trim()).toBe('4 sesiones pendientes de facturar');
-  });
-
-  it('shows the pending billing count in singular', () => {
-    const el = render(conservative);
-    expect(el.querySelector('.pending-badge')?.textContent?.trim()).toBe('1 sesión pendiente de facturar');
-  });
-
-  it('shows nothing about billing when no session is pending', () => {
-    const el = render({ ...surgical, pendingBillingCount: 0 });
     expect(el.querySelector('.pending-badge')).toBeNull();
     expect(el.textContent).not.toContain('pendiente');
+    expect(el.textContent).toContain('3 seguimientos');
   });
 });

@@ -1,7 +1,10 @@
-import { Routes } from '@angular/router';
+import { RedirectFunction, Router, Routes } from '@angular/router';
 import { inject } from '@angular/core';
 import { adminGuard, authGuard, establishmentGuard, guestGuard, superadminGuard } from './core/auth/auth.guards';
 import { AuthService } from './core/auth/auth.service';
+
+const legacyBillingRedirect: RedirectFunction = ({ params }) =>
+  inject(Router).createUrlTree(['/pacientes', params['id'], 'facturacion', 'nueva']);
 
 const APP_NAME = 'Terapia Ocupacional';
 
@@ -98,10 +101,15 @@ export const routes: Routes = [
               import('./features/follow-ups/follow-up-form-page/follow-up-form-page').then((m) => m.FollowUpFormPage),
           },
           {
-            path: ':id/diagnosticos/:diagnosisId/facturacion/nueva',
+            path: ':id/facturacion/nueva',
             title: `Registrar facturación · ${APP_NAME}`,
             loadComponent: () =>
               import('./features/billing/billing-form-page/billing-form-page').then((m) => m.BillingFormPage),
+          },
+          {
+            path: ':id/diagnosticos/:diagnosisId/facturacion/nueva',
+            pathMatch: 'full',
+            redirectTo: legacyBillingRedirect,
           },
         ],
       },
