@@ -2,6 +2,9 @@ package com.tomanagement.appointment.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.LockModeType;
 
 import com.tomanagement.appointment.entity.Appointment;
 
@@ -10,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,6 +21,14 @@ import org.springframework.data.repository.query.Param;
  * Appointments. Overlap checks use half-open ranges, so back-to-back appointments do not overlap.
  */
 public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
+
+    /** Lock only the appointment row; its optional diagnosis must not be part of an outer join lock. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Appointment a where a.id = :id")
+    Optional<Appointment> findByIdForUpdate(@Param("id") Long id);
+
+    @EntityGraph(attributePaths = {"therapist", "patient", "diagnosis"})
+    List<Appointment> findByPatientIdAndConfirmedAtIsNotNullOrderByStartAtAscIdAsc(Long patientId);
 
     /** Listing with the therapist, patient and diagnosis fetched in the same query (no N+1). */
     @Override

@@ -64,6 +64,8 @@ public enum ErrorCode {
             "Hay respuestas a preguntas que no corresponden: solo se responden las preguntas visibles de la plantilla."),
     ANSWER_VALUE_INVALID(HttpStatus.UNPROCESSABLE_ENTITY, "Hay respuestas con un valor que no es válido para su pregunta."),
     APPOINTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "El turno no existe."),
+    APPOINTMENT_ALREADY_CONFIRMED(HttpStatus.UNPROCESSABLE_ENTITY,
+            "El turno ya está confirmado y no se puede cancelar ni reprogramar."),
     APPOINTMENT_OUTSIDE_HOURS(HttpStatus.UNPROCESSABLE_ENTITY,
             "Los turnos son de lunes a sábado, de 08:00 a 20:00, empezando en punto o y media."),
     APPOINTMENT_IN_PAST(HttpStatus.UNPROCESSABLE_ENTITY, "No se pueden dar turnos en el pasado."),

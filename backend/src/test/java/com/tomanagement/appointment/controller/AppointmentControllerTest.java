@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -30,6 +31,7 @@ import com.tomanagement.patient.entity.Dominance;
 import com.tomanagement.patient.entity.Patient;
 import com.tomanagement.patient.entity.PatientData;
 import com.tomanagement.patient.repository.PatientRepository;
+import com.tomanagement.support.MutableClock;
 import com.tomanagement.user.entity.Role;
 import com.tomanagement.user.entity.User;
 import com.tomanagement.user.repository.UserRepository;
@@ -67,7 +69,12 @@ class AppointmentControllerTest {
         @Bean
         @Primary
         Clock fixedClock() {
-            return Clock.fixed(Instant.parse("2026-11-05T14:40:00Z"), ZoneId.of("America/Argentina/Buenos_Aires"));
+            return new MutableClock(Instant.parse("2026-11-05T14:40:00Z")) {
+                @Override
+                public ZoneId getZone() {
+                    return ZoneId.of("America/Argentina/Buenos_Aires");
+                }
+            };
         }
     }
 
@@ -94,6 +101,9 @@ class AppointmentControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private Clock clock;
 
     private Long establishmentId;
     private User admin;
@@ -182,6 +192,63 @@ class AppointmentControllerTest {
         long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
         performAs(carlaActor, delete("/api/appointments/" + id)).andExpect(status().isNoContent());
         assertThat(tenancy.callAs(establishmentId, () -> appointmentRepository.existsById(id))).isFalse();
+    }
+
+    @Test
+    void confirmationWithoutDiagnosisPersistsTheClockInstantAndIsIdempotent() throws Exception {
+        long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
+        String confirmedAt = clock.instant().toString();
+        performAs(carlaActor, post("/api/appointments/" + id + "/confirm"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedAt").value(confirmedAt))
+                .andExpect(jsonPath("$.diagnosis").isEmpty())
+                .andExpect(jsonPath("$.billed").value(false));
+        ((MutableClock) clock).advance(Duration.ofMinutes(5));
+        performAs(adminActor, post("/api/appointments/" + id + "/confirm"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedAt").value(confirmedAt));
+        performAs(carlaActor, get("/api/appointments/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedAt").value(confirmedAt));
+    }
+
+    @Test
+    void anotherTherapistCannotConfirmAndAnotherTenantSeesANonexistentAppointment() throws Exception {
+        long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
+        performAs(paulaActor, post("/api/appointments/" + id + "/confirm"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(ErrorCode.ACCESS_DENIED.name()));
+        Long otherEstablishment = tenancy.create("Otro consultorio").getId();
+        User otherAdmin = userRepository.save(User.builder().email("other@consultorio.com")
+                .passwordHash("x".repeat(60)).fullName("Otro admin").role(Role.ADMIN).active(true)
+                .establishmentId(otherEstablishment).createdAt(clock.instant()).build());
+        AuthenticatedUser otherActor = new AuthenticatedUser(otherAdmin.getId(), otherAdmin.getEmail(),
+                otherAdmin.getFullName(), Role.ADMIN, otherEstablishment);
+        performAs(otherActor, post("/api/appointments/" + id + "/confirm"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ErrorCode.APPOINTMENT_NOT_FOUND.name()));
+        performAs(carlaActor, get("/api/appointments/" + id)).andExpect(jsonPath("$.confirmedAt").isEmpty());
+    }
+
+    @Test
+    void confirmedAppointmentsCannotBeCancelledOrRescheduledAndPermissionsAreCheckedFirst() throws Exception {
+        long id = book(adminActor, carla, lucia, "2026-11-10", "12:00", 45);
+        performAs(carlaActor, post("/api/appointments/" + id + "/confirm")).andExpect(status().isOk());
+        performAs(paulaActor, delete("/api/appointments/" + id)).andExpect(status().isForbidden());
+        performAs(paulaActor, put("/api/appointments/" + id).contentType(JSON)
+                .content(json(reschedule(paula, "2026-11-10", "13:00", 45))))
+                .andExpect(status().isForbidden());
+        performAs(adminActor, delete("/api/appointments/" + id))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("APPOINTMENT_ALREADY_CONFIRMED"));
+        performAs(carlaActor, put("/api/appointments/" + id).contentType(JSON)
+                .content(json(reschedule(carla, "2026-11-10", "13:00", 60))))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("APPOINTMENT_ALREADY_CONFIRMED"));
+        performAs(carlaActor, get("/api/appointments/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.startTime").value("12:00:00"))
+                .andExpect(jsonPath("$.durationMinutes").value(45));
     }
 
     @Test

@@ -84,4 +84,9 @@ public class AppointmentController {
     public void cancel(@AuthenticationPrincipal AuthenticatedUser actor, @PathVariable Long id) {
         appointmentService.cancel(actor, id);
     }
+
+    @PostMapping("/{id}/confirm")
+    public AppointmentResponse confirm(@AuthenticationPrincipal AuthenticatedUser actor, @PathVariable Long id) {
+        return appointmentService.confirm(actor, id);
+    }
 }

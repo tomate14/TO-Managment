@@ -1,5 +1,9 @@
 package com.tomanagement;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,8 +24,23 @@ public class TestTables {
     }
 
     public void truncate(TestTable... tables) {
+        Set<TestTable> requested = new LinkedHashSet<>(Arrays.asList(tables));
+        Set<TestTable> ordered = new LinkedHashSet<>();
+        if (requested.contains(TestTable.BILLING) || requested.contains(TestTable.PATIENT)
+                || requested.contains(TestTable.DIAGNOSIS) || requested.contains(TestTable.ESTABLISHMENT)) {
+            ordered.add(TestTable.BILLING_APPOINTMENT);
+            ordered.add(TestTable.BILLING_FOLLOW_UP);
+            ordered.add(TestTable.BILLING);
+        }
+        if (requested.contains(TestTable.APPOINTMENT)) {
+            ordered.add(TestTable.BILLING_APPOINTMENT);
+        }
+        if (requested.contains(TestTable.FOLLOW_UP)) {
+            ordered.add(TestTable.BILLING_FOLLOW_UP);
+        }
+        ordered.addAll(requested);
         StringBuilder names = new StringBuilder();
-        for (TestTable table : tables) {
+        for (TestTable table : ordered) {
             if (!names.isEmpty()) {
                 names.append(", ");
             }

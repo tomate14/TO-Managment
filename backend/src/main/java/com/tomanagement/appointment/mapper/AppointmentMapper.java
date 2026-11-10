@@ -29,6 +29,8 @@ public class AppointmentMapper {
                 appointment.getStartAt().toLocalTime(),
                 appointment.getEndAt().toLocalTime(),
                 (int) Duration.between(appointment.getStartAt(), appointment.getEndAt()).toMinutes(),
-                appointment.getNotes().orElse(null));
+                appointment.getNotes().orElse(null),
+                appointment.getConfirmedAt(),
+                false);
     }
 }

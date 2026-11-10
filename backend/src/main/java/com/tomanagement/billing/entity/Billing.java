@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import com.tomanagement.diagnosis.entity.Diagnosis;
 import com.tomanagement.followup.entity.FollowUp;
+import com.tomanagement.patient.entity.Patient;
 
 import org.hibernate.annotations.TenantId;
 
@@ -41,7 +42,11 @@ public class Billing {
     private Long establishmentId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "diagnosis_id", nullable = false, updatable = false)
+    @JoinColumn(name = "patient_id", nullable = false, updatable = false)
+    private Patient patient;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diagnosis_id", updatable = false)
     private Diagnosis diagnosis;
 
     @Column(name = "billed_on", nullable = false)
@@ -66,6 +71,7 @@ public class Billing {
     public Billing(Diagnosis diagnosis, LocalDate billedOn, BigDecimal amount, Instant createdAt,
             List<FollowUp> followUps) {
         this.diagnosis = Objects.requireNonNull(diagnosis, "diagnosis is required");
+        this.patient = diagnosis.getPatient();
         this.billedOn = Objects.requireNonNull(billedOn, "billedOn is required");
         this.amount = Objects.requireNonNull(amount, "amount is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
@@ -94,6 +100,10 @@ public class Billing {
 
     public Diagnosis getDiagnosis() {
         return diagnosis;
+    }
+
+    public Patient getPatient() {
+        return patient;
     }
 
     public LocalDate getBilledOn() {

@@ -20,5 +20,7 @@ public interface AppointmentService {
 
     AppointmentResponse reschedule(AuthenticatedUser actor, Long id, RescheduleAppointmentRequest request);
 
+    AppointmentResponse confirm(AuthenticatedUser actor, Long id);
+
     void cancel(AuthenticatedUser actor, Long id);
 }
