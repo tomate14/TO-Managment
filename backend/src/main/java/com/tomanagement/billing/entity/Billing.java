@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.tomanagement.appointment.entity.Appointment;
 import com.tomanagement.diagnosis.entity.Diagnosis;
 import com.tomanagement.followup.entity.FollowUp;
+import com.tomanagement.patient.entity.Patient;
 
 import org.hibernate.annotations.TenantId;
 
@@ -25,8 +27,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 /**
- * A billing of a group of follow-up sessions of a diagnosis (É12). It is never edited: a mistake is voided and
- * registered again.
+ * Patient billing. Legacy diagnosis and follow-up associations are retained for historical records.
  */
 @Entity
 @Table(name = "billing")
@@ -41,7 +42,11 @@ public class Billing {
     private Long establishmentId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "diagnosis_id", nullable = false, updatable = false)
+    @JoinColumn(name = "patient_id", nullable = false, updatable = false)
+    private Patient patient;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diagnosis_id", updatable = false)
     private Diagnosis diagnosis;
 
     @Column(name = "billed_on", nullable = false)
@@ -59,6 +64,9 @@ public class Billing {
     @OneToMany(mappedBy = "billing", cascade = CascadeType.ALL)
     private List<BillingFollowUp> links = new ArrayList<>();
 
+    @OneToMany(mappedBy = "billing", cascade = CascadeType.ALL)
+    private List<BillingAppointment> appointmentLinks = new ArrayList<>();
+
     protected Billing() {
         // Required by JPA.
     }
@@ -66,11 +74,22 @@ public class Billing {
     public Billing(Diagnosis diagnosis, LocalDate billedOn, BigDecimal amount, Instant createdAt,
             List<FollowUp> followUps) {
         this.diagnosis = Objects.requireNonNull(diagnosis, "diagnosis is required");
+        this.patient = diagnosis.getPatient();
         this.billedOn = Objects.requireNonNull(billedOn, "billedOn is required");
         this.amount = Objects.requireNonNull(amount, "amount is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
         Objects.requireNonNull(followUps, "followUps is required")
                 .forEach(followUp -> links.add(new BillingFollowUp(this, followUp)));
+    }
+
+    public Billing(Patient patient, LocalDate billedOn, BigDecimal amount, Instant createdAt,
+            List<Appointment> appointments) {
+        this.patient = Objects.requireNonNull(patient, "patient is required");
+        this.billedOn = Objects.requireNonNull(billedOn, "billedOn is required");
+        this.amount = Objects.requireNonNull(amount, "amount is required");
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        Objects.requireNonNull(appointments, "appointments is required")
+                .forEach(appointment -> appointmentLinks.add(new BillingAppointment(this, appointment)));
     }
 
     /**
@@ -82,6 +101,7 @@ public class Billing {
         }
         this.voidedAt = Objects.requireNonNull(when, "when is required");
         links.forEach(BillingFollowUp::deactivate);
+        appointmentLinks.forEach(BillingAppointment::deactivate);
     }
 
     public boolean isVoided() {
@@ -94,6 +114,10 @@ public class Billing {
 
     public Diagnosis getDiagnosis() {
         return diagnosis;
+    }
+
+    public Patient getPatient() {
+        return patient;
     }
 
     public LocalDate getBilledOn() {
@@ -118,5 +142,13 @@ public class Billing {
 
     public List<FollowUp> getFollowUps() {
         return links.stream().map(BillingFollowUp::getFollowUp).toList();
+    }
+
+    public List<Appointment> getAppointments() {
+        return appointmentLinks.stream().map(BillingAppointment::getAppointment).toList();
+    }
+
+    public BillingSessionOrigin getOrigin() {
+        return diagnosis == null ? BillingSessionOrigin.APPOINTMENT : BillingSessionOrigin.LEGACY_FOLLOW_UP;
     }
 }

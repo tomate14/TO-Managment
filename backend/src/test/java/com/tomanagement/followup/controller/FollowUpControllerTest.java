@@ -20,6 +20,8 @@ import com.tomanagement.TestTables;
 import com.tomanagement.TestTenancy;
 import com.tomanagement.TestcontainersConfiguration;
 import com.tomanagement.auth.security.AuthenticatedUser;
+import com.tomanagement.billing.entity.Billing;
+import com.tomanagement.billing.repository.BillingRepository;
 import com.tomanagement.catalog.entity.BodySegment;
 import com.tomanagement.catalog.entity.ScarType;
 import com.tomanagement.catalog.entity.SurgeryType;
@@ -62,6 +64,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Follow-ups (H6.1–H6.4) against a real Postgres.
@@ -75,6 +79,12 @@ class FollowUpControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private BillingRepository billingRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private TestTables testTables;
@@ -219,13 +229,14 @@ class FollowUpControllerTest {
         register(followUp("2026-10-28", normotrophic.getId(), evaluation(wrist.getId(), null, 3, "14", flexionOf("55"))));
         String listing = perform(get(followUps(surgical))).andReturn().getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
-        Map<String, Object> billing = new HashMap<>();
-        billing.put("billedOn", "2026-10-30");
-        billing.put("amount", 25000);
-        billing.put("followUpIds", List.of(objectMapper.readTree(listing).get(1).get("id").asLong()));
-        perform(post("/api/diagnoses/" + surgical.getId() + "/billings").contentType(MediaType.APPLICATION_JSON)
-                .content(json(billing)))
-                .andExpect(status().isCreated());
+        Long followUpId = objectMapper.readTree(listing).get(1).get("id").asLong();
+        Long billingId = tenancy.callAs(therapist.establishmentId(), () -> new TransactionTemplate(transactionManager)
+                .execute(transaction -> {
+                    FollowUp historical = followUpRepository.findById(followUpId).orElseThrow();
+                    return billingRepository.saveAndFlush(new Billing(historical.getDiagnosis(),
+                            LocalDate.of(2026, 10, 30), new BigDecimal("25000"),
+                            Instant.parse("2026-10-30T12:00:00Z"), List.of(historical))).getId();
+                }));
 
         perform(get(followUps(surgical)))
                 .andExpect(status().isOk())
@@ -233,6 +244,12 @@ class FollowUpControllerTest {
                 .andExpect(jsonPath("$[0].billed").value(false))
                 .andExpect(jsonPath("$[1].date").value("2026-10-21"))
                 .andExpect(jsonPath("$[1].billed").value(true));
+        perform(post("/api/billings/" + billingId + "/void")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSessions").value(0))
+                .andExpect(jsonPath("$.pendingSessions").value(0))
+                .andExpect(jsonPath("$.billings[0].sessions[0].segments[0]").value("Muñeca"));
+        perform(get(followUps(surgical))).andExpect(status().isOk())
+                .andExpect(jsonPath("$[1].billed").value(false));
     }
 
     @Test

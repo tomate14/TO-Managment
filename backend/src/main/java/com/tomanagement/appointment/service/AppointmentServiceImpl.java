@@ -84,8 +84,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (visible.isPresent()) {
             specification = specification.and(AppointmentSpecifications.ofTherapists(visible.get()));
         }
-        return appointmentRepository.findAll(specification, Sort.by("startAt", "id")).stream()
-                .map(mapper::toResponse).toList();
+        return mapper.toResponses(appointmentRepository.findAll(specification, Sort.by("startAt", "id")));
     }
 
     @Override
@@ -115,9 +114,10 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponse reschedule(AuthenticatedUser actor, Long id, RescheduleAppointmentRequest request) {
-        Appointment appointment = load(id);
+        Appointment appointment = loadForUpdate(id);
         // The actor must own the CURRENT appointment, so a therapist cannot take someone else's.
         policy(actor).checkCanManage(actor, appointment.getTherapist().getId());
+        requireUnconfirmed(appointment);
         AppointmentDuration duration = duration(request.durationMinutes());
         User therapist = findTherapist(request.therapistId());
         Diagnosis diagnosis = findDiagnosis(request.diagnosisId());
@@ -131,9 +131,30 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public void cancel(AuthenticatedUser actor, Long id) {
-        Appointment appointment = load(id);
+        Appointment appointment = loadForUpdate(id);
         policy(actor).checkCanManage(actor, appointment.getTherapist().getId());
+        requireUnconfirmed(appointment);
         appointmentRepository.delete(appointment);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentResponse confirm(AuthenticatedUser actor, Long id) {
+        Appointment appointment = loadForUpdate(id);
+        policy(actor).checkCanManage(actor, appointment.getTherapist().getId());
+        appointment.confirm(Instant.now(clock));
+        return mapper.toResponse(appointment);
+    }
+
+    private void requireUnconfirmed(Appointment appointment) {
+        if (appointment.getConfirmedAt() != null) {
+            throw new BusinessRuleException(ErrorCode.APPOINTMENT_ALREADY_CONFIRMED);
+        }
+    }
+
+    private Appointment loadForUpdate(Long id) {
+        return appointmentRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.APPOINTMENT_NOT_FOUND));
     }
 
     private AppointmentVisibilityPolicy policy(AuthenticatedUser actor) {

@@ -9,7 +9,6 @@ import { Diagnosis } from '../diagnoses.models';
 import { FollowUp } from '../../follow-ups/follow-ups.models';
 import { FollowUpsService } from '../../follow-ups/follow-ups.service';
 import { BillingService } from '../../billing/billing.service';
-import { BillingSummary } from '../../billing/billing.models';
 
 describe('DiagnosisPage', () => {
   const surgical: Diagnosis = {
@@ -19,7 +18,7 @@ describe('DiagnosisPage', () => {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
       surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,
     },
-    followUpCount: 0, pendingBillingCount: 0,
+    followUpCount: 0,
   };
   const followUp: FollowUp = {
     id: 9, diagnosisId: 3, date: '2026-10-28', scarType: { id: 1, name: 'Normotrófica', active: true },
@@ -39,15 +38,6 @@ describe('DiagnosisPage', () => {
   let listForDiagnosis: ReturnType<typeof vi.fn>;
   let fixture: ComponentFixture<DiagnosisPage>;
   let billing: Record<'summary' | 'register' | 'voidBilling', ReturnType<typeof vi.fn>>;
-  const billingSummary: BillingSummary = {
-    totalSessions: 2, billedSessions: 1, pendingSessions: 1,
-    pending: [{ followUpId: 10, date: '2026-11-04', segments: ['Muñeca'] }],
-    billings: [{
-      id: 12, billedOn: '2026-11-02', amount: 25000, sessionCount: 1, voided: false, voidedAt: null,
-      createdAt: '2026-11-02T13:00:00Z', sessions: [{ followUpId: 9, date: '2026-10-28', segments: ['Muñeca'] }],
-    }],
-  };
-
   function render() {
     TestBed.configureTestingModule({
       imports: [DiagnosisPage],
@@ -67,7 +57,7 @@ describe('DiagnosisPage', () => {
   beforeEach(() => {
     get = vi.fn(() => of(surgical));
     listForDiagnosis = vi.fn(() => of([] as FollowUp[]));
-    billing = { summary: vi.fn(() => of(billingSummary)), register: vi.fn(), voidBilling: vi.fn() };
+    billing = { summary: vi.fn(), register: vi.fn(), voidBilling: vi.fn() };
   });
 
   it('shows the patient, the description, the badge and the surgical data', () => {
@@ -126,27 +116,11 @@ describe('DiagnosisPage', () => {
     expect(card.textContent).not.toContain('Horas de uso por día');
   });
 
-  it('renders the billing section before the follow-ups', () => {
+  it('keeps clinical follow-ups without diagnosis billing controls', () => {
     const el = render();
-    expect(billing.summary).toHaveBeenCalledWith(3);
-    const section = el.querySelector('app-billing-section');
-    expect(section?.querySelector('#billing-heading')?.textContent).toContain('Facturación');
-    expect(section?.textContent).toContain('$ 25.000,00');
-    const followUps = el.querySelector('section.follow-ups')!;
-    expect(section!.compareDocumentPosition(followUps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  it('reloads the follow-ups when a billing is voided', () => {
-    billing.voidBilling.mockReturnValue(of({ ...billingSummary, billedSessions: 0, pendingSessions: 2 }));
-    const el = render();
-    expect(listForDiagnosis).toHaveBeenCalledTimes(1);
-
-    el.querySelector<HTMLButtonElement>('.billing-row__void')!.click();
-    fixture.detectChanges();
-    el.querySelector<HTMLButtonElement>('.billing-row__confirm-void')!.click();
-    fixture.detectChanges();
-    expect(billing.voidBilling).toHaveBeenCalledWith(12);
-    expect(listForDiagnosis).toHaveBeenCalledTimes(2);
+    expect(el.querySelector('app-billing-section')).toBeNull();
+    expect(el.querySelector('section.follow-ups')).not.toBeNull();
+    expect(billing.summary).not.toHaveBeenCalled();
   });
 
   it('says so when the diagnosis does not exist', () => {

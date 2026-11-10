@@ -56,9 +56,8 @@
 }
 
 .counter__label {
-  overflow: hidden;
   font-size: 13px;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .counter:not(.counter--billed, .counter--pending) .counter__label {
@@ -190,8 +189,9 @@
 
 .billing-session {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   font-size: 15px;
 }
 
@@ -409,3 +409,11 @@
     }
   }
 }
+
+.billing-row__legacy {
+  align-self: flex-start;
+  background: var(--color-neutral-bg);
+  color: var(--color-text-muted);
+}
+.billing-session__diagnosis { flex-basis: 100%; overflow-wrap: anywhere; }
+.billing-session__confirmed { color: var(--color-success); font-weight: 700; }

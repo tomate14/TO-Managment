@@ -18,7 +18,7 @@ import { CatalogSlug } from '../../catalogs/catalogs.models';
 describe('FollowUpFormPage', () => {
   const surgical: Diagnosis = {
     id: 3, patient: { id: 7, firstName: 'Lucía', lastName: 'Fernández', dni: '30123456' },
-    description: 'Fractura distal de radio', createdDate: '2026-10-12', followUpCount: 0, pendingBillingCount: 0,
+    description: 'Fractura distal de radio', createdDate: '2026-10-12', followUpCount: 0,
     treatment: {
       type: 'SURGICAL', surgeryDate: '2026-10-14', stitchesRemovalDate: '2026-10-28',
       surgeryType: { id: 1, name: 'Osteosíntesis con placa', active: true }, hasImmobilization: null, immobilizationDate: null, requiresScarType: true,

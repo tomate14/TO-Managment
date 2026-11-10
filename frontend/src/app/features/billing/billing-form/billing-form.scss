@@ -96,9 +96,10 @@
   font-weight: 700;
 }
 
-.session-option__segments {
+.session-option__diagnosis {
   font-size: 14px;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .billing-form__card {
@@ -198,16 +199,17 @@
 
   .session-option__text {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 6px;
+    gap: 2px 6px;
   }
 
   .session-option__date {
     font-weight: 500;
   }
 
-  .session-option__segments::before {
-    content: '· ';
+  .session-option__diagnosis {
+    flex-basis: 100%;
   }
 
   .billing-form__card {
@@ -223,6 +225,13 @@
 
   .billing-form__submit {
     flex: none;
+    width: auto;
     padding: 0 24px;
   }
+}
+
+.session-option__confirmed {
+  font-size: 13px;
+  color: var(--color-success);
+  font-weight: 700;
 }

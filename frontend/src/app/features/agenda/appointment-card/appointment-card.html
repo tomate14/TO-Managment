@@ -1,4 +1,7 @@
 <article class="appointment-card">
+  @if (showDate()) {
+    <time [attr.datetime]="appointment().date">{{ dateLabel() }}</time>
+  }
   <div class="appointment-card__time">
     <span class="appointment-card__start">{{ start() }}</span>
     <span class="appointment-card__end">a {{ end() }}</span>
@@ -11,21 +14,32 @@
     <span class="appointment-card__dot" aria-hidden="true"></span>{{ appointment().therapist.fullName }}
   </span>
 
-  @if (confirming()) {
+  @if (appointment().confirmedAt) {
+    <p class="appointment-card__status" role="status">✓ Confirmado · {{ appointment().billed ? 'Facturado' : 'Pendiente de facturar' }}</p>
+    <div class="appointment-card__actions">
+      <a class="appointment-card__btn appointment-card__btn--soft" [routerLink]="['/pacientes', appointment().patient.id]">Ver ficha</a>
+    </div>
+  } @else if (confirming()) {
     <div class="appointment-card__confirm" role="alertdialog" aria-label="Confirmar cancelación">
       <p class="appointment-card__confirm-text">¿Cancelar el turno de {{ patientName() }}?</p>
       <div class="appointment-card__actions">
-        <button type="button" class="appointment-card__btn appointment-card__btn--danger" data-action="confirm" (click)="confirmCancel()">Sí, cancelar</button>
-        <button type="button" class="appointment-card__btn" data-action="keep" (click)="confirming.set(false)">No</button>
+        <button type="button" class="appointment-card__btn appointment-card__btn--danger" data-action="confirm" [disabled]="confirmationBusy()" (click)="confirmCancel()">Sí, cancelar</button>
+        <button type="button" class="appointment-card__btn" data-action="keep" [disabled]="confirmationBusy()" (click)="confirming.set(false)">No</button>
       </div>
     </div>
   } @else {
     <div class="appointment-card__actions">
-      <button type="button" class="appointment-card__btn" (click)="reschedule.emit(appointment())">Reprogramar</button>
+      <button type="button" class="appointment-card__btn" [disabled]="confirmationBusy()" (click)="reschedule.emit(appointment())">Reprogramar</button>
       <a class="appointment-card__btn appointment-card__btn--soft" [routerLink]="['/pacientes', appointment().patient.id]">Ver ficha</a>
-      <button type="button" class="appointment-card__cancel" aria-label="Cancelar turno" (click)="confirming.set(true)">
+      <button type="button" class="appointment-card__complete" aria-label="Confirmar sesión" title="Confirmar sesión" [disabled]="confirmationBusy()" [attr.aria-busy]="confirmationBusy()" (click)="confirmAppointment()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6"></path></svg>
+      </button>
+      <button type="button" class="appointment-card__cancel" aria-label="Cancelar turno" [disabled]="confirmationBusy()" (click)="confirming.set(true)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
       </button>
     </div>
+  }
+  @if (confirmationError(); as message) {
+    <p class="appointment-card__error" role="alert">{{ message }}</p>
   }
 </article>

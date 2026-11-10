@@ -6,6 +6,7 @@ import { Patient } from '../patients.models';
 import { PatientsService } from '../patients.service';
 import { DiagnosesService } from '../../diagnoses/diagnoses.service';
 import { Diagnosis } from '../../diagnoses/diagnoses.models';
+import { BillingSection } from '../../billing/billing-section/billing-section';
 import { DiagnosisCard } from '../../diagnoses/diagnosis-card/diagnosis-card';
 
 const NOT_FOUND = 'Este paciente no existe.';
@@ -16,7 +17,7 @@ const DIAGNOSES_ERROR = 'No pudimos cargar los diagnósticos.';
 /** H4.3 patient page: personal data and the diagnoses, newest first (H5.2). */
 @Component({
   selector: 'app-patient-page',
-  imports: [RouterLink, DiagnosisCard],
+  imports: [RouterLink, DiagnosisCard, BillingSection],
   templateUrl: './patient-page.html',
   styleUrl: './patient-page.scss',
 })

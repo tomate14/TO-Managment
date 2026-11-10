@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Session billing per diagnosis (É12); available to every signed-in user.
+ * Patient appointment billing; available to every signed-in user.
  */
 @RestController
 @RequestMapping("/api")
@@ -28,16 +28,16 @@ public class BillingController {
         this.billingService = billingService;
     }
 
-    @GetMapping("/diagnoses/{diagnosisId}/billing")
-    public BillingSummaryResponse summary(@PathVariable("diagnosisId") Long diagnosisId) {
-        return billingService.summary(diagnosisId);
+    @GetMapping("/patients/{patientId}/billing")
+    public BillingSummaryResponse summary(@PathVariable("patientId") Long patientId) {
+        return billingService.summary(patientId);
     }
 
-    @PostMapping("/diagnoses/{diagnosisId}/billings")
+    @PostMapping("/patients/{patientId}/billings")
     @ResponseStatus(HttpStatus.CREATED)
-    public BillingSummaryResponse register(@PathVariable("diagnosisId") Long diagnosisId,
+    public BillingSummaryResponse register(@PathVariable("patientId") Long patientId,
             @Valid @RequestBody CreateBillingRequest request) {
-        return billingService.register(diagnosisId, request);
+        return billingService.register(patientId, request);
     }
 
     @PostMapping("/billings/{id}/void")

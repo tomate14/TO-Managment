@@ -1,13 +1,33 @@
-/** A session (follow-up) as listed inside a billing or among the pending ones. */
-export interface BilledSessionRef {
-  followUpId: number;
-  /** yyyy-mm-dd */
+export type BillingSessionOrigin = 'APPOINTMENT' | 'LEGACY_FOLLOW_UP';
+
+interface BillingSessionDetails {
+  /** Local yyyy-mm-dd, never parsed as UTC. */
   date: string;
+  diagnosis: { id: number; description: string } | null;
   segments: string[];
 }
 
+export interface AppointmentSessionRef extends BillingSessionDetails {
+  origin: 'APPOINTMENT';
+  appointmentId: number;
+  followUpId: null;
+  startTime: string | null;
+  confirmedAt: string | null;
+}
+
+export interface LegacyFollowUpSessionRef extends BillingSessionDetails {
+  origin: 'LEGACY_FOLLOW_UP';
+  appointmentId: null;
+  followUpId: number;
+  startTime: null;
+  confirmedAt: null;
+}
+
+export type BilledSessionRef = AppointmentSessionRef | LegacyFollowUpSessionRef;
+
 export interface Billing {
   id: number;
+  origin: BillingSessionOrigin;
   /** yyyy-mm-dd */
   billedOn: string;
   amount: number;
@@ -18,7 +38,7 @@ export interface Billing {
   sessions: BilledSessionRef[];
 }
 
-/** Billing state of a diagnosis: counters, pending sessions (oldest first) and billings (newest first). */
+/** Billing state of a patient: counters, pending sessions (oldest first) and billings (newest first). */
 export interface BillingSummary {
   totalSessions: number;
   billedSessions: number;
@@ -31,7 +51,7 @@ export interface CreateBillingPayload {
   /** yyyy-mm-dd */
   billedOn: string;
   amount: number;
-  followUpIds: number[];
+  appointmentIds: number[];
 }
 
 /** Backend error codes the billing screens react to. */

@@ -40,4 +40,11 @@ describe('AgendaService', () => {
     service.cancel(3).subscribe();
     expect(http.expectOne('/api/appointments/3').request.method).toBe('DELETE');
   });
+
+  it('confirms an appointment with an empty POST body', () => {
+    service.confirm(3).subscribe();
+    const request = http.expectOne('/api/appointments/3/confirm');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+  });
 });

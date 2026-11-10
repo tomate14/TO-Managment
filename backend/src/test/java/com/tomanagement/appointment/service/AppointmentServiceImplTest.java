@@ -63,7 +63,8 @@ class AppointmentServiceImplTest {
         AppointmentVisibilityPolicyFactory policies = new AppointmentVisibilityPolicyFactory(
                 List.of(new AdminVisibilityPolicy(), new TherapistVisibilityPolicy()));
         service = new AppointmentServiceImpl(appointmentRepository, userRepository, patientRepository,
-                diagnosisRepository, chain, policies, new AppointmentMapper(), currentEstablishment,
+                diagnosisRepository, chain, policies, new AppointmentMapper(mock(BilledAppointmentLookup.class)),
+                currentEstablishment,
                 Clock.fixed(Instant.parse("2026-11-05T14:40:00Z"), ZoneOffset.UTC));
         User therapist = User.builder().email("carla@example.com").passwordHash("x".repeat(60)).fullName("Carla")
                 .role(Role.TERAPEUTA).active(true).establishmentId(ESTABLISHMENT_ID)

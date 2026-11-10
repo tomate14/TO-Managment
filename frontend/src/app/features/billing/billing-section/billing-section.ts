@@ -13,7 +13,7 @@ const STALE_NOTICE = 'Algunas sesiones ya estaban facturadas. Actualizamos la li
 const VOID_ERROR = 'No pudimos anular la facturación. Intentá de nuevo.';
 
 /**
- * H12.1 / H12.3 "Facturación" section of the diagnosis detail: counters, the register button
+ * H12.1 / H12.3 "Facturación" section of the patient detail: counters, the register button
  * (side panel on desktop, its own page on mobile) and the billing history with inline voiding.
  */
 @Component({
@@ -27,11 +27,10 @@ export class BillingSection implements OnInit {
   private readonly router = inject(Router);
 
   readonly patientId = input.required<number>();
-  readonly diagnosisId = input.required<number>();
-  /** Diagnosis description, shown under the panel title. */
+  /** Patient name, shown under the panel title. */
   readonly description = input('');
 
-  /** A billing was registered or voided: the follow-ups' billed marks changed. */
+  /** A billing was registered or voided. */
   readonly changed = output<void>();
 
   protected readonly isDesktop = injectIsDesktop();
@@ -59,7 +58,7 @@ export class BillingSection implements OnInit {
   });
 
   ngOnInit(): void {
-    this.billingService.summary(this.diagnosisId()).subscribe({
+    this.billingService.summary(this.patientId()).subscribe({
       next: (summary) => this.summary.set(summary),
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? LOAD_ERROR),
     });
@@ -73,7 +72,7 @@ export class BillingSection implements OnInit {
       this.staleNotice.set(null);
       this.reopenPanel();
     } else {
-      void this.router.navigate(['/pacientes', this.patientId(), 'diagnosticos', this.diagnosisId(), 'facturacion', 'nueva']);
+      void this.router.navigate(['/pacientes', this.patientId(), 'facturacion', 'nueva']);
     }
   }
 
@@ -85,7 +84,7 @@ export class BillingSection implements OnInit {
 
   /** The form hit a stale pending list: reload the summary and re-create the form, keeping the message. */
   protected onStale(): void {
-    this.billingService.summary(this.diagnosisId()).subscribe({
+    this.billingService.summary(this.patientId()).subscribe({
       next: (summary) => {
         this.staleNotice.set(STALE_NOTICE);
         this.summary.set(summary);

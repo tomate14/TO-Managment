@@ -19,6 +19,8 @@ export interface Appointment {
   endTime: string;
   durationMinutes: number;
   notes: string | null;
+  confirmedAt: string | null;
+  billed: boolean;
 }
 
 export type SlotUnavailableReason = 'PAST' | 'THERAPIST_BUSY' | 'PATIENT_BUSY';

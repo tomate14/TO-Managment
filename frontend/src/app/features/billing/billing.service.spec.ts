@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { BillingService } from './billing.service';
-import { CreateBillingPayload } from './billing.models';
 
 describe('BillingService', () => {
   let service: BillingService;
@@ -14,17 +13,19 @@ describe('BillingService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    try { http.verify(); } finally { TestBed.resetTestingModule(); }
+  });
 
-  it('loads the billing summary of a diagnosis', () => {
-    service.summary(3).subscribe();
-    expect(http.expectOne('/api/diagnoses/3/billing').request.method).toBe('GET');
+  it('loads the billing summary of a patient', () => {
+    service.summary(7).subscribe();
+    expect(http.expectOne('/api/patients/7/billing').request.method).toBe('GET');
   });
 
   it('registers a billing', () => {
-    const payload: CreateBillingPayload = { billedOn: '2026-11-08', amount: 25000.5, followUpIds: [9, 10] };
-    service.register(3, payload).subscribe();
-    const request = http.expectOne('/api/diagnoses/3/billings');
+    const payload = { billedOn: '2026-11-08', amount: 25000.5, appointmentIds: [9, 10] };
+    service.register(7, payload).subscribe();
+    const request = http.expectOne('/api/patients/7/billings');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(payload);
   });

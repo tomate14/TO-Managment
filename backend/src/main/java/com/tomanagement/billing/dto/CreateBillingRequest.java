@@ -11,10 +11,10 @@ public record CreateBillingRequest(
         @NotNull(message = "Ingresá la fecha de facturación.") LocalDate billedOn,
         @NotNull(message = "Ingresá el monto.")
         @Digits(integer = 10, fraction = 2, message = "El monto no es válido.") BigDecimal amount,
-        List<@NotNull Long> followUpIds) {
+        List<@NotNull Long> appointmentIds) {
 
-    public List<Long> followUpIdsOrEmpty() {
-        return followUpIds == null ? List.of() : followUpIds;
+    public List<Long> appointmentIdsOrEmpty() {
+        return appointmentIds == null ? List.of() : appointmentIds;
     }
 
     /** The amount never reaches logs. */

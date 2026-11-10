@@ -8,7 +8,14 @@
     <h2 class="appointments-day__title">{{ group.heading }}</h2>
     <div class="appointments-day__grid">
       @for (appointment of group.appointments; track appointment.id) {
-        <app-appointment-card [appointment]="appointment" (reschedule)="reschedule.emit($event)" (cancel)="cancel.emit($event)" />
+        <app-appointment-card
+          [appointment]="appointment"
+          [confirmationBusy]="confirmingIds().has(appointment.id)"
+          [confirmationError]="confirmationErrors().get(appointment.id) ?? null"
+          (reschedule)="reschedule.emit($event)"
+          (cancel)="cancel.emit($event)"
+          (confirmSession)="confirmSession.emit($event)"
+        />
       }
     </div>
   </section>

@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Signal, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, Observable, catchError, map, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, finalize, map, switchMap } from 'rxjs';
 import { apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
 import { isAdminInEstablishment } from '../../../core/auth/auth.models';
@@ -11,6 +11,7 @@ import { AGENDA_TODAY, addDays, shiftMonth, weekDays, weekStart, weekTitle } fro
 import { AgendaTherapist, Appointment } from '../agenda.models';
 import { AgendaService } from '../agenda.service';
 import { AppointmentForm } from '../appointment-form/appointment-form';
+import { AppointmentCard } from '../appointment-card/appointment-card';
 import { AppointmentsList } from '../appointments-list/appointments-list';
 import { DayTimeline } from '../day-timeline/day-timeline';
 import { MiniMonth } from '../mini-month/mini-month';
@@ -18,10 +19,11 @@ import { TherapistFilter } from '../therapist-filter/therapist-filter';
 import { WeekCalendar } from '../week-calendar/week-calendar';
 import { WeekStrip } from '../week-strip/week-strip';
 
-export type AgendaForm = { mode: 'new' } | { mode: 'reschedule'; appointment: Appointment };
+export type AgendaForm = { mode: 'new' } | { mode: 'reschedule' | 'view'; appointment: Appointment };
 
 const LOAD_ERROR = 'No pudimos cargar la agenda. Intentá de nuevo en unos minutos.';
 const CANCEL_ERROR = 'No pudimos cancelar el turno. Intentá de nuevo.';
+const CONFIRM_ERROR = 'No pudimos confirmar la sesión. Intentá de nuevo.';
 const CLOCK_REFRESH_MS = 60_000;
 const WEEK_LENGTH = 7;
 
@@ -34,7 +36,7 @@ function currentTime(): string {
 /** E7 agenda screen: header, view tabs and the visible week's appointments (calendar / cards plug in here). */
 @Component({
   selector: 'app-agenda-page',
-  imports: [AgendaTabs, AppointmentForm, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
+  imports: [AgendaTabs, AppointmentForm, AppointmentCard, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
   templateUrl: './agenda-page.html',
   styleUrl: './agenda-page.scss',
 })
@@ -45,6 +47,9 @@ export class AgendaPage {
   private readonly route = inject(ActivatedRoute);
   private readonly isDesktop = injectIsDesktop();
   private readonly reloadTick = signal(0);
+  private readonly destroyRef = inject(DestroyRef);
+  private confirmationRevision = 0;
+  private readonly acceptedConfirmations = new Map<number, { revision: number; appointment: Appointment }>();
 
   private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
 
@@ -78,6 +83,8 @@ export class AgendaPage {
   protected readonly currentWeekAppointments = computed(() => this.visible(this.loadedCurrentWeek()));
   protected readonly error = signal<string | null>(null);
   protected readonly formOpen = signal<AgendaForm | null>(null);
+  protected readonly confirmingIds = signal<ReadonlySet<number>>(new Set());
+  protected readonly confirmationErrors = signal<ReadonlyMap<number, string>>(new Map());
 
   protected readonly user = this.auth.currentUser;
   protected readonly isAdmin = computed(() => isAdminInEstablishment(this.auth.currentUser()));
@@ -126,10 +133,15 @@ export class AgendaPage {
         }
         const start = weekStart(anchor);
         const ids = this.isAdmin() ? this.therapists().map((therapist) => therapist.id) : [];
+        const requestRevision = this.confirmationRevision;
         return this.agendaService.list(start, addDays(start, WEEK_LENGTH - 1), ids).pipe(
           map((appointments) => {
             this.error.set(this.therapistsFailed ? LOAD_ERROR : null);
-            return appointments;
+            // Only reads started before a successful POST need reconciliation; later reads may update billing.
+            return appointments.map((appointment) => {
+              const accepted = this.acceptedConfirmations.get(appointment.id);
+              return accepted && accepted.revision > requestRevision ? accepted.appointment : appointment;
+            });
           }),
           catchError(() => {
             this.error.set(LOAD_ERROR);
@@ -186,6 +198,13 @@ export class AgendaPage {
   }
 
   protected openAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id)) {
+      void this.router.navigate(['/pacientes', appointment.patient.id]);
+      return;
+    }
+    if (this.confirmingIds().has(appointment.id)) {
+      return;
+    }
     if (this.isDesktop()) {
       this.formOpen.set({ mode: 'reschedule', appointment });
     } else {
@@ -193,14 +212,67 @@ export class AgendaPage {
     }
   }
 
+  protected selectAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id)) {
+      void this.router.navigate(['/pacientes', appointment.patient.id]);
+      return;
+    }
+    if (this.isDesktop()) {
+      this.formOpen.set({ mode: 'view', appointment });
+    } else {
+      void this.router.navigate(['/agenda', appointment.id, 'reprogramar'], {
+        queryParams: { vista: this.view(), detalle: '1' },
+      });
+    }
+  }
+
   protected cancelAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id) || this.confirmingIds().has(appointment.id)) {
+      return;
+    }
     this.agendaService.cancel(appointment.id).subscribe({
       next: () => {
         this.error.set(null);
+        this.formOpen.update((open) => open && open.mode !== 'new' && open.appointment.id === appointment.id ? null : open);
         this.reload();
       },
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? CANCEL_ERROR),
     });
+  }
+
+  protected confirmAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id) || this.confirmingIds().has(appointment.id)) {
+      return;
+    }
+    this.confirmingIds.update((ids) => new Set([...ids, appointment.id]));
+    this.confirmationErrors.update((errors) => {
+      const next = new Map(errors);
+      next.delete(appointment.id);
+      return next;
+    });
+    this.agendaService.confirm(appointment.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.confirmingIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(appointment.id);
+          return next;
+        })),
+      )
+      .subscribe({
+        next: (confirmed) => {
+          this.acceptedConfirmations.set(confirmed.id, { revision: ++this.confirmationRevision, appointment: confirmed });
+          const replace = (appointments: Appointment[]) => appointments.map((item) => item.id === confirmed.id ? confirmed : item);
+          this.loaded.update(replace);
+          this.loadedCurrentWeek.update(replace);
+          this.formOpen.update((open) => open?.mode === 'view' && open.appointment.id === confirmed.id
+            ? { mode: 'view', appointment: confirmed }
+            : open);
+        },
+        error: (err: unknown) => this.confirmationErrors.update(
+          (errors) => new Map(errors).set(appointment.id, apiErrorMessage(err) ?? CONFIRM_ERROR),
+        ),
+      });
   }
 
   protected closeForm(): void {

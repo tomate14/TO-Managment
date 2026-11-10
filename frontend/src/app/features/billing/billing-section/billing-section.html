@@ -3,8 +3,8 @@
 
   @if (summary(); as s) {
     <dl class="billing__counters">
-      <div class="counter"><dt class="counter__label">sesiones</dt><dd class="counter__value">{{ s.totalSessions }}</dd></div>
-      <div class="counter counter--billed"><dt class="counter__label">facturadas</dt><dd class="counter__value">{{ s.billedSessions }}</dd></div>
+      <div class="counter"><dt class="counter__label">turnos confirmados</dt><dd class="counter__value">{{ s.totalSessions }}</dd></div>
+      <div class="counter counter--billed"><dt class="counter__label">facturados</dt><dd class="counter__value">{{ s.billedSessions }}</dd></div>
       <div class="counter counter--pending"><dt class="counter__label">pendientes</dt><dd class="counter__value">{{ s.pendingSessions }}</dd></div>
     </dl>
 
@@ -17,7 +17,7 @@
     }
 
     @if (s.totalSessions === 0) {
-      <p class="billing__empty">Todavía no hay sesiones para facturar.</p>
+      <p class="billing__empty">Todavía no hay turnos confirmados para facturar.</p>
     }
 
     @if (s.billings.length > 0) {
@@ -27,6 +27,9 @@
           <li class="billing-row" [class.billing-row--voided]="billing.voided">
             <span class="billing-row__text">
               <span class="billing-row__count">{{ sessionCountLabel(billing.sessionCount) }}</span>
+              @if (billing.origin === 'LEGACY_FOLLOW_UP') {
+                <span class="badge billing-row__legacy">Registro anterior</span>
+              }
               <span class="billing-row__date">Facturado el {{ formatLongDate(billing.billedOn) }}</span>
             </span>
             @if (billing.voided) {
@@ -49,10 +52,17 @@
 
             @if (isExpanded(billing)) {
               <ul [id]="'billing-sessions-' + billing.id" class="billing-row__sessions">
-                @for (session of billing.sessions; track session.followUpId) {
+                @for (session of billing.sessions; track session.origin + ':' + (session.appointmentId ?? session.followUpId)) {
                   <li class="billing-session">
-                    <span class="billing-session__date">{{ formatDate(session.date) }}</span>
-                    <span class="billing-session__segments">{{ session.segments.join(', ') }}</span>
+                    <span class="billing-session__date">{{ formatDate(session.date) }} @if (session.startTime) { · {{ session.startTime.slice(0, 5) }} }</span>
+                    @if (session.origin === 'LEGACY_FOLLOW_UP') {
+                      <span class="billing-session__segments">{{ session.segments.join(', ') }}</span>
+                    } @else {
+                      <span class="billing-session__confirmed">✓ Confirmado</span>
+                    }
+                    @if (session.diagnosis; as diagnosis) {
+                      <span class="billing-session__diagnosis">{{ diagnosis.description }}</span>
+                    }
                   </li>
                 }
               </ul>
@@ -60,7 +70,7 @@
 
             @if (confirmingVoidId() === billing.id) {
               <div class="billing-row__confirm" role="group" [attr.aria-labelledby]="'billing-void-' + billing.id">
-                <p [id]="'billing-void-' + billing.id" class="billing-row__confirm-text">¿Anular esta facturación? Sus sesiones vuelven a quedar pendientes.</p>
+                <p [id]="'billing-void-' + billing.id" class="billing-row__confirm-text">¿Anular esta facturación?@if (billing.origin === 'APPOINTMENT') { Sus sesiones vuelven a quedar pendientes. } @else { El registro anterior se conserva en el historial. }</p>
                 <div class="billing-row__confirm-actions">
                   <button type="button" class="billing-row__cancel" (click)="cancelVoid()">Cancelar</button>
                   <button type="button" class="billing-row__confirm-void" [disabled]="voidingId() === billing.id"
@@ -94,7 +104,7 @@
       </button>
     </div>
     @for (opening of panelTargets(); track opening) {
-      <app-billing-form [diagnosisId]="diagnosisId()" [pending]="summary()?.pending ?? []" [notice]="staleNotice()"
+      <app-billing-form [patientId]="patientId()" [pending]="summary()?.pending ?? []" [notice]="staleNotice()"
                         (saved)="onSaved($event)" (stale)="onStale()" (cancelled)="closePanel()" />
     }
   </aside>

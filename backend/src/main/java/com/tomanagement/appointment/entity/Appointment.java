@@ -60,6 +60,9 @@ public class Appointment {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
     protected Appointment() {
         // Required by JPA.
     }
@@ -82,6 +85,16 @@ public class Appointment {
 
     public Long getId() {
         return id;
+    }
+
+    public void confirm(Instant when) {
+        if (confirmedAt == null) {
+            confirmedAt = Objects.requireNonNull(when, "when is required");
+        }
+    }
+
+    public Instant getConfirmedAt() {
+        return confirmedAt;
     }
 
     public User getTherapist() {

@@ -15,8 +15,11 @@ export type AppointmentsRange = 'hoy' | 'semana';
 export class AppointmentsList {
   readonly appointments = input.required<Appointment[]>();
   readonly today = input.required<string>();
+  readonly confirmingIds = input<ReadonlySet<number>>(new Set());
+  readonly confirmationErrors = input<ReadonlyMap<number, string>>(new Map());
   readonly reschedule = output<Appointment>();
   readonly cancel = output<Appointment>();
+  readonly confirmSession = output<Appointment>();
 
   readonly range = signal<AppointmentsRange>('semana');
 

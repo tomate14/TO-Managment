@@ -7,7 +7,8 @@ import com.tomanagement.common.exception.ErrorCode;
  */
 enum BillingConstraint {
 
-    ACTIVE_FOLLOW_UP_LINK("ux_billing_follow_up_active", ErrorCode.BILLING_SESSION_INVALID);
+    ACTIVE_FOLLOW_UP_LINK("ux_billing_follow_up_active", ErrorCode.BILLING_SESSION_INVALID),
+    ACTIVE_APPOINTMENT_LINK("ux_billing_appointment_active", ErrorCode.BILLING_SESSION_INVALID);
 
     private final String indexName;
     private final ErrorCode errorCode;

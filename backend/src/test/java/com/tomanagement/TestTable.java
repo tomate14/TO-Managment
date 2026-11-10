@@ -4,6 +4,9 @@ package com.tomanagement;
  * Tables integration tests may empty with {@link TestTables}.
  */
 public enum TestTable {
+    BILLING_APPOINTMENT("billing_appointment"),
+    BILLING_FOLLOW_UP("billing_follow_up"),
+    BILLING("billing"),
     APPOINTMENT("appointment"),
     BODY_SEGMENT("body_segment"),
     SURGERY_TYPE("surgery_type"),

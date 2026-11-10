@@ -26,18 +26,16 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     private final TreatmentFactory treatmentFactory;
     private final DiagnosisMapper mapper;
     private final FollowUpCounter followUpCounter;
-    private final PendingBillingCounter pendingBillingCounter;
     private final Clock clock;
 
     public DiagnosisServiceImpl(DiagnosisRepository diagnosisRepository, PatientRepository patientRepository,
             TreatmentFactory treatmentFactory, DiagnosisMapper mapper, FollowUpCounter followUpCounter,
-            PendingBillingCounter pendingBillingCounter, Clock clock) {
+            Clock clock) {
         this.diagnosisRepository = diagnosisRepository;
         this.patientRepository = patientRepository;
         this.treatmentFactory = treatmentFactory;
         this.mapper = mapper;
         this.followUpCounter = followUpCounter;
-        this.pendingBillingCounter = pendingBillingCounter;
         this.clock = clock;
     }
 
@@ -48,10 +46,8 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         List<Diagnosis> diagnoses = diagnosisRepository.findByPatient_IdOrderByCreatedDateDescIdDesc(patientId);
         List<Long> ids = diagnoses.stream().map(Diagnosis::getId).toList();
         Map<Long, Long> counts = followUpCounter.countByDiagnosis(ids);
-        Map<Long, Long> pending = pendingBillingCounter.pendingByDiagnosis(ids);
         return diagnoses.stream()
-                .map(diagnosis -> mapper.toResponse(diagnosis, counts.getOrDefault(diagnosis.getId(), 0L),
-                        pending.getOrDefault(diagnosis.getId(), 0L)))
+                .map(diagnosis -> mapper.toResponse(diagnosis, counts.getOrDefault(diagnosis.getId(), 0L)))
                 .toList();
     }
 
@@ -61,7 +57,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
         Patient patient = findPatient(patientId);
         Diagnosis diagnosis = new Diagnosis(patient, request.description(), LocalDate.now(clock),
                 treatmentFactory.create(request.treatment()));
-        return mapper.toResponse(diagnosisRepository.saveAndFlush(diagnosis), 0L, 0L);
+        return mapper.toResponse(diagnosisRepository.saveAndFlush(diagnosis), 0L);
     }
 
     @Override
@@ -69,8 +65,7 @@ public class DiagnosisServiceImpl implements DiagnosisService {
     public DiagnosisResponse get(Long diagnosisId) {
         return diagnosisRepository.findById(diagnosisId)
                 .map(diagnosis -> mapper.toResponse(diagnosis,
-                        followUpCounter.countByDiagnosis(List.of(diagnosisId)).getOrDefault(diagnosisId, 0L),
-                        pendingBillingCounter.pendingByDiagnosis(List.of(diagnosisId)).getOrDefault(diagnosisId, 0L)))
+                        followUpCounter.countByDiagnosis(List.of(diagnosisId)).getOrDefault(diagnosisId, 0L)))
                 .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.DIAGNOSIS_NOT_FOUND));
     }
 

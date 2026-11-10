@@ -9,22 +9,22 @@ import { todayIso } from '../../patients/patient-format';
 
 describe('BillingForm', () => {
   const pending: BilledSessionRef[] = [
-    { followUpId: 21, date: '2026-11-05', segments: ['Muñeca'] },
-    { followUpId: 22, date: '2026-11-06', segments: ['Muñeca', 'Mano'] },
-    { followUpId: 23, date: '2026-11-07', segments: ['Muñeca'] },
+    { origin: 'APPOINTMENT', appointmentId: 21, followUpId: null, date: '2026-11-05', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: null, segments: [] },
+    { origin: 'APPOINTMENT', appointmentId: 22, followUpId: null, date: '2026-11-06', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 3, description: 'Diagnóstico de ejemplo' }, segments: [] },
+    { origin: 'APPOINTMENT', appointmentId: 23, followUpId: null, date: '2026-11-07', startTime: '09:00:00', confirmedAt: '2026-11-09T12:00:00Z', diagnosis: { id: 4, description: 'Otro diagnóstico' }, segments: [] },
   ];
   const summary: BillingSummary = { totalSessions: 3, billedSessions: 3, pendingSessions: 0, pending: [], billings: [] };
   let register: ReturnType<typeof vi.fn>;
 
-  function render() {
+  function render(sessions: BilledSessionRef[] = pending) {
     register = vi.fn(() => of(summary));
     TestBed.configureTestingModule({
       imports: [BillingForm],
       providers: [{ provide: BillingService, useValue: { register } }],
     });
     const fixture = TestBed.createComponent(BillingForm);
-    fixture.componentRef.setInput('diagnosisId', 3);
-    fixture.componentRef.setInput('pending', pending);
+    fixture.componentRef.setInput('patientId', 7);
+    fixture.componentRef.setInput('pending', sessions);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     const checkboxes = () => Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'));
@@ -45,12 +45,26 @@ describe('BillingForm', () => {
     const { el, checkboxes } = render();
     expect(checkboxes().map((box) => box.checked)).toEqual([true, true, true]);
     expect(el.textContent).toContain('05/11/2026');
-    expect(el.textContent).toContain('Muñeca, Mano');
+    expect(el.textContent).toContain('09:00');
+    expect(el.querySelectorAll('.session-option__diagnosis')).toHaveLength(2);
+    expect(el.querySelectorAll('.session-option__confirmed')).toHaveLength(3);
+    expect(el.textContent).not.toContain('Sin diagnóstico');
+    expect(el.textContent).not.toContain('Muñeca');
     const date = el.querySelector<HTMLInputElement>('#billing-date')!;
     expect(date.value).toBe(todayIso());
     expect(date.getAttribute('max')).toBe(todayIso());
     expect(el.querySelector<HTMLInputElement>('#billing-amount')!.value).toBe('');
     expect(el.querySelector('#billing-amount')!.getAttribute('inputmode')).toBe('decimal');
+  });
+
+  it('only allows appointment references with an appointment id, never historical follow-up ids', () => {
+    const legacy: BilledSessionRef = { origin: 'LEGACY_FOLLOW_UP', appointmentId: null, followUpId: 21, date: '2026-11-01', startTime: null, confirmedAt: null, diagnosis: null, segments: ['Mano'] };
+    const invalid = { ...pending[0], appointmentId: null } as unknown as BilledSessionRef;
+    const { checkboxes, typeAmount, submit } = render([pending[0], legacy, invalid]);
+    expect(checkboxes()).toHaveLength(1);
+    typeAmount('1000');
+    submit();
+    expect(register).toHaveBeenCalledWith(7, { billedOn: todayIso(), amount: 1000, appointmentIds: [21] });
   });
 
   it('counts the chosen sessions', () => {
@@ -104,7 +118,7 @@ describe('BillingForm', () => {
     fixture.detectChanges();
     typeAmount('25.000,50');
     submit();
-    expect(register).toHaveBeenCalledWith(3, { billedOn: todayIso(), amount: 25000.5, followUpIds: [21, 22] });
+    expect(register).toHaveBeenCalledWith(7, { billedOn: todayIso(), amount: 25000.5, appointmentIds: [21, 22] });
     expect(saved).toHaveBeenCalledWith(summary);
   });
 
@@ -112,12 +126,12 @@ describe('BillingForm', () => {
     const { el, typeAmount, submit } = render();
     register.mockReturnValue(throwError(() => new HttpErrorResponse({
       status: 422,
-      error: { code: 'BILLING_SESSION_INVALID', message: 'Hay sesiones que no son de este diagnóstico o ya están facturadas.' },
+      error: { code: 'BILLING_SESSION_INVALID', message: 'Hay sesiones que no son de este paciente, no están confirmadas o ya están facturadas.' },
     })));
     typeAmount('1000');
     submit();
     expect(el.querySelector('.billing-form__body > [role="alert"]')?.textContent)
-      .toContain('Hay sesiones que no son de este diagnóstico o ya están facturadas.');
+      .toContain('Hay sesiones que no son de este paciente, no están confirmadas o ya están facturadas.');
   });
 
   it('emits stale on BILLING_SESSION_INVALID and keeps the message', () => {
@@ -139,7 +153,7 @@ describe('BillingForm', () => {
       providers: [{ provide: BillingService, useValue: { register: vi.fn() } }],
     });
     const fixture = TestBed.createComponent(BillingForm);
-    fixture.componentRef.setInput('diagnosisId', 3);
+    fixture.componentRef.setInput('patientId', 7);
     fixture.componentRef.setInput('pending', pending);
     fixture.componentRef.setInput('notice', 'Actualizamos la lista.');
     fixture.detectChanges();

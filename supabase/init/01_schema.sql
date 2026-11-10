@@ -1,4 +1,4 @@
--- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V14).
+-- TO Managment: esquema completo (estado final, equivalente a las migraciones Flyway V1..V15).
 -- Idempotente. Uso: psql -v app_schema=<APP_DB_SCHEMA> -f 01_schema.sql
 -- Mantener sincronizado con backend/src/main/resources/db/migration en cada cambio de esquema.
 
@@ -254,13 +254,20 @@ CREATE INDEX IF NOT EXISTS ix_metric_value_metric ON metric_value (segment_metri
 CREATE TABLE IF NOT EXISTS billing (
     id               BIGSERIAL      PRIMARY KEY,
     establishment_id BIGINT         NOT NULL REFERENCES establishment (id),
-    diagnosis_id     BIGINT         NOT NULL REFERENCES diagnosis (id),
+    patient_id       BIGINT         NOT NULL REFERENCES patient (id),
+    diagnosis_id     BIGINT         REFERENCES diagnosis (id),
     billed_on        DATE           NOT NULL,
     amount           NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
     created_at       TIMESTAMPTZ    NOT NULL,
     voided_at        TIMESTAMPTZ
 );
+ALTER TABLE billing ADD COLUMN IF NOT EXISTS patient_id BIGINT REFERENCES patient (id);
+UPDATE billing b SET patient_id = d.patient_id FROM diagnosis d
+    WHERE d.id = b.diagnosis_id AND b.patient_id IS NULL;
+ALTER TABLE billing ALTER COLUMN patient_id SET NOT NULL;
+ALTER TABLE billing ALTER COLUMN diagnosis_id DROP NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_billing_diagnosis ON billing (diagnosis_id, billed_on DESC);
+CREATE INDEX IF NOT EXISTS ix_billing_patient ON billing (patient_id, billed_on DESC);
 
 CREATE TABLE IF NOT EXISTS billing_follow_up (
     billing_id       BIGINT  NOT NULL REFERENCES billing (id),
@@ -283,6 +290,7 @@ CREATE TABLE IF NOT EXISTS appointment (
     end_at       TIMESTAMP    NOT NULL,
     notes        VARCHAR(500),
     created_at   TIMESTAMPTZ  NOT NULL,
+    confirmed_at TIMESTAMPTZ,
     establishment_id BIGINT NOT NULL REFERENCES establishment (id),
     CONSTRAINT ck_appointment_range CHECK (end_at > start_at),
     CONSTRAINT ex_appointment_therapist_overlap EXCLUDE USING gist (therapist_id WITH =, tsrange(start_at, end_at) WITH &&),
@@ -290,3 +298,15 @@ CREATE TABLE IF NOT EXISTS appointment (
 );
 CREATE INDEX IF NOT EXISTS ix_appointment_start ON appointment (start_at);
 CREATE INDEX IF NOT EXISTS ix_appointment_establishment_start ON appointment (establishment_id, start_at);
+ALTER TABLE appointment ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS ix_appointment_confirmed_patient ON appointment (patient_id, start_at, id)
+    WHERE confirmed_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS billing_appointment (
+    billing_id       BIGINT  NOT NULL REFERENCES billing (id),
+    appointment_id   BIGINT  NOT NULL REFERENCES appointment (id),
+    establishment_id BIGINT  NOT NULL REFERENCES establishment (id),
+    active           BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (billing_id, appointment_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_billing_appointment_active ON billing_appointment (appointment_id) WHERE active;

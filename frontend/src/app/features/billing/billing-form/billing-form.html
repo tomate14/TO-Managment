@@ -12,14 +12,15 @@
       </div>
       <span class="visually-hidden" aria-live="polite">{{ selectedLabel() }}</span>
       <ul class="billing-form__list" [class.billing-form__list--invalid]="fieldError('sessions')">
-        @for (session of pending(); track session.followUpId) {
+        @for (session of appointments(); track session.appointmentId) {
           <li>
             <label class="session-option">
               <input type="checkbox" class="session-option__check" [checked]="isSelected(session)" (change)="toggle(session)">
               <span class="session-option__text">
-                <span class="session-option__date">{{ formatDate(session.date) }}</span>
-                @if (session.segments.length > 0) {
-                  <span class="session-option__segments">{{ session.segments.join(', ') }}</span>
+                <span class="session-option__date">{{ formatDate(session.date) }} @if (session.startTime) { · {{ session.startTime.slice(0, 5) }} }</span>
+                <span class="session-option__confirmed">✓ Confirmado</span>
+                @if (session.diagnosis; as diagnosis) {
+                  <span class="session-option__diagnosis">{{ diagnosis.description }}</span>
                 }
               </span>
             </label>

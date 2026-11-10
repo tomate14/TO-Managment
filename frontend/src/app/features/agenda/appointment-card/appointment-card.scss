@@ -13,6 +13,9 @@
   gap: 8px;
   height: 100%;
   box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  overflow-wrap: anywhere;
   padding: 16px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -79,6 +82,7 @@
 
 .appointment-card__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -88,6 +92,7 @@
 }
 
 .appointment-card__btn,
+.appointment-card__complete,
 .appointment-card__cancel {
   display: inline-flex;
   align-items: center;
@@ -103,6 +108,11 @@
   &:focus-visible {
     outline: 3px solid var(--color-focus-ring);
     outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
   }
 }
 
@@ -125,11 +135,29 @@
   }
 }
 
+.appointment-card__complete,
 .appointment-card__cancel {
   width: 44px;
-  margin-left: auto;
+  flex: 0 0 44px;
   border: 1.5px solid #f0c9c6;
   background: var(--color-surface);
+  color: var(--color-danger, #b3261e);
+}
+
+.appointment-card__complete {
+  margin-left: auto;
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.appointment-card__status,
+.appointment-card__error {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.appointment-card__error {
   color: var(--color-danger, #b3261e);
 }
 
