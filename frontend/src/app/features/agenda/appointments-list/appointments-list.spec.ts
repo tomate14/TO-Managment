@@ -75,4 +75,35 @@ describe('AppointmentsList', () => {
     expect(el.textContent).toContain('Epicondilitis');
     expect(el.textContent).not.toContain('Confirmado');
   });
+
+  it('offers direct confirmation before cancel with an accessible label and tooltip', () => {
+    const { el } = setup();
+    const confirm = el.querySelector<HTMLButtonElement>('[aria-label="Confirmar sesión"]');
+    expect(confirm).toBeTruthy();
+    expect(confirm!.title).toBe('Confirmar sesión');
+    expect(confirm!.nextElementSibling?.getAttribute('aria-label')).toBe('Cancelar turno');
+  });
+
+  it('shows confirmed billing states with only the patient action', () => {
+    const { fixture, el } = setup();
+    fixture.componentRef.setInput('appointments', [
+      { ...appointments[0], confirmedAt: '2026-11-05T12:00:00Z', billed: false },
+      { ...appointments[1], confirmedAt: '2026-11-05T12:00:00Z', billed: true },
+    ]);
+    fixture.detectChanges();
+    const cards = el.querySelectorAll('app-appointment-card');
+    expect(cards[0].textContent).toContain('Confirmado · Pendiente de facturar');
+    expect(cards[1].textContent).toContain('Confirmado · Facturado');
+    for (const card of cards) {
+      expect(card.querySelector('.appointment-card__actions')!.textContent?.trim()).toBe('Ver ficha');
+      expect(card.querySelector('button')).toBeNull();
+    }
+  });
+
+  it('does not render a diagnosis line for appointments without a diagnosis', () => {
+    const { el } = setup();
+    const cards = el.querySelectorAll('app-appointment-card');
+    expect(cards[0].querySelector('.appointment-card__diagnosis')).toBeTruthy();
+    expect(cards[1].querySelector('.appointment-card__diagnosis')).toBeNull();
+  });
 });

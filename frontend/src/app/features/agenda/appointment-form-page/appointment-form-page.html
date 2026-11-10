@@ -8,13 +8,17 @@
 @if (error(); as message) {
   <p class="alert alert--error form-page__error" role="alert">{{ message }}</p>
 } @else if (ready() && currentUser(); as user) {
-  <app-appointment-form
-    [mode]="mode"
-    [appointment]="appointment()"
-    [therapists]="therapists()"
-    [currentUser]="user"
-    [today]="today"
-    (saved)="back()"
-    (cancelled)="back()"
-  />
+  @if (appointment()?.confirmedAt) {
+    <app-appointment-card [appointment]="appointment()!" />
+  } @else {
+    <app-appointment-form
+      [mode]="mode"
+      [appointment]="appointment()"
+      [therapists]="therapists()"
+      [currentUser]="user"
+      [today]="today"
+      (saved)="back()"
+      (cancelled)="back()"
+    />
+  }
 }

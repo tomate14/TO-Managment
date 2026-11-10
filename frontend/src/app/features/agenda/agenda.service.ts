@@ -45,6 +45,10 @@ export class AgendaService {
     return this.http.delete<void>(`/api/appointments/${id}`);
   }
 
+  confirm(id: number): Observable<Appointment> {
+    return this.http.post<Appointment>(`/api/appointments/${id}/confirm`, {});
+  }
+
   therapists(): Observable<AgendaTherapist[]> {
     return this.http.get<AgendaTherapist[]>('/api/agenda/therapists');
   }

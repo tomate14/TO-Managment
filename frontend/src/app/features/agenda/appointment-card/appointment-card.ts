@@ -12,8 +12,11 @@ import { Appointment } from '../agenda.models';
 })
 export class AppointmentCard {
   readonly appointment = input.required<Appointment>();
+  readonly confirmationBusy = input(false);
+  readonly confirmationError = input<string | null>(null);
   readonly reschedule = output<Appointment>();
   readonly cancel = output<Appointment>();
+  readonly confirmSession = output<Appointment>();
 
   protected readonly confirming = signal(false);
   protected readonly patientName = computed(() => fullName(this.appointment().patient));
@@ -24,5 +27,11 @@ export class AppointmentCard {
   protected confirmCancel(): void {
     this.confirming.set(false);
     this.cancel.emit(this.appointment());
+  }
+
+  protected confirmAppointment(): void {
+    if (!this.confirmationBusy() && !this.appointment().confirmedAt) {
+      this.confirmSession.emit(this.appointment());
+    }
   }
 }

@@ -13,6 +13,8 @@ function appt(id: number, start: string, end: string): Appointment {
     endTime: `${end}:00`,
     durationMinutes: minutes(end) - minutes(start),
     notes: null,
+    confirmedAt: null,
+    billed: false,
   };
 }
 

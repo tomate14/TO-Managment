@@ -76,8 +76,11 @@
         <app-appointments-list
           [appointments]="currentWeekAppointments()"
           [today]="today"
+          [confirmingIds]="confirmingIds()"
+          [confirmationErrors]="confirmationErrors()"
           (reschedule)="openAppointment($event)"
           (cancel)="cancelAppointment($event)"
+          (confirmSession)="confirmAppointment($event)"
         />
       </div>
     }

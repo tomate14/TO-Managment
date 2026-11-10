@@ -1,7 +1,7 @@
 import { Component, DestroyRef, Signal, computed, inject, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, Observable, catchError, map, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, finalize, map, switchMap } from 'rxjs';
 import { apiErrorMessage } from '../../../core/api/api-error';
 import { AuthService } from '../../../core/auth/auth.service';
 import { isAdminInEstablishment } from '../../../core/auth/auth.models';
@@ -22,6 +22,7 @@ export type AgendaForm = { mode: 'new' } | { mode: 'reschedule'; appointment: Ap
 
 const LOAD_ERROR = 'No pudimos cargar la agenda. Intentá de nuevo en unos minutos.';
 const CANCEL_ERROR = 'No pudimos cancelar el turno. Intentá de nuevo.';
+const CONFIRM_ERROR = 'No pudimos confirmar la sesión. Intentá de nuevo.';
 const CLOCK_REFRESH_MS = 60_000;
 const WEEK_LENGTH = 7;
 
@@ -45,6 +46,7 @@ export class AgendaPage {
   private readonly route = inject(ActivatedRoute);
   private readonly isDesktop = injectIsDesktop();
   private readonly reloadTick = signal(0);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
 
@@ -78,6 +80,8 @@ export class AgendaPage {
   protected readonly currentWeekAppointments = computed(() => this.visible(this.loadedCurrentWeek()));
   protected readonly error = signal<string | null>(null);
   protected readonly formOpen = signal<AgendaForm | null>(null);
+  protected readonly confirmingIds = signal<ReadonlySet<number>>(new Set());
+  protected readonly confirmationErrors = signal<ReadonlyMap<number, string>>(new Map());
 
   protected readonly user = this.auth.currentUser;
   protected readonly isAdmin = computed(() => isAdminInEstablishment(this.auth.currentUser()));
@@ -186,6 +190,13 @@ export class AgendaPage {
   }
 
   protected openAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt) {
+      void this.router.navigate(['/pacientes', appointment.patient.id]);
+      return;
+    }
+    if (this.confirmingIds().has(appointment.id)) {
+      return;
+    }
     if (this.isDesktop()) {
       this.formOpen.set({ mode: 'reschedule', appointment });
     } else {
@@ -194,6 +205,9 @@ export class AgendaPage {
   }
 
   protected cancelAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.confirmingIds().has(appointment.id)) {
+      return;
+    }
     this.agendaService.cancel(appointment.id).subscribe({
       next: () => {
         this.error.set(null);
@@ -201,6 +215,37 @@ export class AgendaPage {
       },
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? CANCEL_ERROR),
     });
+  }
+
+  protected confirmAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.confirmingIds().has(appointment.id)) {
+      return;
+    }
+    this.confirmingIds.update((ids) => new Set([...ids, appointment.id]));
+    this.confirmationErrors.update((errors) => {
+      const next = new Map(errors);
+      next.delete(appointment.id);
+      return next;
+    });
+    this.agendaService.confirm(appointment.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.confirmingIds.update((ids) => {
+          const next = new Set(ids);
+          next.delete(appointment.id);
+          return next;
+        })),
+      )
+      .subscribe({
+        next: (confirmed) => {
+          const replace = (appointments: Appointment[]) => appointments.map((item) => item.id === confirmed.id ? confirmed : item);
+          this.loaded.update(replace);
+          this.loadedCurrentWeek.update(replace);
+        },
+        error: (err: unknown) => this.confirmationErrors.update(
+          (errors) => new Map(errors).set(appointment.id, apiErrorMessage(err) ?? CONFIRM_ERROR),
+        ),
+      });
   }
 
   protected closeForm(): void {

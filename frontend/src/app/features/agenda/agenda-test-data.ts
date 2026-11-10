@@ -11,6 +11,8 @@ export function appointmentOf(overrides: Partial<Appointment> & { id: number }):
     endTime: '09:45:00',
     durationMinutes: 45,
     notes: null,
+    confirmedAt: null,
+    billed: false,
     ...overrides,
   };
 }

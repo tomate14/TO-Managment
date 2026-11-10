@@ -12,6 +12,8 @@ function appt(id: number, date: string, startTime: string): Appointment {
     endTime: startTime,
     durationMinutes: 30,
     notes: null,
+    confirmedAt: null,
+    billed: false,
   };
 }
 

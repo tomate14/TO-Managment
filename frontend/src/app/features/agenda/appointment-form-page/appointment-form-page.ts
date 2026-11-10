@@ -6,13 +6,14 @@ import { AGENDA_TODAY } from '../agenda-dates';
 import { AgendaTherapist, Appointment } from '../agenda.models';
 import { AgendaService } from '../agenda.service';
 import { AppointmentForm } from '../appointment-form/appointment-form';
+import { AppointmentCard } from '../appointment-card/appointment-card';
 
 const LOAD_ERROR = 'No pudimos cargar los datos del turno. Intentá de nuevo en unos minutos.';
 
 /** Mobile screens `/agenda/nuevo` and `/agenda/:id/reprogramar`: the shared form full-page. */
 @Component({
   selector: 'app-appointment-form-page',
-  imports: [AppointmentForm, RouterLink],
+  imports: [AppointmentForm, AppointmentCard, RouterLink],
   templateUrl: './appointment-form-page.html',
   styleUrl: './appointment-form-page.scss',
 })
