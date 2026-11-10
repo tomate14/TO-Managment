@@ -47,6 +47,8 @@ export class AgendaPage {
   private readonly isDesktop = injectIsDesktop();
   private readonly reloadTick = signal(0);
   private readonly destroyRef = inject(DestroyRef);
+  private confirmationRevision = 0;
+  private readonly acceptedConfirmations = new Map<number, { revision: number; appointment: Appointment }>();
 
   private readonly query = toSignal(this.route.queryParamMap, { initialValue: this.route.snapshot.queryParamMap });
 
@@ -130,10 +132,15 @@ export class AgendaPage {
         }
         const start = weekStart(anchor);
         const ids = this.isAdmin() ? this.therapists().map((therapist) => therapist.id) : [];
+        const requestRevision = this.confirmationRevision;
         return this.agendaService.list(start, addDays(start, WEEK_LENGTH - 1), ids).pipe(
           map((appointments) => {
             this.error.set(this.therapistsFailed ? LOAD_ERROR : null);
-            return appointments;
+            // Only reads started before a successful POST need reconciliation; later reads may update billing.
+            return appointments.map((appointment) => {
+              const accepted = this.acceptedConfirmations.get(appointment.id);
+              return accepted && accepted.revision > requestRevision ? accepted.appointment : appointment;
+            });
           }),
           catchError(() => {
             this.error.set(LOAD_ERROR);
@@ -190,7 +197,7 @@ export class AgendaPage {
   }
 
   protected openAppointment(appointment: Appointment): void {
-    if (appointment.confirmedAt) {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id)) {
       void this.router.navigate(['/pacientes', appointment.patient.id]);
       return;
     }
@@ -205,7 +212,7 @@ export class AgendaPage {
   }
 
   protected cancelAppointment(appointment: Appointment): void {
-    if (appointment.confirmedAt || this.confirmingIds().has(appointment.id)) {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id) || this.confirmingIds().has(appointment.id)) {
       return;
     }
     this.agendaService.cancel(appointment.id).subscribe({
@@ -218,7 +225,7 @@ export class AgendaPage {
   }
 
   protected confirmAppointment(appointment: Appointment): void {
-    if (appointment.confirmedAt || this.confirmingIds().has(appointment.id)) {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id) || this.confirmingIds().has(appointment.id)) {
       return;
     }
     this.confirmingIds.update((ids) => new Set([...ids, appointment.id]));
@@ -238,6 +245,7 @@ export class AgendaPage {
       )
       .subscribe({
         next: (confirmed) => {
+          this.acceptedConfirmations.set(confirmed.id, { revision: ++this.confirmationRevision, appointment: confirmed });
           const replace = (appointments: Appointment[]) => appointments.map((item) => item.id === confirmed.id ? confirmed : item);
           this.loaded.update(replace);
           this.loadedCurrentWeek.update(replace);
