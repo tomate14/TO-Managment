@@ -11,6 +11,7 @@ import { AGENDA_TODAY, addDays, shiftMonth, weekDays, weekStart, weekTitle } fro
 import { AgendaTherapist, Appointment } from '../agenda.models';
 import { AgendaService } from '../agenda.service';
 import { AppointmentForm } from '../appointment-form/appointment-form';
+import { AppointmentCard } from '../appointment-card/appointment-card';
 import { AppointmentsList } from '../appointments-list/appointments-list';
 import { DayTimeline } from '../day-timeline/day-timeline';
 import { MiniMonth } from '../mini-month/mini-month';
@@ -18,7 +19,7 @@ import { TherapistFilter } from '../therapist-filter/therapist-filter';
 import { WeekCalendar } from '../week-calendar/week-calendar';
 import { WeekStrip } from '../week-strip/week-strip';
 
-export type AgendaForm = { mode: 'new' } | { mode: 'reschedule'; appointment: Appointment };
+export type AgendaForm = { mode: 'new' } | { mode: 'reschedule' | 'view'; appointment: Appointment };
 
 const LOAD_ERROR = 'No pudimos cargar la agenda. Intentá de nuevo en unos minutos.';
 const CANCEL_ERROR = 'No pudimos cancelar el turno. Intentá de nuevo.';
@@ -35,7 +36,7 @@ function currentTime(): string {
 /** E7 agenda screen: header, view tabs and the visible week's appointments (calendar / cards plug in here). */
 @Component({
   selector: 'app-agenda-page',
-  imports: [AgendaTabs, AppointmentForm, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
+  imports: [AgendaTabs, AppointmentForm, AppointmentCard, AppointmentsList, DayTimeline, MiniMonth, TherapistFilter, WeekCalendar, WeekStrip],
   templateUrl: './agenda-page.html',
   styleUrl: './agenda-page.scss',
 })
@@ -211,6 +212,20 @@ export class AgendaPage {
     }
   }
 
+  protected selectAppointment(appointment: Appointment): void {
+    if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id)) {
+      void this.router.navigate(['/pacientes', appointment.patient.id]);
+      return;
+    }
+    if (this.isDesktop()) {
+      this.formOpen.set({ mode: 'view', appointment });
+    } else {
+      void this.router.navigate(['/agenda', appointment.id, 'reprogramar'], {
+        queryParams: { vista: this.view(), detalle: '1' },
+      });
+    }
+  }
+
   protected cancelAppointment(appointment: Appointment): void {
     if (appointment.confirmedAt || this.acceptedConfirmations.has(appointment.id) || this.confirmingIds().has(appointment.id)) {
       return;
@@ -218,6 +233,7 @@ export class AgendaPage {
     this.agendaService.cancel(appointment.id).subscribe({
       next: () => {
         this.error.set(null);
+        this.formOpen.update((open) => open && open.mode !== 'new' && open.appointment.id === appointment.id ? null : open);
         this.reload();
       },
       error: (err: unknown) => this.error.set(apiErrorMessage(err) ?? CANCEL_ERROR),
@@ -249,6 +265,9 @@ export class AgendaPage {
           const replace = (appointments: Appointment[]) => appointments.map((item) => item.id === confirmed.id ? confirmed : item);
           this.loaded.update(replace);
           this.loadedCurrentWeek.update(replace);
+          this.formOpen.update((open) => open?.mode === 'view' && open.appointment.id === confirmed.id
+            ? { mode: 'view', appointment: confirmed }
+            : open);
         },
         error: (err: unknown) => this.confirmationErrors.update(
           (errors) => new Map(errors).set(appointment.id, apiErrorMessage(err) ?? CONFIRM_ERROR),

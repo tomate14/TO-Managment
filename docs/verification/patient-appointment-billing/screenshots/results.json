@@ -3,6 +3,7 @@
     "width": 360,
     "passed": [
       "book without diagnosis",
+      "existing reschedule form",
       "confirm with keyboard",
       "patient pending",
       "select keyboard space",
@@ -12,6 +13,11 @@
       "legacy sessions and void preserve count",
       "old route redirect",
       "follow-up preserves billing counters",
+      "detail reschedule opens original form",
+      "detail cancel works",
+      "yesterday calendar confirmation and retry",
+      "previous-week calendar confirmation",
+      "original dates in patient pending",
       "viewport fits"
     ],
     "requests": [
@@ -38,6 +44,34 @@
       {
         "method": "POST",
         "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "PUT",
+        "path": "/api/appointments/21"
       },
       {
         "method": "GET",
@@ -182,6 +216,206 @@
       {
         "method": "GET",
         "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/agenda/therapists"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
       }
     ]
   },
@@ -189,6 +423,7 @@
     "width": 1366,
     "passed": [
       "book without diagnosis",
+      "existing reschedule form",
       "confirm with keyboard",
       "patient pending",
       "select keyboard space",
@@ -198,6 +433,11 @@
       "legacy sessions and void preserve count",
       "old route redirect",
       "follow-up preserves billing counters",
+      "detail reschedule opens original form",
+      "detail cancel works",
+      "yesterday calendar confirmation and retry",
+      "previous-week calendar confirmation",
+      "original dates in patient pending",
       "viewport fits"
     ],
     "requests": [
@@ -224,6 +464,26 @@
       {
         "method": "POST",
         "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "PUT",
+        "path": "/api/appointments/21"
       },
       {
         "method": "GET",
@@ -348,6 +608,142 @@
       {
         "method": "GET",
         "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments/availability"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "POST",
+        "path": "/api/appointments/21/confirm"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/diagnoses"
+      },
+      {
+        "method": "GET",
+        "path": "/api/patients/7/billing"
+      },
+      {
+        "method": "GET",
+        "path": "/api/auth/me"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "DELETE",
+        "path": "/api/appointments/21"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
+      },
+      {
+        "method": "GET",
+        "path": "/api/appointments"
       }
     ]
   }

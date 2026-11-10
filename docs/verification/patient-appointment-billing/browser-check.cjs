@@ -28,9 +28,11 @@ async function keyboardActivate(page, locator) {
       const context = await browser.newContext({ viewport: { width, height: 900 }, timezoneId: 'America/Buenos_Aires' });
       await context.addInitScript(session => localStorage.setItem('to-management.session', JSON.stringify(session)), { token, user });
       const page = await context.newPage();
+      await page.clock.install({ time: new Date('2026-11-10T12:00:00Z') });
       const errors = [], requests = [], unknown = [];
       let appointment = null, billed = false, newBilling = null, followUps = [];
       let legacyVoided = false;
+      let confirmFailuresRemaining = 0, confirmAttempts = 0;
       page.on('pageerror', e => errors.push(e.message));
       function summary() {
         const session = appointment && { origin: 'APPOINTMENT', appointmentId: appointment.id, followUpId: null, date: appointment.date, startTime: appointment.startTime, confirmedAt: appointment.confirmedAt, diagnosis: null, segments: [] };
@@ -44,13 +46,26 @@ async function keyboardActivate(page, locator) {
         if (p === '/api/auth/me') return send(user);
         if (p === '/api/agenda/therapists') return send([{ id: 1, fullName: user.fullName, active: true, color: 0 }]);
         if (p === '/api/appointments/availability') return send([{ startTime: '12:00:00', available: true, reason: null }]);
-        if (p === '/api/appointments' && method === 'GET') return send(appointment ? [{ ...appointment, billed }] : []);
+        if (p === '/api/appointments' && method === 'GET') {
+          const inRange = appointment && appointment.date >= url.searchParams.get('from') && appointment.date <= url.searchParams.get('to');
+          return send(inRange ? [{ ...appointment, billed }] : []);
+        }
         if (p === '/api/appointments' && method === 'POST') {
           const body = request.postDataJSON(); assert.equal(body.diagnosisId, null);
           appointment = { id: 21, therapist: { id: 1, fullName: user.fullName, color: 0 }, patient, diagnosis: null, date: body.date, startTime: '12:00:00', endTime: '12:45:00', durationMinutes: 45, notes: null, confirmedAt: null, billed: false };
           return send(appointment, 201);
         }
-        if (p === '/api/appointments/21/confirm') { appointment.confirmedAt = '2026-11-09T15:00:00Z'; return send(appointment); }
+        if (p === '/api/appointments/21' && method === 'GET') return send({ ...appointment, billed });
+        if (p === '/api/appointments/21' && method === 'PUT') {
+          const body = request.postDataJSON(); assert.equal(body.date, appointment.date);
+          appointment = { ...appointment, ...body }; return send(appointment);
+        }
+        if (p === '/api/appointments/21' && method === 'DELETE') { appointment = null; return route.fulfill({ status: 204 }); }
+        if (p === '/api/appointments/21/confirm') {
+          assert.equal(method, 'POST'); assert.deepEqual(request.postDataJSON(), {}); confirmAttempts++;
+          if (confirmFailuresRemaining > 0) { confirmFailuresRemaining--; return send({ code: 'FIXTURE_RETRY', message: 'Error sintético: intentá de nuevo.' }, 500); }
+          appointment.confirmedAt = '2026-11-10T12:00:00Z'; return send(appointment);
+        }
         if (p === '/api/patients/7/billing') return send(summary());
         if (p === '/api/patients/7/billings') {
           const body = request.postDataJSON(); assert.deepEqual(body.appointmentIds, [21]); assert.equal(body.amount, 1000);
@@ -77,6 +92,11 @@ async function keyboardActivate(page, locator) {
       await page.getByRole('button', { name: /Sintetico.*Paciente|Paciente.*Sintetico/ }).click();
       await page.getByRole('button', { name: '12:00', exact: true }).click();
       await keyboardActivate(page, page.getByRole('button', { name: 'Reservar turno' }));
+      await visible(page.getByRole('button', { name: 'Confirmar sesión' }));
+      await page.getByRole('button', { name: 'Reprogramar', exact: true }).click();
+      await visible(page.locator('#appointment-notes'));
+      await page.locator('#appointment-notes').fill('Nota sintética');
+      await keyboardActivate(page, page.getByRole('button', { name: 'Guardar cambios', exact: true }));
       await visible(page.getByRole('button', { name: 'Confirmar sesión' }));
       await keyboardActivate(page, page.getByRole('button', { name: 'Confirmar sesión' }));
       await visible(page.getByText('✓ Confirmado · Pendiente de facturar', { exact: true }));
@@ -133,9 +153,73 @@ async function keyboardActivate(page, locator) {
       await page.goto('http://127.0.0.1:4217/pacientes/7');
       await visible(page.getByRole('heading', { name: 'Facturación', exact: true }));
       await counters(page, ['1', '0', '1']);
+
+      async function openCalendarAppointment(date) {
+        await page.goto('http://127.0.0.1:4217/agenda?vista=calendario');
+        if (date === '2026-11-03') {
+          const navigation = width < 1024 ? page.locator('.calendar-mobile') : page.locator('.calendar-toolbar');
+          await navigation.getByRole('button', { name: 'Semana anterior', exact: true }).click();
+        }
+        if (width < 1024) await page.getByRole('button', { name: date, exact: true }).click();
+        const calendar = width < 1024 ? page.locator('.calendar-mobile .agenda-block') : page.locator('.calendar-desktop .agenda-block');
+        await keyboardActivate(page, calendar);
+        await visible(page.getByRole('button', { name: 'Confirmar sesión' }));
+      }
+      for (const date of ['2026-11-09', '2026-11-03']) {
+        appointment = { ...appointment, date, confirmedAt: null, billed: false };
+        billed = false; newBilling = null; confirmAttempts = 0;
+        confirmFailuresRemaining = date === '2026-11-09' ? 1 : 0;
+        await page.goto('http://127.0.0.1:4217/agenda?vista=turnos');
+        await visible(page.getByText('No hay turnos en este período.', { exact: true }));
+        await openCalendarAppointment(date);
+        if (date === '2026-11-09') {
+          await page.getByRole('button', { name: 'Reprogramar', exact: true }).click();
+          await visible(page.locator('#appointment-date'));
+          assert.equal(await page.locator('#appointment-date').inputValue(), date);
+          await keyboardActivate(page, page.locator('.booking__cancel'));
+          await openCalendarAppointment(date);
+        }
+        const card = page.locator('app-appointment-card');
+        await visible(card.getByRole('button', { name: 'Confirmar sesión' }));
+        assert.equal(await card.locator('time').getAttribute('datetime'), date);
+        assert.match(await card.locator('time').innerText(), /2026/);
+        assert.match(await card.innerText(), /12:00/);
+        assert.equal(await page.locator('app-appointment-form').count(), 0);
+        const dimensions = await card.getByRole('button', { name: 'Confirmar sesión' }).boundingBox();
+        assert.ok(dimensions.width >= 44 && dimensions.height >= 44);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'detail viewport overflow');
+        if (confirmFailuresRemaining) {
+          await card.getByRole('button', { name: 'Confirmar sesión' }).evaluate(button => { button.click(); button.click(); });
+          await visible(card.getByRole('alert'));
+          assert.equal(confirmAttempts, 1, 'double click sends one POST');
+          assert.equal(await card.getByRole('button', { name: 'Reprogramar', exact: true }).isEnabled(), true);
+        }
+        await keyboardActivate(page, card.getByRole('button', { name: 'Confirmar sesión' }));
+        await visible(card.getByText('✓ Confirmado · Pendiente de facturar', { exact: true }));
+        assert.equal(confirmAttempts, date === '2026-11-09' ? 2 : 1);
+        assert.equal(appointment.date, date, 'confirmation preserves original date');
+        assert.equal(await card.getByRole('button').count(), 0, 'confirmed card has no editing actions');
+        await page.screenshot({ path: path.join(out, `${width}-calendar-${date}-confirmed.png`), fullPage: true });
+        await keyboardActivate(page, card.getByRole('link', { name: 'Ver ficha', exact: true }));
+        await visible(page.getByRole('heading', { name: 'Facturación', exact: true }));
+        await counters(page, ['1', '0', '1']);
+        await keyboardActivate(page, page.getByRole('button', { name: 'Registrar facturación', exact: true }));
+        await visible(page.getByRole('checkbox'));
+        assert.equal(await page.getByRole('checkbox').count(), 1);
+        assert.equal(summary().pending[0].date, date);
+        const pendingDate = date === '2026-11-09' ? '09/11/2026' : '03/11/2026';
+        assert.match(await page.locator('.billing-form').innerText(), new RegExp(pendingDate));
+        await page.screenshot({ path: path.join(out, `${width}-calendar-${date}-pending.png`), fullPage: true });
+      }
+      appointment = { ...appointment, confirmedAt: null };
+      await openCalendarAppointment('2026-11-03');
+      await page.getByRole('button', { name: 'Cancelar turno', exact: true }).click();
+      await keyboardActivate(page, page.getByRole('button', { name: 'Sí, cancelar', exact: true }));
+      await page.waitForFunction(() => !document.querySelector('app-appointment-card'));
+      assert.equal(appointment, null, 'calendar detail cancellation sends DELETE');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'horizontal viewport overflow');
       assert.deepEqual(errors, []); assert.deepEqual(unknown, []);
-      results.push({ width, passed: ['book without diagnosis', 'confirm with keyboard', 'patient pending', 'select keyboard space', 'bill', 'agenda billed', 'void restores pending', 'legacy sessions and void preserve count', 'old route redirect', 'follow-up preserves billing counters', 'viewport fits'], requests });
+      results.push({ width, passed: ['book without diagnosis', 'existing reschedule form', 'confirm with keyboard', 'patient pending', 'select keyboard space', 'bill', 'agenda billed', 'void restores pending', 'legacy sessions and void preserve count', 'old route redirect', 'follow-up preserves billing counters', 'detail reschedule opens original form', 'detail cancel works', 'yesterday calendar confirmation and retry', 'previous-week calendar confirmation', 'original dates in patient pending', 'viewport fits'], requests });
       fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify(results, null, 2));
       console.log(`PASS width=${width}`); await context.close();
     }

@@ -51,7 +51,7 @@
           [appointments]="appointments()"
           [today]="today"
           [now]="now()"
-          (select)="openAppointment($event)"
+          (select)="selectAppointment($event)"
         />
         <div class="calendar-mobile">
           <app-week-strip
@@ -67,7 +67,7 @@
             [appointments]="appointments()"
             [today]="today"
             [now]="now()"
-            (select)="openAppointment($event)"
+            (select)="selectAppointment($event)"
           />
         </div>
       </div>
@@ -90,22 +90,36 @@
 @for (open of [formOpen()]; track open) {
   @if (open && user(); as currentUser) {
     <div class="booking-overlay" (click)="closeForm()"></div>
-    <aside class="booking-panel" [attr.aria-label]="open.mode === 'new' ? 'Nuevo turno' : 'Reprogramar turno'">
+    <aside class="booking-panel" [attr.aria-label]="open.mode === 'new' ? 'Nuevo turno' : open.mode === 'view' ? 'Detalle del turno' : 'Reprogramar turno'">
       <header class="booking-panel__header">
-        <h2 class="booking-panel__title">{{ open.mode === 'new' ? 'Nuevo turno' : 'Reprogramar turno' }}</h2>
+        <h2 class="booking-panel__title">{{ open.mode === 'new' ? 'Nuevo turno' : open.mode === 'view' ? 'Detalle del turno' : 'Reprogramar turno' }}</h2>
         <button type="button" class="booking-panel__close" aria-label="Cerrar" (click)="closeForm()">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
         </button>
       </header>
-      <app-appointment-form
-        [mode]="open.mode"
-        [appointment]="open.mode === 'reschedule' ? open.appointment : null"
-        [therapists]="therapists()"
-        [currentUser]="currentUser"
-        [today]="today"
-        (saved)="formSaved()"
-        (cancelled)="closeForm()"
-      />
+      @if (open.mode === 'view') {
+        <div class="booking-panel__details">
+          <app-appointment-card
+            [appointment]="open.appointment"
+            [showDate]="true"
+            [confirmationBusy]="confirmingIds().has(open.appointment.id)"
+            [confirmationError]="confirmationErrors().get(open.appointment.id) ?? null"
+            (confirmSession)="confirmAppointment($event)"
+            (reschedule)="openAppointment($event)"
+            (cancel)="cancelAppointment($event)"
+          />
+        </div>
+      } @else {
+        <app-appointment-form
+          [mode]="open.mode"
+          [appointment]="open.mode === 'reschedule' ? open.appointment : null"
+          [therapists]="therapists()"
+          [currentUser]="currentUser"
+          [today]="today"
+          (saved)="formSaved()"
+          (cancelled)="closeForm()"
+        />
+      }
     </aside>
   }
 }

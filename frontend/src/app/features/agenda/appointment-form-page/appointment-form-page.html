@@ -2,14 +2,24 @@
   <a class="page-header__back" routerLink="/agenda" [queryParams]="backQueryParams" aria-label="Volver a la agenda">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
   </a>
-  <h1 class="page-header__title">{{ title }}</h1>
+  <h1 class="page-header__title">{{ title() }}</h1>
 </header>
 
 @if (error(); as message) {
   <p class="alert alert--error form-page__error" role="alert">{{ message }}</p>
 } @else if (ready() && currentUser(); as user) {
-  @if (appointment()?.confirmedAt) {
-    <app-appointment-card [appointment]="appointment()!" />
+  @if (appointment() && (details() || appointment()?.confirmedAt)) {
+    <div class="form-page__details">
+      <app-appointment-card
+        [appointment]="appointment()!"
+        [showDate]="true"
+        [confirmationBusy]="actionBusy()"
+        [confirmationError]="actionError()"
+        (confirmSession)="confirmAppointment()"
+        (reschedule)="reschedule()"
+        (cancel)="cancelAppointment()"
+      />
+    </div>
   } @else {
     <app-appointment-form
       [mode]="mode"

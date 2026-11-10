@@ -4,6 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Subject, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { DiagnosesService } from '../../diagnoses/diagnoses.service';
+import { PatientsService } from '../../patients/patients.service';
 import { AGENDA_TODAY } from '../agenda-dates';
 import { appointmentOf } from '../agenda-test-data';
 import { Appointment } from '../agenda.models';
@@ -11,10 +13,16 @@ import { AgendaService } from '../agenda.service';
 import { AgendaPage } from './agenda-page';
 
 describe('Agenda appointment confirmation', () => {
-  async function setup(reads?: Subject<Appointment[]>[]) {
-    const appointments = [appointmentOf({ id: 1 }), appointmentOf({ id: 2 })];
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function setup(reads?: Subject<Appointment[]>[], options: { desktop?: boolean; appointments?: Appointment[] } = {}) {
+    if (options.desktop) {
+      vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
+    }
+    const appointments = options.appointments ?? [appointmentOf({ id: 1 }), appointmentOf({ id: 2 })];
     const response = new Subject<Appointment>();
     const confirm = vi.fn().mockReturnValue(response);
+    const cancel = vi.fn().mockReturnValue(of(undefined));
     let readIndex = 0;
     const list = vi.fn().mockImplementation(() => reads ? reads[readIndex++] : of(appointments));
     TestBed.configureTestingModule({
@@ -22,7 +30,9 @@ describe('Agenda appointment confirmation', () => {
       providers: [
         provideRouter([]),
         { provide: AGENDA_TODAY, useValue: () => '2026-11-05' },
-        { provide: AgendaService, useValue: { list, confirm, therapists: () => of([]) } },
+        { provide: AgendaService, useValue: { list, confirm, cancel, therapists: () => of([]), availability: () => of([]) } },
+        { provide: DiagnosesService, useValue: { listForPatient: () => of([]) } },
+        { provide: PatientsService, useValue: {} },
         { provide: AuthService, useValue: { currentUser: signal({ id: 1, email: 'example@test.com', fullName: 'Ana', role: 'TERAPEUTA' }) } },
       ],
     });
@@ -157,5 +167,59 @@ describe('Agenda appointment confirmation', () => {
     fixture.detectChanges();
     expect(cards()[0].textContent).toContain('Confirmado · Facturado');
     expect(cards()[0].querySelector('button')).toBeNull();
+  });
+
+  it('confirms a previous-week calendar selection in the desktop panel with unchanged date and retry', async () => {
+    const past = appointmentOf({ id: 9, date: '2026-10-29' });
+    const { fixture, cards, response, confirm, router } = await setup(undefined, { desktop: true, appointments: [past] });
+    expect(cards()).toHaveLength(0); // Assigned-list filters still exclude this appointment.
+    await router.navigate([], { queryParams: { vista: 'calendario' } });
+    fixture.componentInstance['shiftWeek'](-1);
+    TestBed.tick();
+    (fixture.nativeElement.querySelector('.calendar-desktop .agenda-block') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const panel = () => fixture.nativeElement.querySelector('.booking-panel') as HTMLElement;
+    const button = () => panel().querySelector<HTMLButtonElement>('[aria-label="Confirmar sesión"]')!;
+    expect(button()).toBeTruthy();
+    expect(panel().querySelector('time')?.getAttribute('datetime')).toBe('2026-10-29');
+    expect(panel().textContent).toContain('09:00');
+    expect(panel().querySelector('app-appointment-form')).toBeNull();
+    button().click();
+    button().click();
+    fixture.detectChanges();
+    expect(confirm).toHaveBeenCalledExactlyOnceWith(9);
+    expect(panel().querySelector<HTMLButtonElement>('.appointment-card__btn')?.disabled).toBe(true);
+    response.error(new Error('offline'));
+    fixture.detectChanges();
+    expect(panel().querySelector('[role="alert"]')).toBeTruthy();
+    expect(button().disabled).toBe(false);
+    confirm.mockReturnValue(of({ ...past, confirmedAt: '2026-11-05T12:00:00Z' }));
+    button().click();
+    fixture.detectChanges();
+    expect(panel().textContent).toContain('Confirmado · Pendiente de facturar');
+    expect(panel().querySelector('.appointment-card__actions')?.textContent?.trim()).toBe('Ver ficha');
+    expect(fixture.componentInstance['appointments']()[0].date).toBe('2026-10-29');
+    expect(fixture.componentInstance['appointments']()[0].confirmedAt).toBeTruthy();
+  });
+
+  it('opens yesterday from the mobile calendar in the existing page with confirmation details', async () => {
+    const { fixture, router } = await setup(undefined, { appointments: [appointmentOf({ id: 9, date: '2026-11-04' })] });
+    await router.navigate([], { queryParams: { vista: 'calendario' } });
+    fixture.componentInstance['anchorDate'].set('2026-11-04');
+    TestBed.tick();
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    (fixture.nativeElement.querySelector('.calendar-mobile .agenda-block') as HTMLButtonElement).click();
+    expect(navigate).toHaveBeenCalledWith(['/agenda', 9, 'reprogramar'], { queryParams: { vista: 'calendario', detalle: '1' } });
+  });
+
+  it('closes a cancelled detail while preserving an unrelated open booking form', async () => {
+    const { fixture, appointments } = await setup(undefined, { desktop: true });
+    const page = fixture.componentInstance;
+    page['newAppointment']();
+    page['cancelAppointment'](appointments[0]);
+    expect(page['formOpen']()?.mode).toBe('new');
+    page['selectAppointment'](appointments[1]);
+    page['cancelAppointment'](appointments[1]);
+    expect(page['formOpen']()).toBeNull();
   });
 });
